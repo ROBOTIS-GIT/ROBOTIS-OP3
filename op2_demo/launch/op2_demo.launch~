@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+
+<launch>
+  <arg name="args" default=""/>
+  <param name="demo_config" value="$(find thormang3_demo)/config/demo_config_op.yaml"/>
+  
+  <node name="op2_demo_opc" pkg="thormang3_demo" type="thormang3_demo" output="screen" args="$(arg args)">
+    <remap from="/thormang3_demo/ik_target_pose" to="/pose_panel/pose" />
+  </node>
+  
+  <!-- <node name="thormang3_foot_step_generator" pkg="thormang3_foot_step_generator" type="thormang3_foot_step_generator_node" output="screen"/> -->
+</launch>

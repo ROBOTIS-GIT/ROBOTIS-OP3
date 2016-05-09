@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+
+<launch>    
+    <arg name="use_imu" default="false"/>
+    
+    <param name="gazebo"                   value="false"    type="bool"/>
+    <param name="gazebo_robot_name"        value="robotis_humanoid"/>
+    
+    <param name="offset_table"             value="$(find op2_manager)/config/offset.yaml"/>
+    <param name="robot_file_path"          value="$(find op2_manager)/config/OP2.robot"/>
+    <param name="init_file_path"           value="$(find op2_manager)/config/dxl_init.yaml"/>
+    
+<!--     <param name="ft_data_path"             value="$(find op2_manager)/config/ft_data.yaml"/>
+    <param name="ft_calibration_data_path" value="$(find op2_manager)/config/ft_calibration_data.yaml"/> -->
+    
+    <!-- <param name="action_file_path"         value="$(find op2_action_module)/data/motion_4096.bin"/> -->
+    	 
+    <!-- imu sensor package -->
+    <include file="$(find imu_3dm_gx4)/launch/imu.launch" if="$(arg use_imu)"/> 
+    
+    <!-- THORMANG3 Manager -->
+    <node name="op2_manager" pkg="op2_manager" type="op2_manager" output="screen"/>
+    
+</launch>

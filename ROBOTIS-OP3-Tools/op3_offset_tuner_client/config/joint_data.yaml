@@ -1,0 +1,25 @@
+right_arm:
+# order : joint_name
+  1 : r_sho_pitch
+  2 : r_sho_roll
+  3 : r_el
+left_arm:
+  1 : l_sho_pitch
+  2 : l_sho_roll
+  3 : l_el
+legs:
+  1 : r_hip_yaw
+  2 : l_hip_yaw
+  3 : r_hip_roll
+  4 : l_hip_roll
+  5 : r_hip_pitch
+  6 : l_hip_pitch
+  7 : r_knee
+  8 : l_knee
+  9 : r_ank_pitch
+  10 : l_ank_pitch
+  11 : r_ank_roll
+  12 : l_ank_roll
+body: 
+  1 : head_pan
+  2 : head_tilt

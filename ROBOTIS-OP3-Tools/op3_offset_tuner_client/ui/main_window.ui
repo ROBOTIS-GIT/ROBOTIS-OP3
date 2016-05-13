@@ -1,0 +1,933 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindowDesign</class>
+ <widget class="QMainWindow" name="MainWindowDesign">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1644</width>
+    <height>974</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>QRosApp</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../resources/images.qrc">
+    <normaloff>:/images/icon.png</normaloff>:/images/icon.png</iconset>
+  </property>
+  <property name="locale">
+   <locale language="English" country="Australia"/>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <item>
+     <widget class="QTabWidget" name="tab_manager">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>500</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>1000</height>
+       </size>
+      </property>
+      <property name="locale">
+       <locale language="English" country="Australia"/>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="tab_status">
+       <attribute name="title">
+        <string>Ros Communications</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QGroupBox" name="logging_groupBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="title">
+           <string>Logging</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_3">
+           <item row="0" column="0">
+            <widget class="QListView" name="view_logging"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1644</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_File">
+    <property name="title">
+     <string>&amp;App</string>
+    </property>
+    <addaction name="action_Preferences"/>
+    <addaction name="separator"/>
+    <addaction name="actionAbout"/>
+    <addaction name="actionAbout_Qt"/>
+    <addaction name="separator"/>
+    <addaction name="action_Quit"/>
+   </widget>
+   <addaction name="menu_File"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QDockWidget" name="dock_status">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>1100</width>
+     <height>878</height>
+    </size>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::RightDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>Command Panel</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_2">
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QFrame" name="frame">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>1000</height>
+        </size>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QTabWidget" name="tab">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>3000</height>
+           </size>
+          </property>
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <widget class="QWidget" name="right_arm_tab">
+           <attribute name="title">
+            <string>Right Arm</string>
+           </attribute>
+           <layout class="QVBoxLayout" name="verticalLayout_4">
+            <item alignment="Qt::AlignRight">
+             <widget class="QLabel" name="right_arm_modval">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>(Modval = Goal Pos. + Offset) </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="right_arm_group">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>350</height>
+               </size>
+              </property>
+              <property name="title">
+               <string>Joint Offset Data</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout">
+               <item row="1" column="4" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="r_arm_present_pos">
+                 <property name="text">
+                  <string>Present Pos.</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="2" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="r_arm_deg_2">
+                 <property name="text">
+                  <string>[deg]</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="3" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="r_arm_modval">
+                 <property name="text">
+                  <string>ModVal</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="2" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="r_arm_offset">
+                 <property name="text">
+                  <string>Offset </string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="4" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="r_arm_deg_4">
+                 <property name="text">
+                  <string>[deg]</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="3" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="r_arm_deg_3">
+                 <property name="text">
+                  <string>[deg]</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="7" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="r_arm_d_gain">
+                 <property name="text">
+                  <string>D Gain</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="5" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="r_arm_p_gain">
+                 <property name="text">
+                  <string>P Gain</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="6" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="r_arm_i_gain">
+                 <property name="text">
+                  <string>I Gain</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="r_arm_goal_pos">
+                 <property name="text">
+                  <string>Goal Pos. </string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1" alignment="Qt::AlignHCenter|Qt::AlignBottom">
+                <widget class="QLabel" name="r_arm_deg_1">
+                 <property name="text">
+                  <string>[deg]</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="label">
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="label_2">
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="right_arm_torque">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>2100</width>
+                <height>200</height>
+               </size>
+              </property>
+              <property name="title">
+               <string>Torque On/Off</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_2"/>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="left_arm_tab">
+           <attribute name="title">
+            <string>Left Arm</string>
+           </attribute>
+           <layout class="QVBoxLayout" name="verticalLayout_5">
+            <item alignment="Qt::AlignRight">
+             <widget class="QLabel" name="left_arm_modval">
+              <property name="text">
+               <string>(Modval = Goal Pos. + Offset) </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="left_arm_group">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>350</height>
+               </size>
+              </property>
+              <property name="title">
+               <string>Joint Offset Data</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_4">
+               <item row="0" column="6" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="l_arm_i_gain">
+                 <property name="text">
+                  <string>I Gain</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="4" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="l_arm_present_pos">
+                 <property name="text">
+                  <string>Present Pos.</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="l_arm_goal_pos">
+                 <property name="text">
+                  <string>Goal Pos.</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="3" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="l_arm_modval">
+                 <property name="text">
+                  <string>ModVal</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="5" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="l_arm_p_gain">
+                 <property name="text">
+                  <string>P Gain</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="l_arm_deg_1">
+                 <property name="text">
+                  <string>[deg]</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="2" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="l_arm_offset">
+                 <property name="text">
+                  <string>Offset</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="4" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="l_arm_deg_4">
+                 <property name="text">
+                  <string>[deg]</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="3" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="l_arm_deg_3">
+                 <property name="text">
+                  <string>[deg]</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="2" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="l_arm_deg_2">
+                 <property name="text">
+                  <string>[deg]</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="7" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="l_arm_d_gain">
+                 <property name="text">
+                  <string>D Gain</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="label_4">
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QLabel" name="label_3">
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="left_arm_torque">
+              <property name="maximumSize">
+               <size>
+                <width>2000</width>
+                <height>150</height>
+               </size>
+              </property>
+              <property name="title">
+               <string>Torque On/Off</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_5"/>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="leg_tab">
+           <attribute name="title">
+            <string>Legs</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_6">
+            <item row="0" column="0" alignment="Qt::AlignRight">
+             <widget class="QLabel" name="leg_modval">
+              <property name="text">
+               <string>(Modval = Goal Pos. + Offset) </string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <spacer name="verticalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="1" column="0">
+             <widget class="QGroupBox" name="leg_group">
+              <property name="title">
+               <string>Joint Offset Data</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_7">
+               <item row="1" column="4" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="leg_deg_4">
+                 <property name="text">
+                  <string>[deg]</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="3" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="leg_modval_2">
+                 <property name="text">
+                  <string>Modval</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="2" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="leg_offset">
+                 <property name="text">
+                  <string>Offset</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="3" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="leg_deg_3">
+                 <property name="text">
+                  <string>[deg]</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="5" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="leg_p_gain">
+                 <property name="text">
+                  <string>P Gain</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="2" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="leg_deg_2">
+                 <property name="text">
+                  <string>[deg]</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="6" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="leg_i_gain">
+                 <property name="text">
+                  <string>I Gain</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="leg_deg_1">
+                 <property name="text">
+                  <string>[deg]</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="4" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="leg_present_pos">
+                 <property name="text">
+                  <string>Present Pos.</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="leg_goal_pos">
+                 <property name="text">
+                  <string>Goal Pos.</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="7" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="leg_d_gain">
+                 <property name="text">
+                  <string>D Gain</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="label_6">
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QLabel" name="label_5">
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QGroupBox" name="leg_torque">
+              <property name="title">
+               <string>Torque On/Off</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_8"/>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="body_tab">
+           <attribute name="title">
+            <string>Body</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_9">
+            <item row="3" column="0">
+             <spacer name="verticalSpacer_4">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="0" column="0" alignment="Qt::AlignRight">
+             <widget class="QLabel" name="body_modval">
+              <property name="text">
+               <string>(Modval = Goal Pos. + Offset) </string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QGroupBox" name="body_group">
+              <property name="title">
+               <string>Joint Offset Data</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_10">
+               <item row="0" column="6" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="body_i_gain">
+                 <property name="text">
+                  <string>I Gain</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="5" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="body_p_gain">
+                 <property name="text">
+                  <string>P Gain</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="4" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="body_preset_pos">
+                 <property name="text">
+                  <string>Present Pos.</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="3" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="body_deg_3">
+                 <property name="text">
+                  <string>[deg]</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="3" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="body_modval_2">
+                 <property name="text">
+                  <string>Modval</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="2" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="body_deg_2">
+                 <property name="text">
+                  <string>[deg]</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="7" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="body_d_gain">
+                 <property name="text">
+                  <string>D Gain</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="2" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="body_offset">
+                 <property name="text">
+                  <string>Offset</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="body_goal_pos">
+                 <property name="text">
+                  <string>Goal Pos.</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="body_deg_1">
+                 <property name="text">
+                  <string>[deg]</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="4" alignment="Qt::AlignHCenter">
+                <widget class="QLabel" name="body_deg_4">
+                 <property name="text">
+                  <string>[deg]</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QLabel" name="label_7">
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="label_8">
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QGroupBox" name="body_torque">
+              <property name="title">
+               <string>Torque On/Off</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_11">
+               <item row="0" column="0">
+                <widget class="QLabel" name="empty_1">
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="2">
+                <widget class="QLabel" name="empty_3">
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLabel" name="empty_2">
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QWidget" name="widget" native="true">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>50</height>
+        </size>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QPushButton" name="inipose_button">
+          <property name="text">
+           <string>Initial Pose</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="refresh_button">
+          <property name="text">
+           <string>Refresh</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="save_button">
+          <property name="text">
+           <string>Save</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="quit_button">
+          <property name="text">
+           <string>Quit</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <action name="action_Quit">
+   <property name="text">
+    <string>&amp;Quit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
+   </property>
+  </action>
+  <action name="action_Preferences">
+   <property name="text">
+    <string>&amp;Preferences</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>&amp;About</string>
+   </property>
+  </action>
+  <action name="actionAbout_Qt">
+   <property name="text">
+    <string>About &amp;Qt</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="../resources/images.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>action_Quit</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindowDesign</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>quit_button</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindowDesign</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>859</x>
+     <y>552</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>469</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <buttongroups>
+  <buttongroup name="right_arm_torque_buttongroup">
+   <property name="exclusive">
+    <bool>false</bool>
+   </property>
+  </buttongroup>
+  <buttongroup name="body_torque_buttongroup">
+   <property name="exclusive">
+    <bool>false</bool>
+   </property>
+  </buttongroup>
+  <buttongroup name="leg_torque_buttongroup">
+   <property name="exclusive">
+    <bool>false</bool>
+   </property>
+  </buttongroup>
+  <buttongroup name="left_arm_torque_buttongroup">
+   <property name="exclusive">
+    <bool>false</bool>
+   </property>
+  </buttongroup>
+ </buttongroups>
+</ui>

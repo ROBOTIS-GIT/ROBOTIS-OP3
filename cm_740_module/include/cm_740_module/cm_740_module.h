@@ -10,10 +10,12 @@
 
 #include <ros/ros.h>
 #include <ros/callback_queue.h>
-#include <std_msgs/Int16.h>
+#include <sensor_msgs/Imu.h>
+#include <std_msgs/String.h>
 #include <boost/thread.hpp>
 
 #include "robotis_framework_common/SensorModule.h"
+#include "robotis_controller_msgs/StatusMsg.h"
 
 namespace ROBOTIS
 {
@@ -25,14 +27,27 @@ private:
 
     int             control_cycle_msec_;
     boost::thread   queue_thread_;
+    bool            button_mode_;
+    double          previous_volt_;
+    double          present_volt_;
+    int             volt_count_;
 
     /* sample subscriber & publisher */
-    ros::Subscriber sub1_;
-    ros::Publisher  pub1_;
+    ros::Subscriber     sub1_;
+    ros::Publisher      imu_pub_;
+    ros::Publisher      reset_dxl_pub_;
+    ros::Publisher      status_msg_pub_;
 
     CM740Module();
 
     void QueueThread();
+
+    double GetGyroValue(int dxl_value);
+    double GetAccValue(int dxl_value);
+    void fusionIMU();
+
+    void ButtonMode(bool pushed);
+    void publishStatusMsg(unsigned int type, std::string msg);
 
 public:
     virtual ~CM740Module();
@@ -40,7 +55,7 @@ public:
     static CM740Module *GetInstance() { return unique_instance_; }
 
     /* ROS Topic Callback Functions */
-    void    TopicCallback(const std_msgs::Int16::ConstPtr &msg);
+    // void    TopicCallback(const std_msgs::Int16::ConstPtr &msg);
 
     void    Initialize(const int control_cycle_msec, Robot *robot);
     void    Process(std::map<std::string, Dynamixel *> dxls);

@@ -68,6 +68,9 @@ int main(int argc, char **argv)
     /* Add Motion Module */
     // _controller->AddMotionModule((MotionModule*)ActionModule::GetInstance());
 
+    UINT8_T _error;
+    _controller->WriteCtrlItem("cm_740", "torque_enable", 1, &_error);
+
     _controller->StartTimer();
 
     while(ros::ok())

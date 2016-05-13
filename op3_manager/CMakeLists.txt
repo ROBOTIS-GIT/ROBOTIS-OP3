@@ -3,17 +3,21 @@ project(op3_manager)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  cmake_modules
+  
   dynamixel_sdk
   robotis_framework_common
   robotis_device
   robotis_controller
   robotis_controller_msgs
   robotis_math
+    
+  cm_740_module
   
-  cmake_modules
   op3_base_module
   op3_head_control_module
   op3_action_module
+  op3_io_module
   op3_kinematics_dynamics
 )
 

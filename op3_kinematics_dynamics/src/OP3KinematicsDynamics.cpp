@@ -26,7 +26,7 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TREE_SELECT tree)
         op3_link_data[0]->name                  =   "base";
         op3_link_data[0]->parent                =   -1;
         op3_link_data[0]->sibling               =   -1;
-        op3_link_data[0]->child                 =   38;
+        op3_link_data[0]->child                 =   23;
         op3_link_data[0]->mass                  =   0.0;
         op3_link_data[0]->relative_position     =   transitionXYZ( 0.0 , 0.0 , 0.0 );
         op3_link_data[0]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 0.0 );
@@ -37,143 +37,130 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TREE_SELECT tree)
 
         /* ----- passive joint -----*/
 
-        op3_link_data[38]->name                  =   "passive_x";
-        op3_link_data[38]->parent                =   0;
-        op3_link_data[38]->sibling               =   -1;
-        op3_link_data[38]->child                 =   39;
-        op3_link_data[38]->mass                  =   0.0;
-        op3_link_data[38]->relative_position     =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[38]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[38]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[38]->joint_limit_max       =   100.0;
-        op3_link_data[38]->joint_limit_min       =   -100.0;
-        op3_link_data[38]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
+        op3_link_data[23]->name                  =   "passive_x";
+        op3_link_data[23]->parent                =   0;
+        op3_link_data[23]->sibling               =   -1;
+        op3_link_data[23]->child                 =   24;
+        op3_link_data[23]->mass                  =   0.0;
+        op3_link_data[23]->relative_position     =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[23]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[23]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[23]->joint_limit_max       =   100.0;
+        op3_link_data[23]->joint_limit_min       =   -100.0;
+        op3_link_data[23]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
 
-        op3_link_data[39]->name                  =   "passive_y";
-        op3_link_data[39]->parent                =   38;
-        op3_link_data[39]->sibling               =   -1;
-        op3_link_data[39]->child                 =   40;
-        op3_link_data[39]->mass                  =   0.0;
-        op3_link_data[39]->relative_position     =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[39]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[39]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[39]->joint_limit_max       =   100.0;
-        op3_link_data[39]->joint_limit_min       =   -100.0;
-        op3_link_data[39]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
+        op3_link_data[24]->name                  =   "passive_y";
+        op3_link_data[24]->parent                =   23;
+        op3_link_data[24]->sibling               =   -1;
+        op3_link_data[24]->child                 =   25;
+        op3_link_data[24]->mass                  =   0.0;
+        op3_link_data[24]->relative_position     =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[24]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[24]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[24]->joint_limit_max       =   100.0;
+        op3_link_data[24]->joint_limit_min       =   -100.0;
+        op3_link_data[24]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
 
-        op3_link_data[40]->name                  =   "passive_z";
-        op3_link_data[40]->parent                =   39;
-        op3_link_data[40]->sibling               =   -1;
-        op3_link_data[40]->child                 =   41;
-        op3_link_data[40]->mass                  =   0.0;
-        op3_link_data[40]->relative_position     =   transitionXYZ( 0.0 , 0.0 , 0.801 );
-        op3_link_data[40]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[40]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[40]->joint_limit_max       =   100.0;
-        op3_link_data[40]->joint_limit_min       =   -100.0;
-        op3_link_data[40]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
+        op3_link_data[25]->name                  =   "passive_z";
+        op3_link_data[25]->parent                =   24;
+        op3_link_data[25]->sibling               =   -1;
+        op3_link_data[25]->child                 =   26;
+        op3_link_data[25]->mass                  =   0.0;
+        op3_link_data[25]->relative_position     =   transitionXYZ( 0.0 , 0.0 , 0.801 );
+        op3_link_data[25]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[25]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[25]->joint_limit_max       =   100.0;
+        op3_link_data[25]->joint_limit_min       =   -100.0;
+        op3_link_data[25]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
 
-        op3_link_data[41]->name                  =   "passive_roll";
-        op3_link_data[41]->parent                =   40;
-        op3_link_data[41]->sibling               =   -1;
-        op3_link_data[41]->child                 =   42;
-        op3_link_data[41]->mass                  =   0.0;
-        op3_link_data[41]->relative_position     =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[41]->joint_axis            =   transitionXYZ( 1.0 , 0.0 , 0.0 );
-        op3_link_data[41]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[41]->joint_limit_max       =   100.0;
-        op3_link_data[41]->joint_limit_min       =   -100.0;
-        op3_link_data[41]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
+        op3_link_data[26]->name                  =   "passive_roll";
+        op3_link_data[26]->parent                =   25;
+        op3_link_data[26]->sibling               =   -1;
+        op3_link_data[26]->child                 =   27;
+        op3_link_data[26]->mass                  =   0.0;
+        op3_link_data[26]->relative_position     =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[26]->joint_axis            =   transitionXYZ( 1.0 , 0.0 , 0.0 );
+        op3_link_data[26]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[26]->joint_limit_max       =   100.0;
+        op3_link_data[26]->joint_limit_min       =   -100.0;
+        op3_link_data[26]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
 
-        op3_link_data[42]->name                  =   "passive_pitch";
-        op3_link_data[42]->parent                =   41;
-        op3_link_data[42]->sibling               =   -1;
-        op3_link_data[42]->child                 =   43;
-        op3_link_data[42]->mass                  =   0.0;
-        op3_link_data[42]->relative_position     =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[42]->joint_axis            =   transitionXYZ( 0.0 , 1.0 , 0.0 );
-        op3_link_data[42]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[42]->joint_limit_max       =   100.0;
-        op3_link_data[42]->joint_limit_min       =   -100.0;
-        op3_link_data[42]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
+        op3_link_data[27]->name                  =   "passive_pitch";
+        op3_link_data[27]->parent                =   26;
+        op3_link_data[27]->sibling               =   -1;
+        op3_link_data[27]->child                 =   28;
+        op3_link_data[27]->mass                  =   0.0;
+        op3_link_data[27]->relative_position     =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[27]->joint_axis            =   transitionXYZ( 0.0 , 1.0 , 0.0 );
+        op3_link_data[27]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[27]->joint_limit_max       =   100.0;
+        op3_link_data[27]->joint_limit_min       =   -100.0;
+        op3_link_data[27]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
 
-        op3_link_data[43]->name                  =   "passive_yaw";
-        op3_link_data[43]->parent                =   42;
-        op3_link_data[43]->sibling               =   -1;
-        op3_link_data[43]->child                 =   44;
-        op3_link_data[43]->mass                  =   0.0;
-        op3_link_data[43]->relative_position     =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[43]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 1.0 );
-        op3_link_data[43]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[43]->joint_limit_max       =   100.0;
-        op3_link_data[43]->joint_limit_min       =   -100.0;
-        op3_link_data[43]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
+        op3_link_data[28]->name                  =   "passive_yaw";
+        op3_link_data[28]->parent                =   27;
+        op3_link_data[28]->sibling               =   -1;
+        op3_link_data[28]->child                 =   29;
+        op3_link_data[28]->mass                  =   0.0;
+        op3_link_data[28]->relative_position     =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[28]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 1.0 );
+        op3_link_data[28]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[28]->joint_limit_max       =   100.0;
+        op3_link_data[28]->joint_limit_min       =   -100.0;
+        op3_link_data[28]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
 
         /* ----- body -----*/
 
         // pelvis_link
-        op3_link_data[44]->name                  =   "pelvis";
-        op3_link_data[44]->parent                =   43;
-        op3_link_data[44]->sibling               =   -1;
-        op3_link_data[44]->child                 =   27;
-        op3_link_data[44]->mass                  =   6.869;
-        op3_link_data[44]->relative_position     =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[44]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[44]->center_of_mass        =   transitionXYZ( -0.011 , 0.000 , 0.058 );
-        op3_link_data[44]->joint_limit_max       =   100.0;
-        op3_link_data[44]->joint_limit_min       =   -100.0;
-        op3_link_data[44]->inertia               =   inertiaXYZ( 0.03603 , 0.00000 , 0.00016 , 0.02210 , 0.00000 , 0.03830 );
-
-        // chest_link
-        op3_link_data[27]->name                  =   "torso_y";
-        op3_link_data[27]->parent                =   44;
-        op3_link_data[27]->sibling               =   15;
-        op3_link_data[27]->child                 =   28;
-        op3_link_data[27]->mass                  =   5.383;
-        op3_link_data[27]->relative_position     =   transitionXYZ( 0.0 , 0.0 , 0.171 );
-        op3_link_data[27]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 1.0 );
-        op3_link_data[27]->center_of_mass        =   transitionXYZ( -0.007 , 0.000 , 0.109 );
-        op3_link_data[27]->joint_limit_max       =   0.6 * M_PI;
-        op3_link_data[27]->joint_limit_min       =   -0.6 * M_PI;
-        op3_link_data[27]->inertia               =   inertiaXYZ( 0.04710 , 0.00000 , 0.00036 , 0.02554 , 0.00000 , 0.03094 );
+        op3_link_data[29]->name                  =   "pelvis";
+        op3_link_data[29]->parent                =   28;
+        op3_link_data[29]->sibling               =   -1;
+        op3_link_data[29]->child                 =   19;
+        op3_link_data[29]->mass                  =   6.869;
+        op3_link_data[29]->relative_position     =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[29]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[29]->center_of_mass        =   transitionXYZ( -0.011 , 0.000 , 0.058 );
+        op3_link_data[29]->joint_limit_max       =   100.0;
+        op3_link_data[29]->joint_limit_min       =   -100.0;
+        op3_link_data[29]->inertia               =   inertiaXYZ( 0.03603 , 0.00000 , 0.00016 , 0.02210 , 0.00000 , 0.03830 );
 
         /* ----- head -----*/
 
-        // head_yaw
-        op3_link_data[28]->name                  =   "head_y";
-        op3_link_data[28]->parent                =   27;
-        op3_link_data[28]->sibling               =   1;
-        op3_link_data[28]->child                 =   29;
-        op3_link_data[28]->mass                  =   0.087;
-        op3_link_data[28]->relative_position     =   transitionXYZ( 0.0 , 0.0 , 0.229 );
-        op3_link_data[28]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 1.0 );
-        op3_link_data[28]->center_of_mass        =   transitionXYZ( 0.000 , -0.002 , 0.010 );
-        op3_link_data[28]->joint_limit_max       =   0.5 * M_PI;
-        op3_link_data[28]->joint_limit_min       =   -0.5 * M_PI;
-        op3_link_data[28]->inertia               =   inertiaXYZ( 0.00011 , 0.00000 , 0.00000 , 0.00003 , 0.00000 , 0.00012 );
+        // head_pan
+        op3_link_data[19]->name                  =   "head_pan";
+        op3_link_data[19]->parent                =   29;
+        op3_link_data[19]->sibling               =   1;
+        op3_link_data[19]->child                 =   20;
+        op3_link_data[19]->mass                  =   0.087;
+        op3_link_data[19]->relative_position     =   transitionXYZ( 0.0 , 0.0 , 0.0205 );
+        op3_link_data[19]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 1.0 );
+        op3_link_data[19]->center_of_mass        =   transitionXYZ( 0.000 , -0.002 , 0.010 );
+        op3_link_data[19]->joint_limit_max       =   0.5 * M_PI;
+        op3_link_data[19]->joint_limit_min       =   -0.5 * M_PI;
+        op3_link_data[19]->inertia               =   inertiaXYZ( 0.00011 , 0.00000 , 0.00000 , 0.00003 , 0.00000 , 0.00012 );
 
-        // head_pitch
-        op3_link_data[29]->name                  =   "head_p";
-        op3_link_data[29]->parent                =   28;
-        op3_link_data[29]->sibling               =   -1;
-        op3_link_data[29]->child                 =   -1;
-        op3_link_data[29]->mass                  =   0.724;
-        op3_link_data[29]->relative_position     =   transitionXYZ( 0.0 , -0.04500 , 0.03900 );
-        op3_link_data[29]->joint_axis            =   transitionXYZ( 0.0 , 1.0 , 0.0 );
-        op3_link_data[29]->center_of_mass        =   transitionXYZ( 0.009 , 0.046 , 0.022 );
-        op3_link_data[29]->joint_limit_max       =   0.5 * M_PI;
-        op3_link_data[29]->joint_limit_min       =   -0.5 * M_PI;
-        op3_link_data[29]->inertia               =   inertiaXYZ( 0.00113 , 0.00001 , -0.00005 , 0.00114 , 0.00002 , 0.00084 );
+        // head_tilt
+        op3_link_data[20]->name                  =   "head_tilt";
+        op3_link_data[20]->parent                =   19;
+        op3_link_data[20]->sibling               =   -1;
+        op3_link_data[20]->child                 =   -1;
+        op3_link_data[20]->mass                  =   0.724;
+        op3_link_data[20]->relative_position     =   transitionXYZ( 0.0 , 0.0 , 0.03 );
+        op3_link_data[20]->joint_axis            =   transitionXYZ( 0.0 , -1.0 , 0.0 );
+        op3_link_data[20]->center_of_mass        =   transitionXYZ( 0.009 , 0.046 , 0.022 );
+        op3_link_data[20]->joint_limit_max       =   0.5 * M_PI;
+        op3_link_data[20]->joint_limit_min       =   -0.5 * M_PI;
+        op3_link_data[20]->inertia               =   inertiaXYZ( 0.00113 , 0.00001 , -0.00005 , 0.00114 , 0.00002 , 0.00084 );
 
         /*----- right arm -----*/
 
-        // right arm shoulder pitch 1
-        op3_link_data[1]->name                  =   "r_arm_sh_p1";
-        op3_link_data[1]->parent                =   27;
+        // right arm shoulder pitch
+        op3_link_data[1]->name                  =   "r_sho_pitch";
+        op3_link_data[1]->parent                =   29;
         op3_link_data[1]->sibling               =   2;
         op3_link_data[1]->child                 =   3;
         op3_link_data[1]->mass                  =   0.194;
-        op3_link_data[1]->relative_position     =   transitionXYZ( 0.000 , -0.152 , 0.160 );
+        op3_link_data[1]->relative_position     =   transitionXYZ( 0.0 , -0.0575 , 0.0 );
         op3_link_data[1]->joint_axis            =   transitionXYZ( 0.0 , -1.0 , 0.0 );
         op3_link_data[1]->center_of_mass        =   transitionXYZ( -0.003 , -0.020 , -0.005 );
         op3_link_data[1]->joint_limit_max       =   0.5 * M_PI;
@@ -181,131 +168,53 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TREE_SELECT tree)
         op3_link_data[1]->inertia               =   inertiaXYZ( 0.00018 , 0.0 , 0.0 , 0.00058 , -0.00004 , 0.00057 );
 
         // right arm shoulder roll
-        op3_link_data[3]->name                  =   "r_arm_sh_r";
+        op3_link_data[3]->name                  =   "r_sho_roll";
         op3_link_data[3]->parent                =   1;
         op3_link_data[3]->sibling               =   -1;
         op3_link_data[3]->child                 =   5;
         op3_link_data[3]->mass                  =   0.875;
-        op3_link_data[3]->relative_position     =   transitionXYZ( 0.057 , -0.060 , -0.039 );
+        op3_link_data[3]->relative_position     =   transitionXYZ( 0.0 , -0.0245 , -0.016 );
         op3_link_data[3]->joint_axis            =   transitionXYZ( -1.0 , 0.0 , 0.0 );
         op3_link_data[3]->center_of_mass        =   transitionXYZ( -0.060 , -0.002 , 0.000 );
         op3_link_data[3]->joint_limit_max       =   0.3 * M_PI;
         op3_link_data[3]->joint_limit_min       =   -0.5 * M_PI;
         op3_link_data[3]->inertia               =   inertiaXYZ( 0.00043 , 0.00000 , 0.00000 , 0.00112 , 0.00000 , 0.00113 );
 
-        // right arm shoulder pitch 2
-        op3_link_data[5]->name                  =   "r_arm_sh_p2";
+        // right arm elbow
+        op3_link_data[5]->name                  =   "r_el";
         op3_link_data[5]->parent                =   3;
         op3_link_data[5]->sibling               =   -1;
-        op3_link_data[5]->child                 =   7;
+        op3_link_data[5]->child                 =   21;
         op3_link_data[5]->mass                  =   1.122;
-        op3_link_data[5]->relative_position     =   transitionXYZ( -0.057 , -0.033 , 0.000 );
+        op3_link_data[5]->relative_position     =   transitionXYZ( 0.016 , 0.0 , -0.06 );
         op3_link_data[5]->joint_axis            =   transitionXYZ( 0.0 , -1.0 , 0.0 );
         op3_link_data[5]->center_of_mass        =   transitionXYZ( 0.000 , -0.073 , 0.000 );
         op3_link_data[5]->joint_limit_max       =   0.5 * M_PI;
         op3_link_data[5]->joint_limit_min       =   -0.5 * M_PI;
         op3_link_data[5]->inertia               =   inertiaXYZ( 0.00277 , 0.00002 , -0.00001 , 0.00090 , 0.00004 , 0.00255 );
 
-        // right arm elbow yaw
-        op3_link_data[7]->name                  =   "r_arm_el_y";
-        op3_link_data[7]->parent                =   5;
-        op3_link_data[7]->sibling               =   -1;
-        op3_link_data[7]->child                 =   9;
-        op3_link_data[7]->mass                  =   1.357;
-        op3_link_data[7]->relative_position     =   transitionXYZ( 0.03000 , -0.18700 , 0.05700 );
-        op3_link_data[7]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , -1.0 );
-        op3_link_data[7]->center_of_mass        =   transitionXYZ( 0.042 , -0.012 , -0.058 );
-        op3_link_data[7]->joint_limit_max       =   0.4 * M_PI;
-        op3_link_data[7]->joint_limit_min       =   -0.4 * M_PI;
-        op3_link_data[7]->inertia               =   inertiaXYZ( 0.00152 , 0.00100 , -0.00006 , 0.00560 , 0.00002 , 0.00528 );
-
-        // right arm wrist roll
-        op3_link_data[9]->name                  =   "r_arm_wr_r";
-        op3_link_data[9]->parent                =   7;
-        op3_link_data[9]->sibling               =   -1;
-        op3_link_data[9]->child                 =   11;
-        op3_link_data[9]->mass                  =   0.087;
-        op3_link_data[9]->relative_position     =   transitionXYZ( 0.171 , -0.030 , -0.057 );
-        op3_link_data[9]->joint_axis            =   transitionXYZ( 1.0 , 0.0 , 0.0 );
-        op3_link_data[9]->center_of_mass        =   transitionXYZ( 0.010 , 0.000 , -0.002 );
-        op3_link_data[9]->joint_limit_max       =   0.5 * M_PI;
-        op3_link_data[9]->joint_limit_min       =   -0.5 * M_PI;
-        op3_link_data[9]->inertia               =   inertiaXYZ( 0.00012 , 0.00000 , 0.00000 , 0.00011 , 0.00000 , 0.00003 );
-
-        // right arm wrist yaw
-        op3_link_data[11]->name                  =   "r_arm_wr_y";
-        op3_link_data[11]->parent                =   9;
-        op3_link_data[11]->sibling               =   -1;
-        op3_link_data[11]->child                 =   13;
-        op3_link_data[11]->mass                  =   0.768;
-        op3_link_data[11]->relative_position     =   transitionXYZ( 0.039 , 0.000 , 0.045 );
-        op3_link_data[11]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , -1.0 );
-        op3_link_data[11]->center_of_mass        =   transitionXYZ( 0.023 , -0.001 , -0.046 );
-        op3_link_data[11]->joint_limit_max       =   0.45 * M_PI;
-        op3_link_data[11]->joint_limit_min       =   -0.45 * M_PI;
-        op3_link_data[11]->inertia               =   inertiaXYZ( 0.00059 , 0.00002 , -0.00002 , 0.00078 , 0.00000 , 0.00078 );
-
-        // right arm wrist pitch
-        op3_link_data[13]->name                  =   "r_arm_wr_p";
-        op3_link_data[13]->parent                =   11;
-        op3_link_data[13]->sibling               =   -1;
-        op3_link_data[13]->child                 =   31;
-        op3_link_data[13]->mass                  =   0.565;
-        op3_link_data[13]->relative_position     =   transitionXYZ( 0.045 , 0.045 , -0.045 );
-        op3_link_data[13]->joint_axis            =   transitionXYZ( 0.0 , 1.0 , 0.0 );
-        op3_link_data[13]->center_of_mass        =   transitionXYZ( 0.065 , -0.045 , 0.000 );
-        op3_link_data[13]->joint_limit_max       =   0.45 * M_PI;
-        op3_link_data[13]->joint_limit_min       =   -0.45 * M_PI;
-        op3_link_data[13]->inertia               =   inertiaXYZ( 0.00047 , 0.00001 , 0.00000 , 0.00042 , 0.00000 , 0.00058 );
-
-        // right arm gripper
-        op3_link_data[31]->name                  =   "r_arm_grip";
-        op3_link_data[31]->parent                =   13;
-        op3_link_data[31]->sibling               =   33;
-        op3_link_data[31]->child                 =   -1;
-        op3_link_data[31]->mass                  =   0.013;
-        op3_link_data[31]->relative_position     =   transitionXYZ( 0.088 , -0.058 , 0.000 );
-        op3_link_data[31]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 1.0 );
-        op3_link_data[31]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[31]->joint_limit_max       =   0.45 * M_PI;
-        op3_link_data[31]->joint_limit_min       =   -0.45 * M_PI;
-        op3_link_data[31]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
-
-        // right arm gripper 1
-        op3_link_data[33]->name                  =   "r_arm_grip_1";
-        op3_link_data[33]->parent                =   13;
-        op3_link_data[33]->sibling               =   35;
-        op3_link_data[33]->child                 =   -1;
-        op3_link_data[33]->mass                  =   0.013;
-        op3_link_data[33]->relative_position     =   transitionXYZ( 0.088 , -0.032 , 0.000 );
-        op3_link_data[33]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 1.0 );
-        op3_link_data[33]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[33]->joint_limit_max       =   0.45 * M_PI;
-        op3_link_data[33]->joint_limit_min       =   -0.45 * M_PI;
-        op3_link_data[33]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
-
         // right arm end effector
-        op3_link_data[35]->name                  =   "r_arm_end";
-        op3_link_data[35]->parent                =   13;
-        op3_link_data[35]->sibling               =   -1;
-        op3_link_data[35]->child                 =   -1;
-        op3_link_data[35]->mass                  =   0.0;
-        op3_link_data[35]->relative_position     =   transitionXYZ( 0.145 , -0.045 , 0.0 );
-        op3_link_data[35]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[35]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[35]->joint_limit_max       =   100.0;
-        op3_link_data[35]->joint_limit_min       =   -100.0;
-        op3_link_data[35]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
+        op3_link_data[21]->name                  =   "r_arm_end";
+        op3_link_data[21]->parent                =   5;
+        op3_link_data[21]->sibling               =   -1;
+        op3_link_data[21]->child                 =   -1;
+        op3_link_data[21]->mass                  =   0.0;
+        op3_link_data[21]->relative_position     =   transitionXYZ( 0.0 , 0.0 , -0.06 );
+        op3_link_data[21]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[21]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[21]->joint_limit_max       =   100.0;
+        op3_link_data[21]->joint_limit_min       =   -100.0;
+        op3_link_data[21]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
 
         /*----- left arm -----*/
 
-        // left arm shoulder pitch 1
-        op3_link_data[2]->name                  =   "l_arm_sh_p1";
+        // left arm shoulder pitch
+        op3_link_data[2]->name                  =   "l_sho_pitch";
         op3_link_data[2]->parent                =   27;
         op3_link_data[2]->sibling               =   -1;
         op3_link_data[2]->child                 =   4;
         op3_link_data[2]->mass                  =   0.194;
-        op3_link_data[2]->relative_position     =   transitionXYZ( 0.000 , 0.152 , 0.160 );
+        op3_link_data[2]->relative_position     =   transitionXYZ( 0.0 , 0.0575 , 0.0 );
         op3_link_data[2]->joint_axis            =   transitionXYZ( 0.0 , 1.0 , 0.0 );
         op3_link_data[2]->center_of_mass        =   transitionXYZ( -0.003 , 0.020 , -0.005 );
         op3_link_data[2]->joint_limit_max       =   0.5 * M_PI;
@@ -313,341 +222,234 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TREE_SELECT tree)
         op3_link_data[2]->inertia               =   inertiaXYZ( 0.00018 , 0.00000 , 0.00000 , 0.00058 , 0.00004 , 0.00057 );
 
         // left arm shoulder roll
-        op3_link_data[4]->name                  =   "l_arm_sh_r";
+        op3_link_data[4]->name                  =   "l_sho_roll";
         op3_link_data[4]->parent                =   2;
         op3_link_data[4]->sibling               =   -1;
         op3_link_data[4]->child                 =   6;
         op3_link_data[4]->mass                  =   0.875;
-        op3_link_data[4]->relative_position     =   transitionXYZ( 0.057 , 0.060 , -0.039 );
+        op3_link_data[4]->relative_position     =   transitionXYZ( 0.0 , 0.0245 , -0.016 );
         op3_link_data[4]->joint_axis            =   transitionXYZ( -1.0 , 0.0 , 0.0 );
         op3_link_data[4]->center_of_mass        =   transitionXYZ( -0.060 , 0.002 , 0.000 );
         op3_link_data[4]->joint_limit_max       =   0.5 * M_PI;
         op3_link_data[4]->joint_limit_min       =   -0.3 * M_PI;
         op3_link_data[4]->inertia               =   inertiaXYZ( 0.00043 , 0.00000 , 0.00000 , 0.00112 , 0.00000 , 0.00113 );
 
-        // left arm shoulder pitch 2
-        op3_link_data[6]->name                  =   "l_arm_sh_p2";
+        // left arm elbow
+        op3_link_data[6]->name                  =   "l_el";
         op3_link_data[6]->parent                =   4;
         op3_link_data[6]->sibling               =   -1;
-        op3_link_data[6]->child                 =   8;
+        op3_link_data[6]->child                 =   22;
         op3_link_data[6]->mass                  =   1.122;
-        op3_link_data[6]->relative_position     =   transitionXYZ( -0.057 , 0.033 , 0.000 );
+        op3_link_data[6]->relative_position     =   transitionXYZ( 0.016 , 0.0 , -0.06 );
         op3_link_data[6]->joint_axis            =   transitionXYZ( 0.0 , 1.0 , 0.0 );
         op3_link_data[6]->center_of_mass        =   transitionXYZ( 0.000 , 0.073 , 0.000 );
         op3_link_data[6]->joint_limit_max       =   0.5 * M_PI;
         op3_link_data[6]->joint_limit_min       =   -0.5 * M_PI;
         op3_link_data[6]->inertia               =   inertiaXYZ( 0.00277 , -0.00002 , -0.00001 , 0.00090 , -0.00004 , 0.00255 );
 
-        // left arm elbow yaw
-        op3_link_data[8]->name                  =   "l_arm_el_y";
-        op3_link_data[8]->parent                =   6;
-        op3_link_data[8]->sibling               =   -1;
-        op3_link_data[8]->child                 =   10;
-        op3_link_data[8]->mass                  =   1.357;
-        op3_link_data[8]->relative_position     =   transitionXYZ( 0.030 , 0.187 , 0.057 );
-        op3_link_data[8]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , -1.0 );
-        op3_link_data[8]->center_of_mass        =   transitionXYZ( 0.042 , 0.012 , -0.058 );
-        op3_link_data[8]->joint_limit_max       =   0.4 * M_PI;
-        op3_link_data[8]->joint_limit_min       =   -0.4 * M_PI;
-        op3_link_data[8]->inertia               =   inertiaXYZ( 0.00152 , -0.00100 , -0.00006 , 0.00560 , -0.00002 , 0.00528 );
-
-        // left arm wrist roll
-        op3_link_data[10]->name                  =   "l_arm_wr_r";
-        op3_link_data[10]->parent                =   8;
-        op3_link_data[10]->sibling               =   -1;
-        op3_link_data[10]->child                 =   12;
-        op3_link_data[10]->mass                  =   0.087;
-        op3_link_data[10]->relative_position     =   transitionXYZ( 0.171 , 0.030 , -0.057 );
-        op3_link_data[10]->joint_axis            =   transitionXYZ( 1.0 , 0.0 , 0.0 );
-        op3_link_data[10]->center_of_mass        =   transitionXYZ( 0.010 , 0.000 , 0.002 );
-        op3_link_data[10]->joint_limit_max       =   0.5 * M_PI;
-        op3_link_data[10]->joint_limit_min       =   -0.5 * M_PI;
-        op3_link_data[10]->inertia               =   inertiaXYZ( 0.00012 , 0.00000 , 0.00000 , 0.00011 , 0.00000 , 0.00003 );
-
-        // left arm wrist yaw
-        op3_link_data[12]->name                  =   "l_arm_wr_y";
-        op3_link_data[12]->parent                =   10;
-        op3_link_data[12]->sibling               =   -1;
-        op3_link_data[12]->child                 =   14;
-        op3_link_data[12]->mass                  =   0.768;
-        op3_link_data[12]->relative_position     =   transitionXYZ( 0.039 , 0.000 , 0.045 );
-        op3_link_data[12]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , -1.0 );
-        op3_link_data[12]->center_of_mass        =   transitionXYZ( 0.023 , 0.001 , -0.046 );
-        op3_link_data[12]->joint_limit_max       =   0.45 * M_PI;
-        op3_link_data[12]->joint_limit_min       =   -0.45 * M_PI;
-        op3_link_data[12]->inertia               =   inertiaXYZ( 0.00059 , -0.00002 , -0.00002 , 0.00078 , 0.00000 , 0.00078 );
-
-        // left arm wrist pitch
-        op3_link_data[14]->name                  =   "l_arm_wr_p";
-        op3_link_data[14]->parent                =   12;
-        op3_link_data[14]->sibling               =   -1;
-        op3_link_data[14]->child                 =   30;
-        op3_link_data[14]->mass                  =   0.08709;
-        op3_link_data[14]->relative_position     =   transitionXYZ( 0.045 , -0.045 , -0.045 );
-        op3_link_data[14]->joint_axis            =   transitionXYZ( 0.0 , -1.0 , 0.0 );
-        op3_link_data[14]->center_of_mass        =   transitionXYZ( 0.065 , 0.045 , 0.000 );
-        op3_link_data[14]->joint_limit_max       =   0.45 * M_PI;
-        op3_link_data[14]->joint_limit_min       =   -0.45 * M_PI;
-        op3_link_data[14]->inertia               =   inertiaXYZ( 0.00047 , -0.00001 , 0.00000 , 0.00042 , 0.00000 , 0.00058 );
-
-        // left arm gripper
-        op3_link_data[30]->name                  =   "l_arm_grip";
-        op3_link_data[30]->parent                =   14;
-        op3_link_data[30]->sibling               =   32;
-        op3_link_data[30]->child                 =   -1;
-        op3_link_data[30]->mass                  =   0.013;
-        op3_link_data[30]->relative_position     =   transitionXYZ( 0.088 , 0.058 , 0.000 );
-        op3_link_data[30]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 1.0 );
-        op3_link_data[30]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[30]->joint_limit_max       =   0.45 * M_PI;
-        op3_link_data[30]->joint_limit_min       =   -0.45 * M_PI;
-        op3_link_data[30]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
-
-        // left arm gripper_1
-        op3_link_data[32]->name                  =   "l_arm_grip_1";
-        op3_link_data[32]->parent                =   14;
-        op3_link_data[32]->sibling               =   34;
-        op3_link_data[32]->child                 =   -1;
-        op3_link_data[32]->mass                  =   0.013;
-        op3_link_data[32]->relative_position     =   transitionXYZ( 0.088 , 0.032 , 0.000 );
-        op3_link_data[32]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 1.0 );
-        op3_link_data[32]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[32]->joint_limit_max       =   0.45 * M_PI;
-        op3_link_data[32]->joint_limit_min       =   -0.45 * M_PI;
-        op3_link_data[32]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
-
         // left arm end effector
-        op3_link_data[34]->name                  =   "l_arm_end";
-        op3_link_data[34]->parent                =   14;
-        op3_link_data[34]->sibling               =   -1;
-        op3_link_data[34]->child                 =   -1;
-        op3_link_data[34]->mass                  =   0.0;
-        op3_link_data[34]->relative_position     =   transitionXYZ( 0.145 , 0.045 , 0.0 );
-        op3_link_data[34]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[34]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[34]->joint_limit_max       =   100.0;
-        op3_link_data[34]->joint_limit_min       =   -100.0;
-        op3_link_data[34]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
+        op3_link_data[22]->name                  =   "l_arm_end";
+        op3_link_data[22]->parent                =   6;
+        op3_link_data[22]->sibling               =   -1;
+        op3_link_data[22]->child                 =   -1;
+        op3_link_data[22]->mass                  =   0.0;
+        op3_link_data[22]->relative_position     =   transitionXYZ( 0.0 , 0.0 , -0.06 );
+        op3_link_data[22]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[22]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[22]->joint_limit_max       =   100.0;
+        op3_link_data[22]->joint_limit_min       =   -100.0;
+        op3_link_data[22]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
 
         /* ----- right leg -----*/
 
         // right leg hip yaw
-        op3_link_data[15]->name                  =   "r_leg_hip_y";
-        op3_link_data[15]->parent                =   44;
-        op3_link_data[15]->sibling               =   16;
-        op3_link_data[15]->child                 =   17;
-        op3_link_data[15]->mass                  =   0.243;
-        op3_link_data[15]->relative_position     =   transitionXYZ( 0.000 , -0.093 , -0.018 );
-        op3_link_data[15]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , -1.0 );
-        op3_link_data[15]->center_of_mass        =   transitionXYZ( -0.012 , 0.000 , -0.025 );
-        op3_link_data[15]->joint_limit_max       =   0.45 * M_PI;
-        op3_link_data[15]->joint_limit_min       =   -0.45 * M_PI;
-        op3_link_data[15]->inertia               =   inertiaXYZ( 0.00024 , 0.00000 , 0.00000 , 0.00101 , 0.00000 , 0.00092 );
+        op3_link_data[7]->name                  =   "r_hip_yaw";
+        op3_link_data[7]->parent                =   27;
+        op3_link_data[7]->sibling               =   8;
+        op3_link_data[7]->child                 =   9;
+        op3_link_data[7]->mass                  =   0.243;
+        op3_link_data[7]->relative_position     =   transitionXYZ( -0.005 , -0.037 , -0.0907 );
+        op3_link_data[7]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , -1.0 );
+        op3_link_data[7]->center_of_mass        =   transitionXYZ( -0.012 , 0.000 , -0.025 );
+        op3_link_data[7]->joint_limit_max       =   0.45 * M_PI;
+        op3_link_data[7]->joint_limit_min       =   -0.45 * M_PI;
+        op3_link_data[7]->inertia               =   inertiaXYZ( 0.00024 , 0.00000 , 0.00000 , 0.00101 , 0.00000 , 0.00092 );
 
         // right leg hip roll
-        op3_link_data[17]->name                  =   "r_leg_hip_r";
-        op3_link_data[17]->parent                =   15;
-        op3_link_data[17]->sibling               =   -1;
-        op3_link_data[17]->child                 =   19;
-        op3_link_data[17]->mass                  =   1.045;
-        op3_link_data[17]->relative_position     =   transitionXYZ( 0.057 , 0.000 , -0.075 );
-        op3_link_data[17]->joint_axis            =   transitionXYZ( -1.0 , 0.0 , 0.0 );
-        op3_link_data[17]->center_of_mass        =   transitionXYZ( -0.068 , 0.000 , 0.000 );
-        op3_link_data[17]->joint_limit_max       =   0.3 * M_PI;
-        op3_link_data[17]->joint_limit_min       =   -0.3 * M_PI;
-        op3_link_data[17]->inertia               =   inertiaXYZ( 0.00056 , 0.00000 , 0.00000 , 0.00168 , 0.00000 , 0.00171 );
+        op3_link_data[9]->name                  =   "r_hip_roll";
+        op3_link_data[9]->parent                =   7;
+        op3_link_data[9]->sibling               =   -1;
+        op3_link_data[9]->child                 =   11;
+        op3_link_data[9]->mass                  =   1.045;
+        op3_link_data[9]->relative_position     =   transitionXYZ( 0.000 , 0.000 , -0.0315 );
+        op3_link_data[9]->joint_axis            =   transitionXYZ( -1.0 , 0.0 , 0.0 );
+        op3_link_data[9]->center_of_mass        =   transitionXYZ( -0.068 , 0.000 , 0.000 );
+        op3_link_data[9]->joint_limit_max       =   0.3 * M_PI;
+        op3_link_data[9]->joint_limit_min       =   -0.3 * M_PI;
+        op3_link_data[9]->inertia               =   inertiaXYZ( 0.00056 , 0.00000 , 0.00000 , 0.00168 , 0.00000 , 0.00171 );
 
         // right leg hip pitch
-        op3_link_data[19]->name                  =   "r_leg_hip_p";
-        op3_link_data[19]->parent                =   17;
-        op3_link_data[19]->sibling               =   -1;
-        op3_link_data[19]->child                 =   21;
-        op3_link_data[19]->mass                  =   3.095;
-        op3_link_data[19]->relative_position     =   transitionXYZ( -0.057 , 0.033 , 0.000 );
-        op3_link_data[19]->joint_axis            =   transitionXYZ( 0.0 , -1.0 , 0.0 );
-        op3_link_data[19]->center_of_mass        =   transitionXYZ( 0.022 , 0.007 , -0.168 );
-        op3_link_data[19]->joint_limit_max       =   0.4 * M_PI;
-        op3_link_data[19]->joint_limit_min       =   -0.4 * M_PI;
-        op3_link_data[19]->inertia               =   inertiaXYZ( 0.04329 , -0.00027 , 0.00286 , 0.04042 , 0.00203 , 0.00560 );
+        op3_link_data[11]->name                  =   "r_hip_pitch";
+        op3_link_data[11]->parent                =   9;
+        op3_link_data[11]->sibling               =   -1;
+        op3_link_data[11]->child                 =   13;
+        op3_link_data[11]->mass                  =   3.095;
+        op3_link_data[11]->relative_position     =   transitionXYZ( 0.000 , 0.000 , 0.000 );
+        op3_link_data[11]->joint_axis            =   transitionXYZ( 0.0 , 1.0 , 0.0 );
+        op3_link_data[11]->center_of_mass        =   transitionXYZ( 0.022 , 0.007 , -0.168 );
+        op3_link_data[11]->joint_limit_max       =   0.4 * M_PI;
+        op3_link_data[11]->joint_limit_min       =   -0.4 * M_PI;
+        op3_link_data[11]->inertia               =   inertiaXYZ( 0.04329 , -0.00027 , 0.00286 , 0.04042 , 0.00203 , 0.00560 );
 
-        // right leg knee pitch
-        op3_link_data[21]->name                  =   "r_leg_kn_p";
-        op3_link_data[21]->parent                =   19;
-        op3_link_data[21]->sibling               =   -1;
-        op3_link_data[21]->child                 =   23;
-        op3_link_data[21]->mass                  =   2.401;
-        op3_link_data[21]->relative_position     =   transitionXYZ( 0.000 , -0.060 , -0.300 );
-        op3_link_data[21]->joint_axis            =   transitionXYZ( 0.0 , -1.0 , 0.0 );
-        op3_link_data[21]->center_of_mass        =   transitionXYZ( -0.002 , 0.066 , -0.183 );
-        op3_link_data[21]->joint_limit_max       =   0.1 * M_PI;
-        op3_link_data[21]->joint_limit_min       =   -0.7 * M_PI;
-        op3_link_data[21]->inertia               =   inertiaXYZ( 0.01971 , -0.00031 , -0.00294 , 0.01687 , -0.00140 , 0.00574 );
+        // right leg knee
+        op3_link_data[13]->name                  =   "r_knee";
+        op3_link_data[13]->parent                =   11;
+        op3_link_data[13]->sibling               =   -1;
+        op3_link_data[13]->child                 =   15;
+        op3_link_data[13]->mass                  =   2.401;
+        op3_link_data[13]->relative_position     =   transitionXYZ( 0.000 , 0.000 , -0.093 );
+        op3_link_data[13]->joint_axis            =   transitionXYZ( 0.0 , 1.0 , 0.0 );
+        op3_link_data[13]->center_of_mass        =   transitionXYZ( -0.002 , 0.066 , -0.183 );
+        op3_link_data[13]->joint_limit_max       =   0.1 * M_PI;
+        op3_link_data[13]->joint_limit_min       =   -0.7 * M_PI;
+        op3_link_data[13]->inertia               =   inertiaXYZ( 0.01971 , -0.00031 , -0.00294 , 0.01687 , -0.00140 , 0.00574 );
 
         // right leg ankle pitch
-        op3_link_data[23]->name                  =   "r_leg_an_p";
-        op3_link_data[23]->parent                =   21;
-        op3_link_data[23]->sibling               =   -1;
-        op3_link_data[23]->child                 =   25;
-        op3_link_data[23]->mass                  =   1.045;
-        op3_link_data[23]->relative_position     =   transitionXYZ( 0.000 , 0.060 , -0.300 );
-        op3_link_data[23]->joint_axis            =   transitionXYZ( 0.0 , 1.0 , 0.0 );
-        op3_link_data[23]->center_of_mass        =   transitionXYZ( -0.011 , 0.033 , 0.000 );
-        op3_link_data[23]->joint_limit_max       =   0.45 * M_PI;
-        op3_link_data[23]->joint_limit_min       =   -0.45 * M_PI;
-        op3_link_data[23]->inertia               =   inertiaXYZ( 0.00056 , 0.00000 , 0.00000 , 0.00168 , 0.00000 , 0.00171 );
+        op3_link_data[15]->name                  =   "r_ank_pitch";
+        op3_link_data[15]->parent                =   13;
+        op3_link_data[15]->sibling               =   -1;
+        op3_link_data[15]->child                 =   17;
+        op3_link_data[15]->mass                  =   1.045;
+        op3_link_data[15]->relative_position     =   transitionXYZ( 0.000 , 0.000 , -0.093 );
+        op3_link_data[15]->joint_axis            =   transitionXYZ( 0.0 , -1.0 , 0.0 );
+        op3_link_data[15]->center_of_mass        =   transitionXYZ( -0.011 , 0.033 , 0.000 );
+        op3_link_data[15]->joint_limit_max       =   0.45 * M_PI;
+        op3_link_data[15]->joint_limit_min       =   -0.45 * M_PI;
+        op3_link_data[15]->inertia               =   inertiaXYZ( 0.00056 , 0.00000 , 0.00000 , 0.00168 , 0.00000 , 0.00171 );
 
         // right leg ankle roll
-        op3_link_data[25]->name                  =   "r_leg_an_r";
-        op3_link_data[25]->parent                =   23;
-        op3_link_data[25]->sibling               =   -1;
-        op3_link_data[25]->child                 =   37;
-        op3_link_data[25]->mass                  =   0.223;
-        op3_link_data[25]->relative_position     =   transitionXYZ( 0.057 , 0.033 , 0.000 );
-        op3_link_data[25]->joint_axis            =   transitionXYZ( 1.0 , 0.0 , 0.0 );
-        op3_link_data[25]->center_of_mass        =   transitionXYZ( -0.070 , 0.000 , -0.048 );
-        op3_link_data[25]->joint_limit_max       =   0.45 * M_PI;
-        op3_link_data[25]->joint_limit_min       =   -0.45 * M_PI;
-        op3_link_data[25]->inertia               =   inertiaXYZ( 0.00022 , 0.00000 , -0.00001 , 0.00099 , 0.00000 , 0.00091 );
-
-        // right leg ft
-        op3_link_data[37]->name                  =   "r_leg_ft";
-        op3_link_data[37]->parent                =   25;
-        op3_link_data[37]->sibling               =   -1;
-        op3_link_data[37]->child                 =   45;
-        op3_link_data[37]->mass                  =   1.689;
-        op3_link_data[37]->relative_position     =   transitionXYZ( -0.057 , 0.000 , -0.087 );
-        op3_link_data[37]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[37]->center_of_mass        =   transitionXYZ( 0.000 , -0.009 , -0.013 );
-        op3_link_data[37]->joint_limit_max       =   100.0;
-        op3_link_data[37]->joint_limit_min       =   -100.0;
-        op3_link_data[37]->inertia               =   inertiaXYZ( 0.00219 , 0.00000 , 0.00000 , 0.00433 , -0.00011 , 0.00609 );
+        op3_link_data[17]->name                  =   "r_ank_roll";
+        op3_link_data[17]->parent                =   15;
+        op3_link_data[17]->sibling               =   -1;
+        op3_link_data[17]->child                 =   31;
+        op3_link_data[17]->mass                  =   0.223;
+        op3_link_data[17]->relative_position     =   transitionXYZ( 0.000 , 0.000 , 0.000 );
+        op3_link_data[17]->joint_axis            =   transitionXYZ( 1.0 , 0.0 , 0.0 );
+        op3_link_data[17]->center_of_mass        =   transitionXYZ( -0.070 , 0.000 , -0.048 );
+        op3_link_data[17]->joint_limit_max       =   0.45 * M_PI;
+        op3_link_data[17]->joint_limit_min       =   -0.45 * M_PI;
+        op3_link_data[17]->inertia               =   inertiaXYZ( 0.00022 , 0.00000 , -0.00001 , 0.00099 , 0.00000 , 0.00091 );
 
         // right leg end
-        op3_link_data[45]->name                  =   "r_leg_end";
-        op3_link_data[45]->parent                =   37;
-        op3_link_data[45]->sibling               =   -1;
-        op3_link_data[45]->child                 =   -1;
-        op3_link_data[45]->mass                  =   0.0;
-        //op3_link_data[45]->relative_position     =   transitionXYZ( 0.0 , 0.0 , -0.021 );
-        op3_link_data[45]->relative_position     =   transitionXYZ( 0.0 , 0.0 , -0.0275 );
-        op3_link_data[45]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[45]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[45]->joint_limit_max       =   100.0;
-        op3_link_data[45]->joint_limit_min       =   -100.0;
-        op3_link_data[45]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
+        op3_link_data[31]->name                  =   "r_leg_end";
+        op3_link_data[31]->parent                =   17;
+        op3_link_data[31]->sibling               =   -1;
+        op3_link_data[31]->child                 =   -1;
+        op3_link_data[31]->mass                  =   0.0;
+        op3_link_data[31]->relative_position     =   transitionXYZ( 0.0 , 0.0 , -0.03 );
+        op3_link_data[31]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[31]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[31]->joint_limit_max       =   100.0;
+        op3_link_data[31]->joint_limit_min       =   -100.0;
+        op3_link_data[31]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
 
         /* ----- left leg -----*/
 
         // left leg hip yaw
-        op3_link_data[16]->name                  =   "l_leg_hip_y";
-        op3_link_data[16]->parent                =   44;
-        op3_link_data[16]->sibling               =   -1;
-        op3_link_data[16]->child                 =   18;
-        op3_link_data[16]->mass                  =   0.243;
-        op3_link_data[16]->relative_position     =   transitionXYZ( 0.000 , 0.093 , -0.018 );
-        op3_link_data[16]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , -1.0 );
-        op3_link_data[16]->center_of_mass        =   transitionXYZ( 0.012 , 0.000 , -0.025 );
-        op3_link_data[16]->joint_limit_max       =   0.45 * M_PI;
-        op3_link_data[16]->joint_limit_min       =   -0.45 * M_PI;
-        op3_link_data[16]->inertia               =   inertiaXYZ( 0.00024 , 0.00000 , 0.00000 , 0.00101 , 0.00000 , 0.00092 );
+        op3_link_data[8]->name                  =   "l_hip_yaw";
+        op3_link_data[8]->parent                =   27;
+        op3_link_data[8]->sibling               =   -1;
+        op3_link_data[8]->child                 =   10;
+        op3_link_data[8]->mass                  =   0.243;
+        op3_link_data[8]->relative_position     =   transitionXYZ( -0.005 , 0.037 , -0.0907 );
+        op3_link_data[8]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , -1.0 );
+        op3_link_data[8]->center_of_mass        =   transitionXYZ( 0.012 , 0.000 , -0.025 );
+        op3_link_data[8]->joint_limit_max       =   0.45 * M_PI;
+        op3_link_data[8]->joint_limit_min       =   -0.45 * M_PI;
+        op3_link_data[8]->inertia               =   inertiaXYZ( 0.00024 , 0.00000 , 0.00000 , 0.00101 , 0.00000 , 0.00092 );
 
         // left leg hip roll
-        op3_link_data[18]->name                  =   "l_leg_hip_r";
-        op3_link_data[18]->parent                =   16;
-        op3_link_data[18]->sibling               =   -1;
-        op3_link_data[18]->child                 =   20;
-        op3_link_data[18]->mass                  =   1.045;
-        op3_link_data[18]->relative_position     =   transitionXYZ( 0.057 , 0.000 , -0.075 );
-        op3_link_data[18]->joint_axis            =   transitionXYZ( -1.0 , 0.0 , 0.0 );
-        op3_link_data[18]->center_of_mass        =   transitionXYZ( -0.068 , 0.000 , 0.000 );
-        op3_link_data[18]->joint_limit_max       =   0.3 * M_PI;
-        op3_link_data[18]->joint_limit_min       =   -0.3 * M_PI;
-        op3_link_data[18]->inertia               =   inertiaXYZ( 0.00056 , 0.00000 , 0.00000 , 0.00168 , 0.00000 , 0.00171 );
+        op3_link_data[10]->name                  =   "l_hip_roll";
+        op3_link_data[10]->parent                =   8;
+        op3_link_data[10]->sibling               =   -1;
+        op3_link_data[10]->child                 =   12;
+        op3_link_data[10]->mass                  =   1.045;
+        op3_link_data[10]->relative_position     =   transitionXYZ( 0.0 , 0.0 , -0.0315 );
+        op3_link_data[10]->joint_axis            =   transitionXYZ( -1.0 , 0.0 , 0.0 );
+        op3_link_data[10]->center_of_mass        =   transitionXYZ( -0.068 , 0.000 , 0.000 );
+        op3_link_data[10]->joint_limit_max       =   0.3 * M_PI;
+        op3_link_data[10]->joint_limit_min       =   -0.3 * M_PI;
+        op3_link_data[10]->inertia               =   inertiaXYZ( 0.00056 , 0.00000 , 0.00000 , 0.00168 , 0.00000 , 0.00171 );
 
         // left leg hip pitch
-        op3_link_data[20]->name                  =   "l_leg_hip_p";
-        op3_link_data[20]->parent                =   18;
-        op3_link_data[20]->sibling               =   -1;
-        op3_link_data[20]->child                 =   22;
-        op3_link_data[20]->mass                  =   3.095;
-        op3_link_data[20]->relative_position     =   transitionXYZ( -0.057 , 0.033 , 0.000 );
-        op3_link_data[20]->joint_axis            =   transitionXYZ( 0.0 , 1.0 , 0.0 );
-        op3_link_data[20]->center_of_mass        =   transitionXYZ( 0.022 , -0.007 , -0.168 );
-        op3_link_data[20]->joint_limit_max       =   0.4 * M_PI;
-        op3_link_data[20]->joint_limit_min       =   -0.4 * M_PI;
-        op3_link_data[20]->inertia               =   inertiaXYZ( 0.04328 , 0.00028 , 0.00288 , 0.04042 , -0.00202 , 0.00560 );
+        op3_link_data[12]->name                  =   "l_hip_pitch";
+        op3_link_data[12]->parent                =   10;
+        op3_link_data[12]->sibling               =   -1;
+        op3_link_data[12]->child                 =   14;
+        op3_link_data[12]->mass                  =   3.095;
+        op3_link_data[12]->relative_position     =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[12]->joint_axis            =   transitionXYZ( 0.0 , -1.0 , 0.0 );
+        op3_link_data[12]->center_of_mass        =   transitionXYZ( 0.022 , -0.007 , -0.168 );
+        op3_link_data[12]->joint_limit_max       =   0.4 * M_PI;
+        op3_link_data[12]->joint_limit_min       =   -0.4 * M_PI;
+        op3_link_data[12]->inertia               =   inertiaXYZ( 0.04328 , 0.00028 , 0.00288 , 0.04042 , -0.00202 , 0.00560 );
 
         // left leg knee pitch
-        op3_link_data[22]->name                  =   "l_leg_kn_p";
-        op3_link_data[22]->parent                =   20;
-        op3_link_data[22]->sibling               =   -1;
-        op3_link_data[22]->child                 =   24;
-        op3_link_data[22]->mass                  =   2.401;
-        op3_link_data[22]->relative_position     =   transitionXYZ( 0.000 , 0.060 , -0.300 );
-        op3_link_data[22]->joint_axis            =   transitionXYZ( 0.0 , 1.0 , 0.0 );
-        op3_link_data[22]->center_of_mass        =   transitionXYZ( -0.002 , -0.066 , -0.183 );
-        op3_link_data[22]->joint_limit_max       =   0.7 * M_PI;
-        op3_link_data[22]->joint_limit_min       =   -0.1 * M_PI;
-        op3_link_data[22]->inertia               =   inertiaXYZ( 0.01971 , 0.00031 , -0.00294 , 0.01687 , 0.00140 , 0.00574 );
+        op3_link_data[14]->name                  =   "l_knee";
+        op3_link_data[14]->parent                =   12;
+        op3_link_data[14]->sibling               =   -1;
+        op3_link_data[14]->child                 =   16;
+        op3_link_data[14]->mass                  =   2.401;
+        op3_link_data[14]->relative_position     =   transitionXYZ( 0.000 , 0.000 , -0.093 );
+        op3_link_data[14]->joint_axis            =   transitionXYZ( 0.0 , -1.0 , 0.0 );
+        op3_link_data[14]->center_of_mass        =   transitionXYZ( -0.002 , -0.066 , -0.183 );
+        op3_link_data[14]->joint_limit_max       =   0.7 * M_PI;
+        op3_link_data[14]->joint_limit_min       =   -0.1 * M_PI;
+        op3_link_data[14]->inertia               =   inertiaXYZ( 0.01971 , 0.00031 , -0.00294 , 0.01687 , 0.00140 , 0.00574 );
 
         // left leg ankle pitch
-        op3_link_data[24]->name                  =   "l_leg_an_p";
-        op3_link_data[24]->parent                =   22;
-        op3_link_data[24]->sibling               =   -1;
-        op3_link_data[24]->child                 =   26;
-        op3_link_data[24]->mass                  =   1.045;
-        op3_link_data[24]->relative_position     =   transitionXYZ( 0.000 , -0.060 , -0.300 );
-        op3_link_data[24]->joint_axis            =   transitionXYZ( 0.0 , -1.0 , 0.0 );
-        op3_link_data[24]->center_of_mass        =   transitionXYZ( -0.011 , -0.033 , 0.000 );
-        op3_link_data[24]->joint_limit_max       =   0.45 * M_PI;
-        op3_link_data[24]->joint_limit_min       =   -0.45 * M_PI;
-        op3_link_data[24]->inertia               =   inertiaXYZ( 0.00056 , 0.00000 , 0.00000 , 0.00168 , 0.00000 , 0.00171 );
+        op3_link_data[16]->name                  =   "l_ank_pitch";
+        op3_link_data[16]->parent                =   14;
+        op3_link_data[16]->sibling               =   -1;
+        op3_link_data[16]->child                 =   18;
+        op3_link_data[16]->mass                  =   1.045;
+        op3_link_data[16]->relative_position     =   transitionXYZ( 0.000 , 0.000 , -0.093 );
+        op3_link_data[16]->joint_axis            =   transitionXYZ( 0.0 , 1.0 , 0.0 );
+        op3_link_data[16]->center_of_mass        =   transitionXYZ( -0.011 , -0.033 , 0.000 );
+        op3_link_data[16]->joint_limit_max       =   0.45 * M_PI;
+        op3_link_data[16]->joint_limit_min       =   -0.45 * M_PI;
+        op3_link_data[16]->inertia               =   inertiaXYZ( 0.00056 , 0.00000 , 0.00000 , 0.00168 , 0.00000 , 0.00171 );
 
-        // left leg ankle pitch
-        op3_link_data[26]->name                  =   "l_leg_an_r";
-        op3_link_data[26]->parent                =   24;
-        op3_link_data[26]->sibling               =   -1;
-        op3_link_data[26]->child                 =   36;
-        op3_link_data[26]->mass                  =   0.223;
-        op3_link_data[26]->relative_position     =   transitionXYZ( 0.057 , -0.033 , 0.000 );
-        op3_link_data[26]->joint_axis            =   transitionXYZ( 1.0 , 0.0 , 0.0 );
-        op3_link_data[26]->center_of_mass        =   transitionXYZ( -0.070 , 0.000 , -0.048 );
-        op3_link_data[26]->joint_limit_max       =   0.45 * M_PI;
-        op3_link_data[26]->joint_limit_min       =   -0.45 * M_PI;
-        op3_link_data[26]->inertia               =   inertiaXYZ( 0.00022 , 0.00000 , -0.00001 , 0.00099 , 0.00000 , 0.00091 );
-
-        // left leg ft
-        op3_link_data[36]->name                  =   "l_leg_ft";
-        op3_link_data[36]->parent                =   26;
-        op3_link_data[36]->sibling               =   -1;
-        op3_link_data[36]->child                 =   46;
-        op3_link_data[36]->mass                  =   0.0;
-        op3_link_data[36]->relative_position     =   transitionXYZ( -0.057 , 0.000 , -0.087 );
-        op3_link_data[36]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[36]->center_of_mass        =   transitionXYZ( 0.000 , 0.009 , -0.013 );
-        op3_link_data[36]->joint_limit_max       =   100.0;
-        op3_link_data[36]->joint_limit_min       =   -100.0;
-        op3_link_data[36]->inertia               =   inertiaXYZ( 0.00219 , 0.00000 , 0.00000 , 0.00433 , 0.00011 , 0.00609 );
+        // left leg ankle roll
+        op3_link_data[18]->name                  =   "l_ank_roll";
+        op3_link_data[18]->parent                =   16;
+        op3_link_data[18]->sibling               =   -1;
+        op3_link_data[18]->child                 =   30;
+        op3_link_data[18]->mass                  =   0.223;
+        op3_link_data[18]->relative_position     =   transitionXYZ( 0.000 , 0.000 , 0.000 );
+        op3_link_data[18]->joint_axis            =   transitionXYZ( 1.0 , 0.0 , 0.0 );
+        op3_link_data[18]->center_of_mass        =   transitionXYZ( -0.070 , 0.000 , -0.048 );
+        op3_link_data[18]->joint_limit_max       =   0.45 * M_PI;
+        op3_link_data[18]->joint_limit_min       =   -0.45 * M_PI;
+        op3_link_data[18]->inertia               =   inertiaXYZ( 0.00022 , 0.00000 , -0.00001 , 0.00099 , 0.00000 , 0.00091 );
 
         // left leg end
-        op3_link_data[46]->name                  =   "l_leg_end";
-        op3_link_data[46]->parent                =   36;
-        op3_link_data[46]->sibling               =   -1;
-        op3_link_data[46]->child                 =   -1;
-        op3_link_data[46]->mass                  =   0.0;
-        //op3_link_data[46]->relative_position     =   transitionXYZ( 0.0 , 0.0 , -0.021 );
-        op3_link_data[46]->relative_position     =   transitionXYZ( 0.0 , 0.0 , -0.0275 );
-        op3_link_data[46]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[46]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
-        op3_link_data[46]->joint_limit_max       =   100.0;
-        op3_link_data[46]->joint_limit_min       =   -100.0;
-        op3_link_data[46]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
+        op3_link_data[30]->name                  =   "l_leg_end";
+        op3_link_data[30]->parent                =   18;
+        op3_link_data[30]->sibling               =   -1;
+        op3_link_data[30]->child                 =   -1;
+        op3_link_data[30]->mass                  =   0.0;
+        op3_link_data[30]->relative_position     =   transitionXYZ( 0.0 , 0.0 , -0.03 );
+        op3_link_data[30]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[30]->center_of_mass        =   transitionXYZ( 0.0 , 0.0 , 0.0 );
+        op3_link_data[30]->joint_limit_max       =   100.0;
+        op3_link_data[30]->joint_limit_min       =   -100.0;
+        op3_link_data[30]->inertia               =   inertiaXYZ( 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 );
     }
 
 	thigh_length_m 		= std::fabs(op3_link_data[id_r_leg_start + 2*3]->relative_position.coeff(2,0));
 	calf_length_m  		= std::fabs(op3_link_data[id_r_leg_start + 2*4]->relative_position.coeff(2,0));
-	ankle_length_m 		= std::fabs(op3_link_data[id_r_leg_ft]->relative_position.coeff(2,0)
-								  + op3_link_data[id_r_leg_end]->relative_position.coeff(2,0));
+	ankle_length_m 		= std::fabs(op3_link_data[id_r_leg_end]->relative_position.coeff(2,0));
 	leg_side_offset_m 	= 2.0*(std::fabs(op3_link_data[id_r_leg_start]->relative_position.coeff(1, 0)));
 
 	std::cout << "thigh_length_m : " << thigh_length_m << "  calf_length_m : " << calf_length_m << " ankle_length_m : " << ankle_length_m <<std::endl;

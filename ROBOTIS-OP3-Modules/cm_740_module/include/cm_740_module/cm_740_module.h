@@ -27,7 +27,9 @@ private:
 
     int             control_cycle_msec_;
     boost::thread   queue_thread_;
+    bool            DEBUG;
     bool            button_mode_;
+    bool            button_start_;
     double          previous_volt_;
     double          present_volt_;
     int             volt_count_;
@@ -42,11 +44,14 @@ private:
 
     void QueueThread();
 
-    double GetGyroValue(int dxl_value);
-    double GetAccValue(int dxl_value);
+    double getGyroValue(int dxl_value);
+    double getAccValue(int dxl_value);
     void fusionIMU();
 
-    void ButtonMode(bool pushed);
+    void buttonMode(bool pushed);
+    void buttonStart(bool pushed);
+    void handleButton(const std::string &button_name);
+    void handleVoltage(double present_volt);
     void publishStatusMsg(unsigned int type, std::string msg);
 
 public:

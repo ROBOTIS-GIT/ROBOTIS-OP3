@@ -17,7 +17,6 @@ find_package(catkin REQUIRED COMPONENTS
   op3_base_module
   op3_head_control_module
   op3_action_module
-  op3_io_module
   op3_kinematics_dynamics
 )
 

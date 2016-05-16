@@ -1,20 +1,24 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(cm_740_module)
+project(op3_walking_module)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  cmake_modules
   dynamixel_sdk
-  robotis_device
+  eigen_conversions
+  op3_kinematics_dynamics
   robotis_controller_msgs
+  robotis_device
   robotis_framework_common
+  robotis_math
   roscpp
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
+find_package(Eigen REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -69,7 +73,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
+#   robotis_controller_msgs
 # )
 
 ################################################
@@ -103,8 +107,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES cm_740_module
-#  CATKIN_DEPENDS dynamixel_sdk robotis_device robotis_framework_common roscpp
+  LIBRARIES op3_walking_module
+#  CATKIN_DEPENDS cmake_modules dynamixel_sdk eigen_conversinos op3_kinematics_dynamics robotis_controller_msgs robotis_device robotis_framework_common robotis_math roscpp
 #  DEPENDS system_lib
 )
 
@@ -118,29 +122,31 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${Eigen_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-add_library(cm_740_module
-  src/cm_740_module.cpp
+add_library(op3_walking_module
+  src/op3_walking_module.cpp
 )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(cm_740_module ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(op3_walking_module ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(cm_740_module_node src/cm_740_module_node.cpp)
+# add_executable(op3_walking_module_node src/op3_walking_module_node.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(cm_740_module_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(op3_walking_module_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(cm_740_module_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(op3_walking_module
+  yaml-cpp
+  ${catkin_LIBRARIES}
+)
 
 #############
 ## Install ##
@@ -157,7 +163,7 @@ add_library(cm_740_module
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS cm_740_module cm_740_module_node
+# install(TARGETS op3_walking_module op3_walking_module_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -182,7 +188,7 @@ add_library(cm_740_module
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_cm_740_module.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_op3_walking_module.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

@@ -16,7 +16,6 @@
 #include "op3_base_module/BaseModule.h"
 #include "op3_head_control_module/HeadControlModule.h"
 #include "op3_action_module/ActionModule.h"
-#include "op3_io_module/IOModule.h"
 
 using namespace ROBOTIS;
 
@@ -123,7 +122,6 @@ int main(int argc, char **argv)
     /* Add Motion Module */
     _controller->AddMotionModule((MotionModule*)ActionModule::GetInstance());
     _controller->AddMotionModule((MotionModule*)BaseModule::GetInstance());
-    // _controller->AddMotionModule((MotionModule*)IOModule::GetInstance());
     _controller->AddMotionModule((MotionModule*)HeadControlModule::GetInstance());
 
     _controller->StartTimer();

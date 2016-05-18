@@ -7,24 +7,24 @@
  **/
 
 /*****************************************************************************
-** Includes
-*****************************************************************************/
+ ** Includes
+ *****************************************************************************/
 
 #include "../include/op3_demo/qnode.hpp"
 
 /*****************************************************************************
-** Namespaces
-*****************************************************************************/
+ ** Namespaces
+ *****************************************************************************/
 
 namespace op3_demo {
 
 /*****************************************************************************
-** Implementation
-*****************************************************************************/
+ ** Implementation
+ *****************************************************************************/
 
 QNodeOP3::QNodeOP3(int argc, char** argv )
-    : init_argc(argc)
-    , init_argv(argv)
+: init_argc(argc)
+, init_argv(argv)
 {
     // code to DEBUG
     DEBUG = false;
@@ -67,7 +67,7 @@ bool QNodeOP3::init()
     // init_ft_pub_        = _nh.advertise<std_msgs::String>("/robotis/feet_ft/ft_calib_command", 0);
     set_head_joint_angle_pub_ = _nh.advertise<sensor_msgs::JointState>("/robotis/head_control/set_joint_states", 0);
 
-//    init_ft_foot_sub_ = _nh.subscribe("/robotis/base/ini_ft_value", 10, &QNodeOP3::initFTFootCallback, this);
+    //    init_ft_foot_sub_ = _nh.subscribe("/robotis/base/ini_ft_value", 10, &QNodeOP3::initFTFootCallback, this);
 
     status_msg_sub_ = _nh.subscribe("/robotis/status", 10, &QNodeOP3::statusMsgCallback, this);
     current_module_control_sub_ = _nh.subscribe("/robotis/present_joint_ctrl_modules", 10, &QNodeOP3::refreshCurrentJointControlCallback, this);
@@ -76,20 +76,22 @@ bool QNodeOP3::init()
     get_module_control_client_ = _nh.serviceClient<robotis_controller_msgs::GetJointModule>("/robotis/get_present_joint_ctrl_modules");
 
     // Manipulation
-//    set_control_mode_msg_pub = _nh.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_ctrl_module", 0);
-//    kenematics_pose_sub = _nh.subscribe("/thormang3_demo/ik_target_pose", 10, &QNodeOP3::getKinematicsPoseCallback, this);
+    //    set_control_mode_msg_pub = _nh.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_ctrl_module", 0);
+    //    kenematics_pose_sub = _nh.subscribe("/thormang3_demo/ik_target_pose", 10, &QNodeOP3::getKinematicsPoseCallback, this);
 
     send_ini_pose_msg_pub = _nh.advertise<std_msgs::String>("/robotis/manipulation/ini_pose_msg", 0);
-//    send_des_joint_msg_pub = _nh.advertise<thormang3_manipulation_module_msgs::JointPose>("/robotis/manipulation/des_joint_msg", 0);
-//    send_ik_msg_pub = _nh.advertise<thormang3_manipulation_module_msgs::KinematicsPose>("/robotis/manipulation/ik_msg", 0);
-//    send_pathplan_demo_pub = _nh.advertise<thormang3_manipulation_module_msgs::DemoPose>("/robotis/manipulation/demo_msg", 0);
+    //    send_des_joint_msg_pub = _nh.advertise<thormang3_manipulation_module_msgs::JointPose>("/robotis/manipulation/des_joint_msg", 0);
+    //    send_ik_msg_pub = _nh.advertise<thormang3_manipulation_module_msgs::KinematicsPose>("/robotis/manipulation/ik_msg", 0);
+    //    send_pathplan_demo_pub = _nh.advertise<thormang3_manipulation_module_msgs::DemoPose>("/robotis/manipulation/demo_msg", 0);
 
-//    get_joint_pose_client = _nh.serviceClient<thormang3_manipulation_module_msgs::GetJointPose>("/robotis/manipulation/get_joint_pose");
-//    get_kinematics_pose_client = _nh.serviceClient<thormang3_manipulation_module_msgs::GetKinematicsPose>("/robotis/manipulation/get_kinematics_pose");
+    //    get_joint_pose_client = _nh.serviceClient<thormang3_manipulation_module_msgs::GetJointPose>("/robotis/manipulation/get_joint_pose");
+    //    get_kinematics_pose_client = _nh.serviceClient<thormang3_manipulation_module_msgs::GetKinematicsPose>("/robotis/manipulation/get_kinematics_pose");
 
     // Walking
-//    set_walking_command_pub = _nh.advertise<thormang3_foot_step_generator::FootStepCommand>("/robotis/thormang3_foot_step_generator/walking_command", 0);
-//    set_walking_balance_pub = _nh.advertise<std_msgs::Bool>("/robotis/thormang3_foot_step_generator/balance_command", 0);
+    set_walking_command_pub = _nh.advertise<std_msgs::String>("/robotis/walking/command", 0);
+    set_walking_param_pub = _nh.advertise<op3_walking_module_msgs::WalkingParam>("/robotis/walking/set_params", 0);
+    //    set_walking_balance_pub = _nh.advertise<std_msgs::Bool>("/robotis/thormang3_foot_step_generator/balance_command", 0);
+    get_walking_param_client_ = _nh.serviceClient<op3_walking_module_msgs::GetWalkingParam>("/robotis/walking/get_params");
 
     // Action
     motion_index_pub_ = _nh.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
@@ -615,124 +617,144 @@ void QNodeOP3::setHeadJoint(double pan, double tilt)
 
 void QNodeOP3::getJointPose( std::string joint_name )
 {
-//    thormang3_manipulation_module_msgs::GetJointPose _get_joint_pose;
+    //    thormang3_manipulation_module_msgs::GetJointPose _get_joint_pose;
 
-//    // requeset
-//    _get_joint_pose.request.joint_name = joint_name;
+    //    // requeset
+    //    _get_joint_pose.request.joint_name = joint_name;
 
-//    log( Info , "Get Curr. Joint Value" );
+    //    log( Info , "Get Curr. Joint Value" );
 
-//    std::stringstream log_msg;
+    //    std::stringstream log_msg;
 
-//    log_msg << " \n "
-//            << "joint name : "
-//            << joint_name << " \n " ;
+    //    log_msg << " \n "
+    //            << "joint name : "
+    //            << joint_name << " \n " ;
 
-//    log( Info , log_msg.str() );
+    //    log( Info , log_msg.str() );
 
-//    //response
-//    if( get_joint_pose_client.call( _get_joint_pose ) )
-//    {
-//        double _joint_value = _get_joint_pose.response.joint_value;
+    //    //response
+    //    if( get_joint_pose_client.call( _get_joint_pose ) )
+    //    {
+    //        double _joint_value = _get_joint_pose.response.joint_value;
 
-//        log( Info , "Joint Curr. Value" );
+    //        log( Info , "Joint Curr. Value" );
 
-//        std::stringstream log_msg;
+    //        std::stringstream log_msg;
 
-//        log_msg << " \n "
-//                << "curr. value : "
-//                << _joint_value << " \n ";
+    //        log_msg << " \n "
+    //                << "curr. value : "
+    //                << _joint_value << " \n ";
 
-//        log( Info , log_msg.str() );
+    //        log( Info , log_msg.str() );
 
-//        Q_EMIT updateCurrJoint( _joint_value );
-//    }
-//    else
-//        log(Error, "fail to get joint pose.");
+    //        Q_EMIT updateCurrJoint( _joint_value );
+    //    }
+    //    else
+    //        log(Error, "fail to get joint pose.");
 }
 
 void QNodeOP3::getKinematicsPose (std::string group_name )
 {
-//    thormang3_manipulation_module_msgs::GetKinematicsPose _get_kinematics_pose;
+    //    thormang3_manipulation_module_msgs::GetKinematicsPose _get_kinematics_pose;
 
-//    //request
-//    _get_kinematics_pose.request.group_name = group_name;
+    //    //request
+    //    _get_kinematics_pose.request.group_name = group_name;
 
-//    log( Info , "Solve Forward Kinematics" );
+    //    log( Info , "Solve Forward Kinematics" );
 
-//    log( Info , "Get Curr. End Effector's Pose" );
+    //    log( Info , "Get Curr. End Effector's Pose" );
 
-//    std::stringstream log_msg;
+    //    std::stringstream log_msg;
 
-//    log_msg << " \n "
-//            << "group name : "
-//            << group_name << " \n " ;
+    //    log_msg << " \n "
+    //            << "group name : "
+    //            << group_name << " \n " ;
 
-//    log( Info , log_msg.str() );
+    //    log( Info , log_msg.str() );
 
-//    //response
-//    if ( get_kinematics_pose_client.call( _get_kinematics_pose ) )
-//    {
-//        double _pos_x = _get_kinematics_pose.response.group_pose.position.x;
-//        double _pos_y = _get_kinematics_pose.response.group_pose.position.y;
-//        double _pos_z = _get_kinematics_pose.response.group_pose.position.z;
+    //    //response
+    //    if ( get_kinematics_pose_client.call( _get_kinematics_pose ) )
+    //    {
+    //        double _pos_x = _get_kinematics_pose.response.group_pose.position.x;
+    //        double _pos_y = _get_kinematics_pose.response.group_pose.position.y;
+    //        double _pos_z = _get_kinematics_pose.response.group_pose.position.z;
 
-//        double _ori_x = _get_kinematics_pose.response.group_pose.orientation.x;
-//        double _ori_y = _get_kinematics_pose.response.group_pose.orientation.y;
-//        double _ori_z = _get_kinematics_pose.response.group_pose.orientation.z;
-//        double _ori_w = _get_kinematics_pose.response.group_pose.orientation.w;
+    //        double _ori_x = _get_kinematics_pose.response.group_pose.orientation.x;
+    //        double _ori_y = _get_kinematics_pose.response.group_pose.orientation.y;
+    //        double _ori_z = _get_kinematics_pose.response.group_pose.orientation.z;
+    //        double _ori_w = _get_kinematics_pose.response.group_pose.orientation.w;
 
-//        log( Info , "End Effector Curr. Pose : " );
+    //        log( Info , "End Effector Curr. Pose : " );
 
-//        std::stringstream log_msg;
+    //        std::stringstream log_msg;
 
-//        log_msg << " \n "
-//                << "curr. pos. x : "
-//                << _pos_x << " \n "
-//                << "curr. pos. y : "
-//                << _pos_y << " \n "
-//                << "curr. pos. z : "
-//                << _pos_z << " \n "
-//                << "curr. ori. w : "
-//                << _ori_w << " \n "
-//                << "curr. ori. x : "
-//                << _ori_x << " \n "
-//                << "curr. ori. y : "
-//                << _ori_y << " \n "
-//                << "curr. ori. z : "
-//                << _ori_z << " \n ";
+    //        log_msg << " \n "
+    //                << "curr. pos. x : "
+    //                << _pos_x << " \n "
+    //                << "curr. pos. y : "
+    //                << _pos_y << " \n "
+    //                << "curr. pos. z : "
+    //                << _pos_z << " \n "
+    //                << "curr. ori. w : "
+    //                << _ori_w << " \n "
+    //                << "curr. ori. x : "
+    //                << _ori_x << " \n "
+    //                << "curr. ori. y : "
+    //                << _ori_y << " \n "
+    //                << "curr. ori. z : "
+    //                << _ori_z << " \n ";
 
-//        log( Info , log_msg.str() );
+    //        log( Info , log_msg.str() );
 
-//        Q_EMIT updateCurrPos( _pos_x , _pos_y , _pos_z );
-//        Q_EMIT updateCurrOri( _ori_x , _ori_y , _ori_z , _ori_w );
-//    }
-//    else
-//        log(Error, "fail to get kinematics pose.");
+    //        Q_EMIT updateCurrPos( _pos_x , _pos_y , _pos_z );
+    //        Q_EMIT updateCurrOri( _ori_x , _ori_y , _ori_z , _ori_w );
+    //    }
+    //    else
+    //        log(Error, "fail to get kinematics pose.");
 }
 
 void QNodeOP3::getKinematicsPoseCallback(const geometry_msgs::Pose::ConstPtr &msg)
 {
-//    double _z_offset = 0.801;
-//    Q_EMIT updateCurrPos( msg->position.x , msg->position.y , msg->position.z + _z_offset);
-//    Q_EMIT updateCurrOri( msg->orientation.x , msg->orientation.y , msg->orientation.z , msg->orientation.w );
-//}
-
-// Walking
-//void QNodeOP3::setWalkingCommand(thormang3_foot_step_generator::FootStepCommand msg)
-//{
-//    set_walking_command_pub.publish(msg);
-
-//    std::stringstream _ss;
-//    _ss << "Set Walking Command : " << msg.command << std::endl;
-//    _ss << "- Number of Step : " << msg.step_num << std::endl;
-//    _ss << "- Step Length : " << msg.step_length << std::endl;
-//    _ss << "- Side Step Length : " << msg.side_step_length << std::endl;
-//    _ss << "- Rotation Angle : " << msg.step_angle_rad << std::endl;
-
-//    log(Info, _ss.str());
+    //    double _z_offset = 0.801;
+    //    Q_EMIT updateCurrPos( msg->position.x , msg->position.y , msg->position.z + _z_offset);
+    //    Q_EMIT updateCurrOri( msg->orientation.x , msg->orientation.y , msg->orientation.z , msg->orientation.w );
 }
 
+// Walking
+void QNodeOP3::setWalkingCommand(const std::string &command)
+{
+    std_msgs::String _command_msg;
+    _command_msg.data = command;
+    set_walking_command_pub.publish(_command_msg);
+
+    std::stringstream _ss;
+    _ss << "Set Walking Command : " << _command_msg.data << std::endl;
+
+    log(Info, _ss.str());
+}
+
+void QNodeOP3::refreshWalkingParam()
+{
+    op3_walking_module_msgs::GetWalkingParam _walking_param_msg;
+
+    if(get_walking_param_client_.call(_walking_param_msg))
+    {
+        walking_param_ = _walking_param_msg.response.parameters;
+
+        // update ui
+         Q_EMIT updateWalkingParameters(walking_param_);
+        log(Info, "Get walking parameters");
+    }
+    else
+        log(Error, "Fail to get walking parameters.");
+}
+void QNodeOP3::applyWalkingParam(const op3_walking_module_msgs::WalkingParam &walking_param)
+{
+    walking_param_ = walking_param;
+
+    set_walking_param_pub.publish(walking_param_);
+    log(Info, "Apply Walking paramters.");
+}
 //void QNodeOP3::setWalkingBalance(bool on_command)
 //{
 //    std_msgs::Bool _msg;
@@ -758,17 +780,17 @@ void QNodeOP3::playMotion(int motion_index)
     std::stringstream _ss;
     switch(motion_index)
     {
-        case -2:
-            _ss << "Break Motion";
-            break;
+    case -2:
+        _ss << "Break Motion";
+        break;
 
-        case -1:
-            _ss << "STOP Motion";
-            break;
+    case -1:
+        _ss << "STOP Motion";
+        break;
 
-        default:
-            std::string _motion_name = motion_table[motion_index];
-            _ss << "Play Motion : [" << motion_index << "] " << _motion_name;
+    default:
+        std::string _motion_name = motion_table[motion_index];
+        _ss << "Play Motion : [" << motion_index << "] " << _motion_name;
     }
 
     // publish motion index
@@ -807,31 +829,31 @@ void QNodeOP3::log( const LogLevel &level, const std::string &msg, std::string s
     _sender << "[" << sender << "] ";
 
     switch ( level ) {
-        case(Debug) : {
-            ROS_DEBUG_STREAM(msg);
-            logging_model_msg << "[DEBUG] [" << _min_str.str() << ":" << _sec_str.str() << "]: " << _sender.str() << msg;
-            break;
-        }
-        case(Info) : {
-            ROS_INFO_STREAM(msg);
-            logging_model_msg << "[INFO] [" << _min_str.str() << ":" << _sec_str.str() << "]: " << _sender.str() << msg;
-            break;
-        }
-        case(Warn) : {
-            ROS_WARN_STREAM(msg);
-            logging_model_msg << "[WARN] [" << _min_str.str() << ":" << _sec_str.str() << "]: " << _sender.str() <<msg;
-            break;
-        }
-        case(Error) : {
-            ROS_ERROR_STREAM(msg);
-            logging_model_msg << "<ERROR> [" << _min_str.str() << ":" << _sec_str.str() << "]: " << _sender.str() <<msg;
-            break;
-        }
-        case(Fatal) : {
-            ROS_FATAL_STREAM(msg);
-            logging_model_msg << "[FATAL] [" << _min_str.str() << ":" << _sec_str.str() << "]: " << _sender.str() <<msg;
-            break;
-        }
+    case(Debug) : {
+        ROS_DEBUG_STREAM(msg);
+        logging_model_msg << "[DEBUG] [" << _min_str.str() << ":" << _sec_str.str() << "]: " << _sender.str() << msg;
+        break;
+    }
+    case(Info) : {
+        ROS_INFO_STREAM(msg);
+        logging_model_msg << "[INFO] [" << _min_str.str() << ":" << _sec_str.str() << "]: " << _sender.str() << msg;
+        break;
+    }
+    case(Warn) : {
+        ROS_WARN_STREAM(msg);
+        logging_model_msg << "[WARN] [" << _min_str.str() << ":" << _sec_str.str() << "]: " << _sender.str() <<msg;
+        break;
+    }
+    case(Error) : {
+        ROS_ERROR_STREAM(msg);
+        logging_model_msg << "<ERROR> [" << _min_str.str() << ":" << _sec_str.str() << "]: " << _sender.str() <<msg;
+        break;
+    }
+    case(Fatal) : {
+        ROS_FATAL_STREAM(msg);
+        logging_model_msg << "[FATAL] [" << _min_str.str() << ":" << _sec_str.str() << "]: " << _sender.str() <<msg;
+        break;
+    }
     }
     QVariant new_row(QString(logging_model_msg.str().c_str()));
     logging_model_.setData(logging_model_.index(logging_model_.rowCount()-1),new_row);

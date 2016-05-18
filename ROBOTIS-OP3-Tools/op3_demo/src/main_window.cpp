@@ -6,8 +6,8 @@
  * @date February 2011
  **/
 /*****************************************************************************
-** Includes
-*****************************************************************************/
+ ** Includes
+ *****************************************************************************/
 
 #include <QtGui>
 #include <QMessageBox>
@@ -15,21 +15,21 @@
 #include "../include/op3_demo/main_window.hpp"
 
 /*****************************************************************************
-** Namespaces
-*****************************************************************************/
+ ** Namespaces
+ *****************************************************************************/
 
 namespace op3_demo {
 
 using namespace Qt;
 
 /*****************************************************************************
-** Implementation [MainWindow]
-*****************************************************************************/
+ ** Implementation [MainWindow]
+ *****************************************************************************/
 
 MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
-    : QMainWindow(parent)
-    , qnode_op3(argc,argv)
-    , is_updating_(false)
+: QMainWindow(parent)
+, qnode_op3(argc,argv)
+, is_updating_(false)
 {
     // code to DEBUG
     DEBUG = false;
@@ -62,16 +62,18 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
     QObject::connect(&qnode_op3, SIGNAL(updateCurrPos(double , double , double)), this, SLOT(updateCurrPosSpinbox(double , double , double)));
     QObject::connect(&qnode_op3, SIGNAL(updateCurrOri(double , double , double, double)), this, SLOT(updateCurrOriSpinbox(double , double , double , double)));
 
+    qRegisterMetaType<op3_walking_module_msgs::WalkingParam>("op_walking_params");
+    QObject::connect(&qnode_op3, SIGNAL(updateWalkingParameters(op3_walking_module_msgs::WalkingParam)), this, SLOT(updateWalkingParams(op3_walking_module_msgs::WalkingParam)));
 
     /*********************
-    ** Logging
-    **********************/
+     ** Logging
+     **********************/
     ui.view_logging->setModel(qnode_op3.loggingModel());
     QObject::connect(&qnode_op3, SIGNAL(loggingUpdated()), this, SLOT(updateLoggingView()));
 
     /*********************
-    ** Auto Start
-    **********************/
+     ** Auto Start
+     **********************/
     qnode_op3.init();
     initModeUnit();
     setUserShortcut();
@@ -81,8 +83,8 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
 MainWindow::~MainWindow() {}
 
 /*****************************************************************************
-** Implementation [Slots]
-*****************************************************************************/
+ ** Implementation [Slots]
+ *****************************************************************************/
 
 void MainWindow::showNoMasterMessage()
 {
@@ -192,24 +194,63 @@ void MainWindow::on_button_grip_off_clicked(bool check)
 void MainWindow::on_button_pathplanning_ini_clicked(bool check) { sendDemoMsg("ini_pose"); }
 void MainWindow::on_button_pathplanning_a_clicked(bool check) { sendDemoMsg("line"); }
 void MainWindow::on_button_pathplanning_b_clicked(bool check) { sendDemoMsg("circle"); }
+ */
 
 // Walking
-void MainWindow::on_A0_button_fl_clicked(bool check) { sendWalkingCommand("turn left"); }
 
-void MainWindow::on_A1_button_f_clicked(bool check) { sendWalkingCommand("forward"); }
-void MainWindow::on_A2_button_fr_clicked(bool check) { sendWalkingCommand("turn right"); }
+void MainWindow::on_button_walking_start_clicked(bool check)
+{
+    qnode_op3.setWalkingCommand("start");
+}
+void MainWindow::on_button_walking_stop_clicked(bool check)
+{
+    qnode_op3.setWalkingCommand("stop");
+}
 
-void MainWindow::on_B0_button_l_clicked(bool check) { sendWalkingCommand("left"); }
-void MainWindow::on_B1_button_stop_clicked(bool check) { }  // disable
-void MainWindow::on_B2_button_r_clicked(bool check) { sendWalkingCommand("right"); }
+void MainWindow::on_button_param_refresh_clicked(bool check)
+{
+    qnode_op3.refreshWalkingParam();
+}
 
-void MainWindow::on_C0_button_bl_clicked(bool check) { }    // disable
-void MainWindow::on_C1_button_b_clicked(bool check) { sendWalkingCommand("backward"); }
-void MainWindow::on_C2_button_br_clicked(bool check) { }    // disable
+void MainWindow::on_button_param_apply_clicked(bool check)
+{
+    op3_walking_module_msgs::WalkingParam _walking_param;
 
-void MainWindow::on_button_balance_on_clicked(bool check) { qnode_thor3.setWalkingBalance(true); }
-void MainWindow::on_button_balance_off_clicked(bool check) { qnode_thor3.setWalkingBalance(false); }
-*/
+    // init pose
+    _walking_param.init_x_offset            = ui.dSpinBox_init_offset_x->value();
+    _walking_param.init_y_offset            = ui.dSpinBox_init_offset_y->value();
+    _walking_param.init_z_offset            = ui.dSpinBox_init_offset_z->value();
+    _walking_param.init_roll_offset         = ui.dSpinBox_init_offset_roll->value();
+    _walking_param.init_pitch_offset        = ui.dSpinBox_init_offset_pitch->value();
+    _walking_param.init_yaw_offset          = ui.dSpinBox_init_offset_yaw->value();
+    _walking_param.hip_pitch_offset         = ui.dSpinBox_hip_pitch_offset->value();
+    // time
+    _walking_param.period_time              = ui.dSpinBox_period_time->value();
+    _walking_param.dsp_ratio                = ui.dSpinBox_dsp_ratio->value();
+    _walking_param.step_fb_ratio            = ui.dSpinBox_step_fb_ratio->value();;
+    // walking
+    _walking_param.x_move_amplitude         = ui.dSpinBox_x_move_amplitude->value();
+    _walking_param.y_move_amplitude         = ui.dSpinBox_y_move_amplitude->value();
+    _walking_param.z_move_amplitude         = ui.dSpinBox_z_move_amplitude->value();
+    _walking_param.angle_move_amplitude     = ui.dSpinBox_y_move_amplitude->value();
+    _walking_param.move_aim_on              = ui.checkBox_move_aim_on->isChecked();
+    // balance
+    _walking_param.balance_enable           = ui.checkBox_balance_on->isChecked();
+    _walking_param.balance_hip_roll_gain    = ui.dSpinBox_hip_roll_gain->value();
+    _walking_param.balance_knee_gain        = ui.dSpinBox_knee_gain->value();
+    _walking_param.balance_ankle_roll_gain  = ui.dSpinBox_ankle_roll_gain->value();
+    _walking_param.balance_ankle_pitch_gain = ui.dSpinBox_ankle_pitch_gain->value();
+    _walking_param.y_swap_amplitude         = ui.dSpinBox_y_swap_amplitude->value();
+    _walking_param.z_swap_amplitude         = ui.dSpinBox_z_swap_amplitude->value();
+    _walking_param.pelvis_offset            = ui.dSpinBox_pelvis_offset->value();
+    _walking_param.arm_swing_gain           = ui.dSpinBox_arm_swing_gain->value();
+
+    qnode_op3.applyWalkingParam(_walking_param);
+}
+
+void MainWindow::on_checkBox_balance_on_clicked(bool check) { }
+void MainWindow::on_checkBox_balance_off_clicked(bool check) { }
+
 
 void MainWindow::on_head_center_button_clicked(bool check)
 {
@@ -223,8 +264,8 @@ void MainWindow::on_head_center_button_clicked(bool check)
 }
 
 /*****************************************************************************
-** Implemenation [Slots][manually connected]
-*****************************************************************************/
+ ** Implemenation [Slots][manually connected]
+ *****************************************************************************/
 
 /**
  * This function is signalled by the underlying model. When the model changes,
@@ -356,13 +397,18 @@ void MainWindow::updateModuleUI()
         std::map< std::string, QList<QWidget *> >::iterator _module_iter = module_ui_table_.find(_mode);
         if(_module_iter == module_ui_table_.end()) continue;
 
+        bool _is_enable = qnode_op3.isUsingModule(_mode);
+
         QList<QWidget *> _list = _module_iter->second;
         for(int ix = 0; ix < _list.size(); ix++)
         {
-            bool _is_enable = qnode_op3.isUsingModule(_mode);
             _list.at(ix)->setEnabled(_is_enable);
         }
     }
+
+    // refresh walking parameter
+    if(qnode_op3.isUsingModule("walking_module"))
+        qnode_op3.refreshWalkingParam();
 }
 
 void MainWindow::updateHeadAngles(double pan, double tilt)
@@ -442,35 +488,56 @@ void MainWindow::sendDemoMsg(const std::string &demo_command)
 
     qnode_thor3.sendDemoMsg( _msg );
 }
-*/
+ */
 
-/*
+
 // walking
-void MainWindow::sendWalkingCommand(const std::string &command)
+void MainWindow::updateWalkingParams(op3_walking_module_msgs::WalkingParam params)
 {
-    thormang3_foot_step_generator::FootStepCommand _msg;
-
-    _msg.command = command;
-    _msg.step_num = ui.A1_spinbox_step_num->value();
-    _msg.step_length = ui.B1_spinbox_f_step_length->value();
-    _msg.side_step_length = ui.C1_spinbox_s_step_length->value();
-    _msg.step_angle_rad = ui.D1_spinbox_r_angle->value() * M_PI / 180;
-
-    qnode_thor3.setWalkingCommand(_msg);
+    // init pose
+    ui.dSpinBox_init_offset_x->setValue(params.init_x_offset);
+    ui.dSpinBox_init_offset_y->setValue(params.init_y_offset);
+    ui.dSpinBox_init_offset_z->setValue(params.init_z_offset);
+    ui.dSpinBox_init_offset_roll->setValue(params.init_roll_offset);
+    ui.dSpinBox_init_offset_pitch->setValue(params.init_pitch_offset);
+    ui.dSpinBox_init_offset_yaw->setValue(params.init_yaw_offset);
+    ui.dSpinBox_hip_pitch_offset->setValue(params.hip_pitch_offset);
+    // time
+    ui.dSpinBox_period_time->setValue(params.period_time);
+    ui.dSpinBox_dsp_ratio->setValue(params.dsp_ratio);
+    ui.dSpinBox_step_fb_ratio->setValue(params.step_fb_ratio);;
+    // walking
+    ui.dSpinBox_x_move_amplitude->setValue(params.x_move_amplitude);
+    ui.dSpinBox_y_move_amplitude->setValue(params.y_move_amplitude);
+    ui.dSpinBox_z_move_amplitude->setValue(params.z_move_amplitude);
+    ui.dSpinBox_y_move_amplitude->setValue(params.angle_move_amplitude);
+    ui.checkBox_move_aim_on->setChecked(params.move_aim_on);
+    ui.checkBox_move_aim_off->setChecked(!params.move_aim_on);
+    // balance
+    ui.checkBox_balance_on->setChecked(params.balance_enable);
+    ui.checkBox_balance_off->setChecked(!params.balance_enable);
+    ui.dSpinBox_hip_roll_gain->setValue(params.balance_hip_roll_gain);
+    ui.dSpinBox_knee_gain->setValue(params.balance_knee_gain);
+    ui.dSpinBox_ankle_roll_gain->setValue(params.balance_ankle_roll_gain);
+    ui.dSpinBox_ankle_pitch_gain->setValue(params.balance_ankle_pitch_gain);
+    ui.dSpinBox_y_swap_amplitude->setValue(params.y_swap_amplitude);
+    ui.dSpinBox_z_swap_amplitude->setValue(params.z_swap_amplitude);
+    ui.dSpinBox_pelvis_offset->setValue(params.pelvis_offset);
+    ui.dSpinBox_arm_swing_gain->setValue(params.arm_swing_gain);
 }
-*/
+
 
 /*****************************************************************************
-** Implementation [Menu]
-*****************************************************************************/
+ ** Implementation [Menu]
+ *****************************************************************************/
 
 void MainWindow::on_actionAbout_triggered() {
     QMessageBox::about(this, tr("About ..."),tr("<h2>PACKAGE_NAME Test Program 0.10</h2><p>Copyright Yujin Robot</p><p>This package needs an about description.</p>"));
 }
 
 /*****************************************************************************
-** Implementation [Configuration]
-*****************************************************************************/
+ ** Implementation [Configuration]
+ *****************************************************************************/
 
 void MainWindow::initModeUnit()
 {
@@ -634,8 +701,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
 }
 
 /*****************************************************************************
-** Implementation [Util]
-*****************************************************************************/
+ ** Implementation [Util]
+ *****************************************************************************/
 
 Eigen::MatrixXd MainWindow::rx( double s )
 {

@@ -62,23 +62,17 @@ class MainWindow : public QMainWindow {
         void on_button_pathplanning_ini_clicked(bool check);
         void on_button_pathplanning_a_clicked(bool check);
         void on_button_pathplanning_b_clicked(bool check);
+        */
 
         // Walking
-        void on_A0_button_fl_clicked(bool check);
-        void on_A1_button_f_clicked(bool check);
-        void on_A2_button_fr_clicked(bool check);
+        void on_button_walking_start_clicked(bool check);
+        void on_button_walking_stop_clicked(bool check);
 
-        void on_B0_button_l_clicked(bool check);
-        void on_B1_button_stop_clicked(bool check);
-        void on_B2_button_r_clicked(bool check);
+        void on_button_param_refresh_clicked(bool check);
+        void on_button_param_apply_clicked(bool check);
 
-        void on_C0_button_bl_clicked(bool check);
-        void on_C1_button_b_clicked(bool check);
-        void on_C2_button_br_clicked(bool check);
-
-        void on_button_balance_on_clicked(bool check);
-        void on_button_balance_off_clicked(bool check);
-        */
+        void on_checkBox_balance_on_clicked(bool check);
+        void on_checkBox_balance_off_clicked(bool check);
 
         // Head Control
         void on_head_center_button_clicked(bool check);
@@ -98,6 +92,9 @@ class MainWindow : public QMainWindow {
         void updateCurrJointSpinbox( double value );
         void updateCurrPosSpinbox( double x , double y , double z  );
         void updateCurrOriSpinbox( double x , double y , double z , double w );
+
+        // Walking
+        void updateWalkingParams(op3_walking_module_msgs::WalkingParam params);
 
     private:
         Ui::MainWindowDesign ui;

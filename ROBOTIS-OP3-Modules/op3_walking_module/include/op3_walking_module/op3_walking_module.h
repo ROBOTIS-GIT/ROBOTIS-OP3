@@ -8,6 +8,8 @@
 #ifndef OP3_WALKING_MODULE_H_
 #define OP3_WALKING_MODULE_H_
 
+#include "op3_walking_parameter.h"
+
 #include <math.h>
 #include <fstream>
 #include <yaml-cpp/yaml.h>
@@ -22,27 +24,14 @@
 #include <Eigen/Dense>
 #include <eigen_conversions/eigen_msg.h>
 
-//#include "PreviewControlWalking.h"
-//#include "WalkingModuleCommon.h"
-
 #include "robotis_framework_common/MotionModule.h"
 #include "robotis_math/RobotisMath.h"
 #include "op3_kinematics_dynamics/OP3KinematicsDynamics.h"
 
 #include "robotis_controller_msgs/StatusMsg.h"
-
-//#include "thormang3_walking_module_msgs/RobotPose.h"
-//#include "thormang3_walking_module_msgs/GetReferenceStepData.h"
-//#include "thormang3_walking_module_msgs/AddStepDataArray.h"
-//#include "thormang3_walking_module_msgs/WalkingStart.h"
-//#include "thormang3_walking_module_msgs/SetBalanceParam.h"
-//#include "thormang3_walking_module_msgs/IsRunning.h"
-//#include "thormang3_walking_module_msgs/RemoveExistingStepData.h"
-//#include "thormang3_base_module_msgs/CalibrationWrench.h"
-
-//#include "imu_3dm_gx4/FilterOutput.h"
-
-#include "op3_walking_parameter.h"
+#include "op3_walking_module_msgs/WalkingParam.h"
+#include "op3_walking_module_msgs/GetWalkingParam.h"
+#include "op3_walking_module_msgs/SetWalkingParam.h"
 
 namespace ROBOTIS
 {
@@ -77,18 +66,15 @@ private:
 
     void QueueThread();
 
-    bool previous_enable, present_enable;
-    bool previous_running, present_running;
-
     /* ROS Topic Publish Functions */
-    int r_foot_ft_publish_checker_;
-    int l_foot_ft_publish_checker_;
     ros::Publisher robot_pose_pub_;
     ros::Publisher status_msg_pub_;
 
 
     Eigen::MatrixXd goal_position_;
     std::map<std::string, int> joint_table_;
+
+    op3_walking_module_msgs::WalkingParam walking_param_;
 
     // thormang3_walking_module_msgs::RobotPose  robot_pose_msg_;
     // bool    balance_update_with_loop_;
@@ -105,7 +91,9 @@ private:
 
     /* ROS Topic Callback Functions */
     void    IMUDataOutputCallback(const sensor_msgs::Imu::ConstPtr &msg);
-    void walkingCommandCallback(const std_msgs::String::ConstPtr &msg);
+    void    walkingCommandCallback(const std_msgs::String::ConstPtr &msg);
+    void    walkingParameterCallback(const op3_walking_module_msgs::WalkingParam::ConstPtr &msg);
+    bool    getWalkigParameterCallback(op3_walking_module_msgs::GetWalkingParam::Request &req, op3_walking_module_msgs::GetWalkingParam::Response &res);
 
     /* ROS Service Callback Functions */
     //    bool    GetReferenceStepDataServiceCallback(thormang3_walking_module_msgs::GetReferenceStepData::Request  &req,
@@ -191,7 +179,7 @@ private:
     bool computeIK(double *out, double x, double y, double z, double a, double b, double c);
     void updateTimeParam();
     void updateMovementParam();
-    void updateBalanceParam();
+    void updatePoseParam();
 
     void startWalking();
 
@@ -222,39 +210,6 @@ public:
         PHASE2 = 2,
         PHASE3 = 3
     };
-    // Walking initial pose
-    double X_OFFSET;
-    double Y_OFFSET;
-    double Z_OFFSET;
-    double A_OFFSET;
-    double P_OFFSET;
-    double R_OFFSET;
-
-    // Walking control
-    double PERIOD_TIME;
-    double DSP_RATIO;
-    double STEP_FB_RATIO;
-    double X_MOVE_AMPLITUDE;
-    double Y_MOVE_AMPLITUDE;
-    double Z_MOVE_AMPLITUDE;
-    double A_MOVE_AMPLITUDE;
-    bool A_MOVE_AIM_ON;
-
-    // Balance control
-    bool   BALANCE_ENABLE;
-    double BALANCE_KNEE_GAIN;
-    double BALANCE_ANKLE_PITCH_GAIN;
-    double BALANCE_HIP_ROLL_GAIN;
-    double BALANCE_ANKLE_ROLL_GAIN;
-    double Y_SWAP_AMPLITUDE;
-    double Z_SWAP_AMPLITUDE;
-    double ARM_SWING_GAIN;
-    double PELVIS_OFFSET;
-    double HIP_PITCH_OFFSET;
-
-    int    P_GAIN;
-    int    I_GAIN;
-    int    D_GAIN;
 
     int GetCurrentPhase()       { return m_Phase; }
     double GetBodySwingY()      { return m_Body_Swing_Y; }

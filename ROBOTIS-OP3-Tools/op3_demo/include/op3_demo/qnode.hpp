@@ -45,6 +45,9 @@
 //#include "thormang3_manipulation_module_msgs/GetKinematicsPose.h"
 
 // walking demo
+#include "op3_walking_module_msgs/WalkingParam.h"
+#include "op3_walking_module_msgs/GetWalkingParam.h"
+#include "op3_walking_module_msgs/SetWalkingParam.h"
 //#include "thormang3_foot_step_generator/FootStepCommand.h"
 //#include <std_msgs/Bool.h>
 
@@ -116,7 +119,9 @@ class QNodeOP3 : public QThread {
 //        void sendDemoMsg( thormang3_manipulation_module_msgs::DemoPose msg ) ;
 
         // Walking
-//        void setWalkingCommand( thormang3_foot_step_generator::FootStepCommand msg);
+        void setWalkingCommand(const std::string &command);
+        void refreshWalkingParam();
+        void applyWalkingParam(const op3_walking_module_msgs::WalkingParam &walking_param);
 //        void setWalkingBalance(bool on_command);
 
     public Q_SLOTS:
@@ -138,10 +143,16 @@ class QNodeOP3 : public QThread {
 
         void updateHeadAngles(double pan, double tilt);
 
+        // Walking
+        void updateWalkingParameters(op3_walking_module_msgs::WalkingParam params);
+
     private:
         int init_argc;
         char** init_argv;
         bool DEBUG;
+
+        op3_walking_module_msgs::WalkingParam walking_param_;
+
         ros::Publisher init_pose_pub_;
         ros::Publisher init_ft_pub_;
         ros::Publisher module_control_pub_;
@@ -170,6 +181,8 @@ class QNodeOP3 : public QThread {
         // Walking
         ros::Publisher set_walking_command_pub;
         ros::Publisher set_walking_balance_pub;
+        ros::Publisher set_walking_param_pub;
+        ros::ServiceClient get_walking_param_client_;
 
         // Action
         ros::Publisher motion_index_pub_;

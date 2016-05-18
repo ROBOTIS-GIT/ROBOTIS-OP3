@@ -40,7 +40,7 @@ WalkingMotionModule::WalkingMotionModule()
 
     result["r_sho_pitch"] = new DynamixelState();
     result["l_sho_pitch"] = new DynamixelState();
-    result["head_pan"   ] = new DynamixelState();
+    // result["head_pan"   ] = new DynamixelState();
 
     // joint table
     joint_table_["l_hip_yaw"  ] = 0;
@@ -59,57 +59,9 @@ WalkingMotionModule::WalkingMotionModule()
 
     joint_table_["r_sho_pitch"] = 12;
     joint_table_["l_sho_pitch"] = 13;
-    joint_table_["head_pan"   ] = 14;
+    // joint_table_["head_pan"   ] = 14;
 
     goal_position_      = Eigen::MatrixXd::Zero(1, result.size());
-
-    previous_enable     = present_enable    = false;
-    previous_running    = present_running   = false;
-
-    /*
-    gyro_x =  gyro_y = 0;
-    orientation_roll = orientation_pitch = 0;
-    r_foot_fx_N  = r_foot_fy_N  = r_foot_fz_N  = 0;
-    r_foot_Tx_Nm = r_foot_Ty_Nm = r_foot_Tz_Nm = 0;
-    l_foot_fx_N  = l_foot_fy_N  = l_foot_fz_N  = 0;
-    l_foot_Tx_Nm = l_foot_Ty_Nm = l_foot_Tz_Nm = 0;
-
-    r_foot_ft_publish_checker_ = -1;
-    l_foot_ft_publish_checker_ = -1;
-
-    desired_matrix_g_to_cob_   = Eigen::MatrixXd::Identity(4,4);
-    desired_matrix_g_to_rfoot_ = Eigen::MatrixXd::Identity(4,4);
-    desired_matrix_g_to_lfoot_ = Eigen::MatrixXd::Identity(4,4);
-
-    balance_update_with_loop_ = false;
-    balance_update_duration_ = 1.0;
-    balance_update_sys_time_ = 1.0;
-    balance_update_polynomial_coeff_.resize(6, 1);
-
-    double tf = balance_update_duration_;
-
-    Eigen::MatrixXd A(6,6), B(6, 1);
-    A <<  0.0,   0.0,    0.0,   0.0,    0.0, 1.0,
-          0.0,   0.0,    0.0,   0.0,    1.0, 0.0,
-          0.0,   0.0,    0.0,   2.0,    0.0, 0.0,
-             tf*tf*tf*tf*tf,     tf*tf*tf*tf,     tf*tf*tf,     tf*tf,   tf, 1.0,
-         5.0*tf*tf*tf*tf,    4.0*tf*tf*tf,    3.0*tf*tf,    2.0*tf,     1.0, 0.0,
-        20.0*tf*tf*tf,      12.0*tf*tf,       6.0*tf,       2.0,        0.0, 0.0;
-
-    B << 0, 0, 0, 1.0, 0, 0;
-
-    balance_update_polynomial_coeff_ = A.inverse() * B;
-
-    RX_PI_3x3.resize(3,3);
-    RX_PI_3x3 << 1,  0,  0,
-             0, -1,  0,
-             0,  0, -1;
-
-    RZ_PI_3x3.resize(3,3);
-    RZ_PI_3x3 << -1, 0, 0,
-            0, -1, 0,
-            0,  0, 1;
-     */
 }
 
 WalkingMotionModule::~WalkingMotionModule()
@@ -122,31 +74,37 @@ void WalkingMotionModule::Initialize(const int control_cycle_msec, Robot *robot)
     queue_thread_ = boost::thread(boost::bind(&WalkingMotionModule::QueueThread, this));
     control_cycle_msec_ = control_cycle_msec;
 
-    // mm, ms, deg
-    X_OFFSET = -10;
-    Y_OFFSET = 5;
-    Z_OFFSET = 20;
-    R_OFFSET = 0;
-    P_OFFSET = 0;
-    A_OFFSET = 0;
-    HIP_PITCH_OFFSET = 13.0;
-    PERIOD_TIME = 600;
-    DSP_RATIO = 0.1;
-    STEP_FB_RATIO = 0.28;
-    Z_MOVE_AMPLITUDE = 40;
-    Y_SWAP_AMPLITUDE = 20.0;
-    Z_SWAP_AMPLITUDE = 5;
-    PELVIS_OFFSET = 3.0;
-    ARM_SWING_GAIN = 1.5;
-    BALANCE_KNEE_GAIN = 0.3;
-    BALANCE_ANKLE_PITCH_GAIN = 0.9;
-    BALANCE_HIP_ROLL_GAIN = 0.5;
-    BALANCE_ANKLE_ROLL_GAIN = 1.0;
+    // m, ms, deg
+    // init pose
+    walking_param_.init_x_offset = -0.010;
+    walking_param_.init_y_offset = 0.005;
+    walking_param_.init_z_offset = 0.020;
+    walking_param_.init_roll_offset = 0.0;
+    walking_param_.init_pitch_offset = 0.0;
+    walking_param_.init_yaw_offset = 0.0;
+    walking_param_.hip_pitch_offset = 13.0;
+    // time
+    walking_param_.period_time = 600;
+    walking_param_.dsp_ratio = 0.1;
+    walking_param_.step_fb_ratio = 0.28;
+    // walking
+    walking_param_.x_move_amplitude = 0.0;
+    walking_param_.y_move_amplitude = 0.0;
+    walking_param_.z_move_amplitude = 0.040;    // foot height
+    walking_param_.angle_move_amplitude = 0.0;
+    // walking_param_.move_aim_on = false;
+    // balance
+    walking_param_.balance_enable = false;
+    walking_param_.balance_hip_roll_gain = 0.5;
+    walking_param_.balance_knee_gain = 0.3;
+    walking_param_.balance_ankle_roll_gain = 1.0;
+    walking_param_.balance_ankle_pitch_gain = 0.9;
+    walking_param_.y_swap_amplitude = 0.020;
+    walking_param_.z_swap_amplitude = 0.005;
+    walking_param_.pelvis_offset = 3.0;
+    walking_param_.arm_swing_gain = 1.5;
 
-    X_MOVE_AMPLITUDE   = 0;
-    Y_MOVE_AMPLITUDE   = 0;
-    A_MOVE_AMPLITUDE   = 0;
-
+    // member variable
     m_Body_Swing_Y = 0;
     m_Body_Swing_Z = 0;
 
@@ -174,95 +132,6 @@ void WalkingMotionModule::Initialize(const int control_cycle_msec, Robot *robot)
 
     updateTimeParam();
     updateMovementParam();
-
-    /*
-    PreviewControlWalking *prev_walking = PreviewControlWalkingMotionModule::GetInstance();
-    prev_walking->SetInitialPose(0, -93.0*0.001, -630*0.001, 0, 0, 0,
-            0, 93.0*0.001, -630*0.001,   0, 0, 0,
-            0,  0,   0, 0, 0, 0);
-
-    prev_walking->SetFTScaleFactor(1.0, 1.0);
-    prev_walking->SetInitForceTorque(0, 0, 0, 0, 0, 0,
-                                          0, 0, 0, 0, 0, 0);
-
-    prev_walking->WALK_STABILIZER_GAIN_RATIO = 0;
-    prev_walking->IMU_GYRO_GAIN_RATIO = 0.0;//7.31*0.01;
-    prev_walking->FORCE_MOMENT_DISTRIBUTION_RATIO = 0.0;
-
-    prev_walking->BALANCE_X_GAIN     = +1.0*20.30*0.625*(prev_walking->FORCE_MOMENT_DISTRIBUTION_RATIO)*prev_walking->WALK_STABILIZER_GAIN_RATIO;
-    prev_walking->BALANCE_Y_GAIN     = -1.0*20.30*0.75*(prev_walking->FORCE_MOMENT_DISTRIBUTION_RATIO)*prev_walking->WALK_STABILIZER_GAIN_RATIO;
-    prev_walking->BALANCE_Z_GAIN     =    0.0*2.0*(prev_walking->FORCE_MOMENT_DISTRIBUTION_RATIO)*prev_walking->WALK_STABILIZER_GAIN_RATIO;
-
-    prev_walking->BALANCE_PITCH_GAIN = -1.0*0.10*0.5 *(1.0 - prev_walking->FORCE_MOMENT_DISTRIBUTION_RATIO)*prev_walking->WALK_STABILIZER_GAIN_RATIO;
-    prev_walking->BALANCE_ROLL_GAIN  = -1.0*0.10*0.75*(1.0 - prev_walking->FORCE_MOMENT_DISTRIBUTION_RATIO)*prev_walking->WALK_STABILIZER_GAIN_RATIO;
-
-    prev_walking->HIP_ROLL_FEEDFORWARD_ANGLE_RAD = 0.0*M_PI/180.0;
-    ////////// Damping Controller
-    prev_walking->BALANCE_ANKLE_ROLL_GAIN_BY_IMU = 0;
-    prev_walking->BALANCE_ANKLE_PITCH_GAIN_BY_IMU = 0;
-
-    prev_walking->BALANCE_X_GAIN_BY_FT = 0;
-    prev_walking->BALANCE_Y_GAIN_BY_FT = 0;
-    prev_walking->BALANCE_Z_GAIN_BY_FT = 0;
-
-
-    prev_walking->BALANCE_RIGHT_ROLL_GAIN_BY_FT = 0;
-    prev_walking->BALANCE_RIGHT_PITCH_GAIN_BY_FT = 0;
-
-    prev_walking->BALANCE_LEFT_ROLL_GAIN_BY_FT = 0;
-    prev_walking->BALANCE_LEFT_PITCH_GAIN_BY_FT = 0;
-
-    //the below gain must be zero.
-    prev_walking->BALANCE_HIP_ROLL_GAIN = 0;
-    prev_walking->BALANCE_HIP_PITCH_GAIN = 0;
-    prev_walking->AXIS_CONTROLLER_GAIN = 0;
-    prev_walking->LANDING_CONTROLLER_GAIN = 0;
-
-    //time constant
-    prev_walking->BALANCE_ANKLE_ROLL_TIME_CONSTANT_BY_IMU   = 0.2;
-    prev_walking->BALANCE_ANKLE_PITCH_TIME_CONSTANT_BY_IMU  = 0.2;
-
-    prev_walking->BALANCE_X_TIME_CONSTANT                   = 0.1;
-    prev_walking->BALANCE_Y_TIME_CONSTANT                   = 0.1;
-    prev_walking->BALANCE_Z_TIME_CONSTANT                   = 0.1;
-    prev_walking->BALANCE_RIGHT_ANKLE_ROLL_TIME_CONSTANT    = 0.1;
-    prev_walking->BALANCE_RIGHT_ANKLE_PITCH_TIME_CONSTANT   = 0.1;
-    prev_walking->BALANCE_LEFT_ANKLE_ROLL_TIME_CONSTANT     = 0.1;
-    prev_walking->BALANCE_LEFT_ANKLE_PITCH_TIME_CONSTANT    = 0.1;
-
-
-    prev_walking->COB_X_MANUAL_ADJUSTMENT_M = -10.0*0.001;
-
-    prev_walking->Initialize();
-
-    prev_walking->BALANCE_ENABLE = true;
-
-    publish_mutex_.lock();
-    desired_matrix_g_to_cob_   = prev_walking->matGtoCOB;
-    desired_matrix_g_to_rfoot_ = prev_walking->matGtoRF;
-    desired_matrix_g_to_lfoot_ = prev_walking->matGtoLF;
-    publish_mutex_.unlock();
-
-    result["r_leg_hip_y"]->goal_position = prev_walking->m_OutAngleRad[0];
-    result["r_leg_hip_r"]->goal_position = prev_walking->m_OutAngleRad[1];
-    result["r_leg_hip_p"]->goal_position = prev_walking->m_OutAngleRad[2];
-    result["r_leg_kn_p"]->goal_position  = prev_walking->m_OutAngleRad[3];
-    result["r_leg_an_p"]->goal_position  = prev_walking->m_OutAngleRad[4];
-    result["r_leg_an_r"]->goal_position  = prev_walking->m_OutAngleRad[5];
-
-    result["l_leg_hip_y"]->goal_position = prev_walking->m_OutAngleRad[6];
-    result["l_leg_hip_r"]->goal_position = prev_walking->m_OutAngleRad[7];
-    result["l_leg_hip_p"]->goal_position = prev_walking->m_OutAngleRad[8];
-    result["l_leg_kn_p" ]->goal_position = prev_walking->m_OutAngleRad[9];
-    result["l_leg_an_p" ]->goal_position = prev_walking->m_OutAngleRad[10];
-    result["l_leg_an_r" ]->goal_position = prev_walking->m_OutAngleRad[11];
-
-    prev_walking->Start();
-    prev_walking->Process();
-
-    previous_enable = enable;
-    previous_running = IsRunning();
-     */
 }
 
 void    WalkingMotionModule::QueueThread()
@@ -273,11 +142,11 @@ void    WalkingMotionModule::QueueThread()
     _ros_node.setCallbackQueue(&_callback_queue);
 
     /* publish topics */
-    //robot_pose_pub_ = _ros_node.advertise<thormang3_walking_module_msgs::RobotPose>("/robotis/walking/robot_pose", 1);
     status_msg_pub_ = _ros_node.advertise<robotis_controller_msgs::StatusMsg>("robotis/status", 1);
 
 
     /* ROS Service Callback Functions */
+    ros::ServiceServer get_walking_param_server = _ros_node.advertiseService("/robotis/walking/get_params", &WalkingMotionModule::getWalkigParameterCallback, this);
     //    ros::ServiceServer get_ref_step_data_server  = _ros_node.advertiseService("/robotis/walking/get_reference_step_data",
     //                                                                                &WalkingMotionModule::GetReferenceStepDataServiceCallback, this);
     //    ros::ServiceServer add_step_data_array_sever = _ros_node.advertiseService("/robotis/walking/add_step_data",     &WalkingMotionModule::AddStepDataServiceCallback,       this);
@@ -290,6 +159,7 @@ void    WalkingMotionModule::QueueThread()
     /* sensor topic subscribe */
     ros::Subscriber _imu_data_sub = _ros_node.subscribe("/robotis/sensor/imu/imu", 0, &WalkingMotionModule::IMUDataOutputCallback, this);
     ros::Subscriber _walking_command_sub = _ros_node.subscribe("/robotis/walking/command", 0, &WalkingMotionModule::walkingCommandCallback, this);
+    ros::Subscriber _walking_param_sub = _ros_node.subscribe("/robotis/walking/set_params", 0, &WalkingMotionModule::walkingParameterCallback, this);
 
     while(_ros_node.ok())
     {
@@ -762,19 +632,38 @@ void WalkingMotionModule::walkingCommandCallback(const std_msgs::String::ConstPt
         startWalking();
     else if(msg->data == "stop")
         Stop();
+    else if(msg->data == "balance on")
+        walking_param_.balance_enable = true;
+    else if(msg->data == "balance off")
+        walking_param_.balance_enable = false;
+}
+
+void WalkingMotionModule::walkingParameterCallback(const op3_walking_module_msgs::WalkingParam::ConstPtr &msg)
+{
+    walking_param_ = *msg;
+
+    saveWalkingParam(param_path_);
+}
+
+bool WalkingMotionModule::getWalkigParameterCallback(op3_walking_module_msgs::GetWalkingParam::Request &req, op3_walking_module_msgs::GetWalkingParam::Response &res)
+{
+    res.parameters = walking_param_;
+
+    return true;
 }
 
 double WalkingMotionModule::wSin(double time, double period, double period_shift, double mag, double mag_shift)
 {
-    return mag * sin(2 * 3.141592 / period * time - period_shift) + mag_shift;
+    return mag * sin(2 * M_PI / period * time - period_shift) + mag_shift;
 }
 
+// m, rad
 bool WalkingMotionModule::computeIK(double *out, double pos_x, double pos_y, double pos_z, double ori_roll, double ori_pitch, double ori_yaw)
 {
-    double THIGH_LENGTH = 93.0; //mm
-    double CALF_LENGTH = 93.0; //mm
-    double ANKLE_LENGTH = 33.5; //mm
-    double LEG_LENGTH = 219.5; //mm (THIGH_LENGTH + CALF_LENGTH + ANKLE_LENGTH)
+    double THIGH_LENGTH = 93.0 * 0.001; //m
+    double CALF_LENGTH = 93.0 * 0.001; //m
+    double ANKLE_LENGTH = 33.5 * 0.001; //m
+    double LEG_LENGTH = 219.5 * 0.001; //m (THIGH_LENGTH + CALF_LENGTH + ANKLE_LENGTH)
 
     Eigen::MatrixXd Tad, Tda, Tcd, Tdc, Tac;
     Eigen::Vector3d vec;
@@ -782,17 +671,21 @@ bool WalkingMotionModule::computeIK(double *out, double pos_x, double pos_y, dou
 
     // make transform matrix
     // Tad.SetTransform(Point3D(pos_x, pos_y, pos_z - LEG_LENGTH), Vector3D(ori_roll * 180.0 / M_PI, ori_pitch * 180.0 / PI, ori_yaw * 180.0 / PI));
-    Tad = transformationXYZRPY(pos_x, pos_y, pos_z - LEG_LENGTH, ori_roll, ori_pitch, ori_yaw);
+    // Tad = transformationXYZRPY(pos_x, pos_y, pos_z - LEG_LENGTH, ori_roll, ori_pitch, ori_yaw);
+    Tad = transformationXYZRPY(pos_x, pos_y, pos_z, ori_roll, ori_pitch, ori_yaw);
 
     vec << pos_x + Tad.coeff(0, 2) * ANKLE_LENGTH
             , pos_y + Tad.coeff(1, 2) * ANKLE_LENGTH
             , (pos_z - LEG_LENGTH) + Tad.coeff(2, 2) * ANKLE_LENGTH;
 
     // Get Knee
-    _Rac = vec.dot(vec);
+    _Rac = vec.norm();
     _Acos = acos((_Rac * _Rac - THIGH_LENGTH * THIGH_LENGTH - CALF_LENGTH * CALF_LENGTH) / (2 * THIGH_LENGTH * CALF_LENGTH));
-    if(isnan(_Acos) == 1)
+    if(std::isnan(_Acos) == 1)
+    {
+        std::cout << "fail ik - 1" << std::endl;
         return false;
+    }
     *(out + 3) = _Acos;
 
     // Get Ankle Roll
@@ -811,8 +704,11 @@ bool WalkingMotionModule::computeIK(double *out, double pos_x, double pos_y, dou
     else if(_m < -1.0)
         _m = -1.0;
     _Acos = acos(_m);
-    if(isnan(_Acos) == 1)
+    if(std::isnan(_Acos) == 1)
+    {
+        std::cout << "fail ik - 2" << std::endl;
         return false;
+    }
     if(_tda_y < 0.0)
         *(out + 5) = -_Acos;
     else
@@ -828,22 +724,31 @@ bool WalkingMotionModule::computeIK(double *out, double pos_x, double pos_y, dou
     Tac = Tad * Tdc;
     // _Atan = atan2(-Tac.m[1] , Tac.m[5]);
     _Atan = atan2(-Tac.coeff(0, 1) , Tac.coeff(1, 1));
-    if(isinf(_Atan) == 1)
+    if(std::isinf(_Atan) == 1)
+    {
+        std::cout << "fail ik - 3" << std::endl;
         return false;
+    }
     *(out) = _Atan;
 
     // Get Hip Roll
     // _Atan = atan2(Tac.m[9], -Tac.m[1] * sin(*(out)) + Tac.m[5] * cos(*(out)));
     _Atan = atan2(Tac.coeff(2, 1), -Tac.coeff(0, 1) * sin(*(out)) + Tac.coeff(1, 1) * cos(*(out)));
-    if(isinf(_Atan) == 1)
+    if(std::isinf(_Atan) == 1)
+    {
+        std::cout << "fail ik - 4" << std::endl;
         return false;
+    }
     *(out + 1) = _Atan;
 
     // Get Hip Pitch and Ankle Pitch
     // _Atan = atan2(Tac.m[2] * cos(*(out)) + Tac.m[6] * sin(*(out)), Tac.m[0] * cos(*(out)) + Tac.m[4] * sin(*(out)));
     _Atan = atan2(Tac.coeff(0, 2) * cos(*(out)) + Tac.coeff(1, 2) * sin(*(out)), Tac.coeff(0, 0) * cos(*(out)) + Tac.coeff(1, 0) * sin(*(out)));
-    if(isinf(_Atan) == 1)
+    if(std::isinf(_Atan) == 1)
+    {
+        std::cout << "fail ik - 5" << std::endl;
         return false;
+    }
     _theta = _Atan;
     _k = sin(*(out + 3)) * CALF_LENGTH;
     _l = -THIGH_LENGTH - cos(*(out + 3)) * CALF_LENGTH;
@@ -852,8 +757,11 @@ bool WalkingMotionModule::computeIK(double *out, double pos_x, double pos_y, dou
     _s = (_k * _n + _l * _m) / (_k * _k + _l * _l);
     _c = (_n - _k * _s) / _l;
     _Atan = atan2(_s, _c);
-    if(isinf(_Atan) == 1)
+    if(std::isinf(_Atan) == 1)
+    {
+        std::cout << "fail ik - 6" << std::endl;
         return false;
+    }
     *(out + 2) = _Atan;
     *(out + 4) = _theta - *(out + 3) - *(out + 2);
 
@@ -862,9 +770,9 @@ bool WalkingMotionModule::computeIK(double *out, double pos_x, double pos_y, dou
 
 void WalkingMotionModule::updateTimeParam()
 {
-    m_PeriodTime = PERIOD_TIME;
-    m_DSP_Ratio = DSP_RATIO;
-    m_SSP_Ratio = 1 - DSP_RATIO;
+    m_PeriodTime = walking_param_.period_time;
+    m_DSP_Ratio = walking_param_.dsp_ratio;
+    m_SSP_Ratio = 1 - m_DSP_Ratio;
 
     m_X_Swap_PeriodTime = m_PeriodTime / 2;
     m_X_Move_PeriodTime = m_PeriodTime * m_SSP_Ratio;
@@ -885,34 +793,34 @@ void WalkingMotionModule::updateTimeParam()
     m_Phase_Time3 = (m_SSP_Time_End_R + m_SSP_Time_Start_R) / 2;
 
     // m_Pelvis_Offset = PELVIS_OFFSET*MX28::RATIO_ANGLE2VALUE;
-    m_Pelvis_Offset = PELVIS_OFFSET * M_PI / 180.0;
+    m_Pelvis_Offset = walking_param_.pelvis_offset * deg2rad;
     m_Pelvis_Swing = m_Pelvis_Offset * 0.35;
-    m_Arm_Swing_Gain = ARM_SWING_GAIN;
+    m_Arm_Swing_Gain = walking_param_.arm_swing_gain;
 }
 
 void WalkingMotionModule::updateMovementParam()
 {
     // Forward/Back
-    m_X_Move_Amplitude = X_MOVE_AMPLITUDE;
-    m_X_Swap_Amplitude = X_MOVE_AMPLITUDE * STEP_FB_RATIO;
+    m_X_Move_Amplitude = walking_param_.x_move_amplitude;
+    m_X_Swap_Amplitude = walking_param_.x_move_amplitude * walking_param_.step_fb_ratio;
 
     // Right/Left
-    m_Y_Move_Amplitude = Y_MOVE_AMPLITUDE / 2;
+    m_Y_Move_Amplitude = walking_param_.y_move_amplitude / 2;
     if(m_Y_Move_Amplitude > 0)
         m_Y_Move_Amplitude_Shift = m_Y_Move_Amplitude;
     else
         m_Y_Move_Amplitude_Shift = -m_Y_Move_Amplitude;
-    m_Y_Swap_Amplitude = Y_SWAP_AMPLITUDE + m_Y_Move_Amplitude_Shift * 0.04;
+    m_Y_Swap_Amplitude = walking_param_.y_swap_amplitude + m_Y_Move_Amplitude_Shift * 0.04;
 
-    m_Z_Move_Amplitude = Z_MOVE_AMPLITUDE / 2;
+    m_Z_Move_Amplitude = walking_param_.z_move_amplitude / 2;
     m_Z_Move_Amplitude_Shift = m_Z_Move_Amplitude / 2;
-    m_Z_Swap_Amplitude = Z_SWAP_AMPLITUDE;
+    m_Z_Swap_Amplitude = walking_param_.z_swap_amplitude;
     m_Z_Swap_Amplitude_Shift = m_Z_Swap_Amplitude;
 
     // Direction
-    if(A_MOVE_AIM_ON == false)
+    if(walking_param_.move_aim_on == false)
     {
-        m_A_Move_Amplitude = A_MOVE_AMPLITUDE * M_PI / 180.0 / 2;
+        m_A_Move_Amplitude = walking_param_.angle_move_amplitude * deg2rad / 2;
         if(m_A_Move_Amplitude > 0)
             m_A_Move_Amplitude_Shift = m_A_Move_Amplitude;
         else
@@ -920,7 +828,7 @@ void WalkingMotionModule::updateMovementParam()
     }
     else
     {
-        m_A_Move_Amplitude = -A_MOVE_AMPLITUDE * M_PI / 180.0 / 2;
+        m_A_Move_Amplitude = -walking_param_.angle_move_amplitude * deg2rad / 2;
         if(m_A_Move_Amplitude > 0)
             m_A_Move_Amplitude_Shift = -m_A_Move_Amplitude;
         else
@@ -928,27 +836,29 @@ void WalkingMotionModule::updateMovementParam()
     }
 }
 
-void WalkingMotionModule::updateBalanceParam()
+void WalkingMotionModule::updatePoseParam()
 {
-    m_X_Offset = X_OFFSET;
-    m_Y_Offset = Y_OFFSET;
-    m_Z_Offset = Z_OFFSET;
-    m_R_Offset = R_OFFSET * deg2rad;
-    m_P_Offset = P_OFFSET * deg2rad;
-    m_A_Offset = A_OFFSET * deg2rad;
-    m_Hip_Pitch_Offset = HIP_PITCH_OFFSET * deg2rad;
-    //m_Hip_Pitch_Offset = HIP_PITCH_OFFSET*MX28::RATIO_ANGLE2VALUE;
+    m_X_Offset = walking_param_.init_x_offset;
+    m_Y_Offset = walking_param_.init_y_offset;
+    m_Z_Offset = walking_param_.init_z_offset;
+    m_R_Offset = walking_param_.init_roll_offset  * deg2rad;
+    m_P_Offset = walking_param_.init_pitch_offset * deg2rad;
+    m_A_Offset = walking_param_.init_yaw_offset   * deg2rad;
+    m_Hip_Pitch_Offset = walking_param_.hip_pitch_offset * deg2rad;
 }
 
 void WalkingMotionModule::startWalking()
 {
     m_Ctrl_Running = true;
     m_Real_Running = true;
+
+    PublishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "Start walking");
 }
 
 void WalkingMotionModule::Stop()
 {
     m_Ctrl_Running = false;
+    PublishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "Stop walking");
 }
 
 bool WalkingMotionModule::IsRunning()
@@ -956,7 +866,7 @@ bool WalkingMotionModule::IsRunning()
     return m_Real_Running;
 }
 
-// angle : radian, length : m
+// default [angle : radian, length : m]
 void WalkingMotionModule::Process(std::map<std::string, Dynamixel *> dxls, std::map<std::string, double> sensors)
 {
     if(enable == false)
@@ -970,7 +880,7 @@ void WalkingMotionModule::Process(std::map<std::string, Dynamixel *> dxls, std::
     //                     R_HIP_YAW, R_HIP_ROLL, R_HIP_PITCH, R_KNEE, R_ANKLE_PITCH, R_ANKLE_ROLL, L_HIP_YAW, L_HIP_ROLL, L_HIP_PITCH, L_KNEE, L_ANKLE_PITCH, L_ANKLE_ROLL, R_ARM_SWING, L_ARM_SWING
     int dir[14]          = {   -1,        -1,          1,         1,         -1,            1,          -1,        -1,         -1,         -1,         1,            1,           1,           -1      };
     double initAngle[14] = {   0.0,       0.0,        0.0,       0.0,        0.0,          0.0,         0.0,       0.0,        0.0,        0.0,       0.0,          0.0,       -48.345,       41.313    };
-    int outValue[14];
+    double outValue[14];
 
     // Update walk parameters
     if(m_Time == 0)
@@ -988,7 +898,8 @@ void WalkingMotionModule::Process(std::map<std::string, Dynamixel *> dxls, std::
             else
                 continue;
 
-            goal_position_.coeffRef(0, _index)      = _dxl->dxl_state->present_position;
+            goal_position_.coeffRef(0, _index) = _dxl->dxl_state->goal_position;
+            result[_joint_name]->goal_position = goal_position_.coeff(0, _index);
         }
 
         updateTimeParam();
@@ -1001,9 +912,10 @@ void WalkingMotionModule::Process(std::map<std::string, Dynamixel *> dxls, std::
             }
             else
             {
-                X_MOVE_AMPLITUDE = 0;
-                Y_MOVE_AMPLITUDE = 0;
-                A_MOVE_AMPLITUDE = 0;
+                // init walking param
+                walking_param_.x_move_amplitude = 0;
+                walking_param_.y_move_amplitude = 0;
+                walking_param_.angle_move_amplitude = 0;
             }
         }
     }
@@ -1015,6 +927,7 @@ void WalkingMotionModule::Process(std::map<std::string, Dynamixel *> dxls, std::
     else if(m_Time >= (m_Phase_Time2 - TIME_UNIT/2) && m_Time < (m_Phase_Time2 + TIME_UNIT/2))
     {
         updateTimeParam();
+
         m_Time = m_Phase_Time2;
         m_Phase = PHASE2;
         if(m_Ctrl_Running == false)
@@ -1025,9 +938,10 @@ void WalkingMotionModule::Process(std::map<std::string, Dynamixel *> dxls, std::
             }
             else
             {
-                X_MOVE_AMPLITUDE = 0;
-                Y_MOVE_AMPLITUDE = 0;
-                A_MOVE_AMPLITUDE = 0;
+                // init walking param
+                walking_param_.x_move_amplitude = 0;
+                walking_param_.y_move_amplitude = 0;
+                walking_param_.angle_move_amplitude = 0;
             }
         }
     }
@@ -1036,15 +950,16 @@ void WalkingMotionModule::Process(std::map<std::string, Dynamixel *> dxls, std::
         updateMovementParam();
         m_Phase = PHASE3;
     }
-    updateBalanceParam();
+
+    updatePoseParam();
 
     // Compute endpoints
     _swap.x = wSin(m_Time, m_X_Swap_PeriodTime, m_X_Swap_Phase_Shift, m_X_Swap_Amplitude, m_X_Swap_Amplitude_Shift);
     _swap.y = wSin(m_Time, m_Y_Swap_PeriodTime, m_Y_Swap_Phase_Shift, m_Y_Swap_Amplitude, m_Y_Swap_Amplitude_Shift);
     _swap.z = wSin(m_Time, m_Z_Swap_PeriodTime, m_Z_Swap_Phase_Shift, m_Z_Swap_Amplitude, m_Z_Swap_Amplitude_Shift);
-    _swap.roll = 0;
-    _swap.pitch = 0;
-    _swap.yaw = 0;
+    _swap.roll = 0.0;
+    _swap.pitch = 0.0;
+    _swap.yaw = 0.0;
 
     if(m_Time <= m_SSP_Time_Start_L)
     {
@@ -1117,19 +1032,22 @@ void WalkingMotionModule::Process(std::map<std::string, Dynamixel *> dxls, std::
     _right_leg_move.roll = 0;
     _right_leg_move.pitch = 0;
 
-    // deg -> rad
+    double _leg_length = op3_kd_->thigh_length_m + op3_kd_->calf_length_m + op3_kd_->ankle_length_m;
+    // std::cout << "Leg length : "  << _leg_length << std::endl;
+
+    // mm, rad
     ep[0] = _swap.x + _right_leg_move.x + m_X_Offset;
     ep[1] = _swap.y + _right_leg_move.y - m_Y_Offset / 2;
-    ep[2] = _swap.z + _right_leg_move.z + m_Z_Offset;
-    ep[3] = _swap.roll + _right_leg_move.roll - m_R_Offset * deg2rad / 2;
-    ep[4] = _swap.pitch + _right_leg_move.pitch + m_P_Offset * deg2rad;
-    ep[5] = _swap.yaw + _right_leg_move.yaw - m_A_Offset * deg2rad / 2;
+    ep[2] = _swap.z + _right_leg_move.z + m_Z_Offset - _leg_length;
+    ep[3] = _swap.roll + _right_leg_move.roll - m_R_Offset / 2;
+    ep[4] = _swap.pitch + _right_leg_move.pitch + m_P_Offset;
+    ep[5] = _swap.yaw + _right_leg_move.yaw - m_A_Offset / 2;
     ep[6] = _swap.x + _left_leg_move.x + m_X_Offset;
     ep[7] = _swap.y + _left_leg_move.y + m_Y_Offset / 2;
-    ep[8] = _swap.z + _left_leg_move.z + m_Z_Offset;
-    ep[9] = _swap.roll + _left_leg_move.roll + m_R_Offset * deg2rad/ 2;
-    ep[10] = _swap.pitch + _left_leg_move.pitch + m_P_Offset * deg2rad;
-    ep[11] = _swap.yaw + _left_leg_move.yaw + m_A_Offset * deg2rad / 2;
+    ep[8] = _swap.z + _left_leg_move.z + m_Z_Offset - _leg_length;
+    ep[9] = _swap.roll + _left_leg_move.roll + m_R_Offset / 2;
+    ep[10] = _swap.pitch + _left_leg_move.pitch + m_P_Offset;
+    ep[11] = _swap.yaw + _left_leg_move.yaw + m_A_Offset / 2;
 
     // Compute body swing
     if(m_Time <= m_SSP_Time_End_L)
@@ -1142,7 +1060,7 @@ void WalkingMotionModule::Process(std::map<std::string, Dynamixel *> dxls, std::
         m_Body_Swing_Y = -ep[1];
         m_Body_Swing_Z = ep[2];
     }
-    m_Body_Swing_Z -= op3_kd_->thigh_length_m + op3_kd_->calf_length_m + op3_kd_->ankle_length_m;
+    m_Body_Swing_Z -= _leg_length;
 
     // Compute arm swing
     if(m_X_Move_Amplitude == 0)
@@ -1163,58 +1081,81 @@ void WalkingMotionModule::Process(std::map<std::string, Dynamixel *> dxls, std::
             m_Time = 0;
     }
 
-    // Compute angles
-    if((computeIK(&angle[0], ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]) == false)
-            || (computeIK(&angle[6], ep[6], ep[7], ep[8], ep[9], ep[10], ep[11]) == false))
+    // right leg
+    if(op3_kd_->InverseKinematicsforRightLeg(&angle[0], ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]) == false)
     {
+        printf("IK not Solved EPR : %f %f %f %f %f %f\n", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
         return;
     }
 
-    // right leg
-    //    if(op3_kd_->InverseKinematicsforRightLeg(&angle[0], ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]) == false)  {
-    //        printf("IK not Solved EPR : %f %f %f %f %f %f\n", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
-    //        return;
-    //    }
-    //
-    //    if(op3_kd_->InverseKinematicsforLeftLeg(&angle[6], ep[6], ep[7], ep[8], ep[9], ep[10], ep[11]) == false)   {
-    //        printf("IK not Solved EPL : %f %f %f %f %f %f\n", ep[6], ep[7], ep[8], ep[9], ep[10], ep[11]);
-    //        return;
-    //    }
+    if(op3_kd_->InverseKinematicsforLeftLeg(&angle[6], ep[6], ep[7], ep[8], ep[9], ep[10], ep[11]) == false)
+    {
+        printf("IK not Solved EPL : %f %f %f %f %f %f\n", ep[6], ep[7], ep[8], ep[9], ep[10], ep[11]);
+        return;
+    }
 
-    // Compute motor value
+    // Compute angles
+    /*
+    if(computeIK(&angle[0], ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]) == false)
+    {
+        std::cout << "fail ik - right" << std::endl;
+        printf("IK not Solved EPR[R] : %f %f %f %f %f %f\n", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
+        printf("Result : %f %f %f %f %f %f\n", angle[0], angle[1], angle[2], angle[3], angle[4], angle[5]);
+        return;
+    }
+    else
+        printf("Result[R 1] : %f %f %f %f %f %f\n", angle[0], angle[1], angle[2], angle[3], angle[4], angle[5]);
+
+    if (computeIK(&angle[6], ep[6], ep[7], ep[8], ep[9], ep[10], ep[11]) == false)
+    {
+        std::cout << "fail ik" << std::endl;
+        printf("IK not Solved EPL[L] : %f %f %f %f %f %f\n", ep[6], ep[7], ep[8], ep[9], ep[10], ep[11]);
+        printf("Result : %f %f %f %f %f %f\n", angle[6], angle[7], angle[8], angle[9], angle[10], angle[11]);
+        return;
+    }
+    else
+        printf("Result[L] : %f %f %f %f %f %f\n", angle[6], angle[7], angle[8], angle[9], angle[10], angle[11]);
+     */
+
+
+    // Compute dxls angle
     for(int i=0; i<14; i++)
     {
         // offset : rad
-        offset = (double)dir[i] * angle[i];
+        // offset = (double)dir[i] * angle[i];
+        offset = angle[i];
+
         if(i == 1) // R_HIP_ROLL
             offset += (double)dir[i] * _pelvis_offset_r;
         else if(i == 7) // L_HIP_ROLL
             offset += (double)dir[i] * _pelvis_offset_l;
         else if(i == 2 || i == 8) // R_HIP_PITCH or L_HIP_PITCH
-            offset -= (double)dir[i] * HIP_PITCH_OFFSET * M_PI / 180;
+            offset -= (double)dir[i] * m_Hip_Pitch_Offset;
 
-        // outValue : rad
-        outValue[i] = initAngle[i] + (int)offset;
+        // outValue : rad, initAngle : deg
+        outValue[i] = initAngle[i] * deg2rad + offset;
         //goal_position_.coeffRef(0, i) = initAngle[i] + (int)offset;
     }
+    // printf("Out value[R] : %f %f %f %f %f %f\n", outValue[0], outValue[1], outValue[2], outValue[3], outValue[4], outValue[5]);
 
+    //std::cout << "Gyro : [" <<  sensors["gyro_x"] << ", " << sensors["gyro_y"] << "]\n";
     // adjust balance offset
-    if(BALANCE_ENABLE == true)
+    if(walking_param_.balance_enable == true)
     {
-        //        double rlGyroErr = MotionStatus::RL_GYRO;
-        //        double fbGyroErr = MotionStatus::FB_GYRO;
-        //
-        //        outValue[1] += (int)(dir[1] * rlGyroErr * BALANCE_HIP_ROLL_GAIN*4); // R_HIP_ROLL
-        //        outValue[7] += (int)(dir[7] * rlGyroErr * BALANCE_HIP_ROLL_GAIN*4); // L_HIP_ROLL
-        //
-        //        outValue[3] -= (int)(dir[3] * fbGyroErr * BALANCE_KNEE_GAIN*4); // R_KNEE
-        //        outValue[9] -= (int)(dir[9] * fbGyroErr * BALANCE_KNEE_GAIN*4); // L_KNEE
-        //
-        //        outValue[4] -= (int)(dir[4] * fbGyroErr * BALANCE_ANKLE_PITCH_GAIN*4); // R_ANKLE_PITCH
-        //        outValue[10] -= (int)(dir[10] * fbGyroErr * BALANCE_ANKLE_PITCH_GAIN*4); // L_ANKLE_PITCH
-        //
-        //        outValue[5] -= (int)(dir[5] * rlGyroErr * BALANCE_ANKLE_ROLL_GAIN*4); // R_ANKLE_ROLL
-        //        outValue[11] -= (int)(dir[11] * rlGyroErr * BALANCE_ANKLE_ROLL_GAIN*4); // L_ANKLE_ROLL
+        double rlGyroErr = sensors["gyro_x"] * deg2rad; // MotionStatus::RL_GYRO;
+        double fbGyroErr = sensors["gyro_y"] * deg2rad; // MotionStatus::FB_GYRO;
+
+        outValue[1] += (int)(dir[1] * rlGyroErr * walking_param_.balance_hip_roll_gain); // R_HIP_ROLL
+        outValue[7] += (int)(dir[7] * rlGyroErr * walking_param_.balance_hip_roll_gain); // L_HIP_ROLL
+
+        outValue[3] -= (int)(dir[3] * fbGyroErr * walking_param_.balance_knee_gain); // R_KNEE
+        outValue[9] -= (int)(dir[9] * fbGyroErr * walking_param_.balance_knee_gain); // L_KNEE
+
+        outValue[4] -= (int)(dir[4] * fbGyroErr * walking_param_.balance_ankle_pitch_gain); // R_ANKLE_PITCH
+        outValue[10] -= (int)(dir[10] * fbGyroErr * walking_param_.balance_ankle_pitch_gain); // L_ANKLE_PITCH
+
+        outValue[5] -= (int)(dir[5] * rlGyroErr * walking_param_.balance_ankle_roll_gain); // R_ANKLE_ROLL
+        outValue[11] -= (int)(dir[11] * rlGyroErr * walking_param_.balance_ankle_roll_gain); // L_ANKLE_ROLL
     }
 
     // set goal position
@@ -1223,7 +1164,7 @@ void WalkingMotionModule::Process(std::map<std::string, Dynamixel *> dxls, std::
         goal_position_.coeffRef(0, idx) = outValue[idx];
     }
     // head joint
-    goal_position_.coeffRef(0, joint_table_["head_pan"]) = A_MOVE_AMPLITUDE;
+    //goal_position_.coeffRef(0, joint_table_["head_pan"]) = A_MOVE_AMPLITUDE;
 
     // set result
     for(std::map<std::string, DynamixelState *>::iterator state_iter = result.begin(); state_iter != result.end(); state_iter++)
@@ -1234,192 +1175,13 @@ void WalkingMotionModule::Process(std::map<std::string, Dynamixel *> dxls, std::
         result[_joint_name]->goal_position = goal_position_.coeff(0, _index);
     }
 
+    // pid gain
     // for(int id = JointData::ID_R_HIP_YAW; id <= JointData::ID_L_ANKLE_ROLL; id++)
     // {
     //     m_Joint.SetPGain(id, P_GAIN);
     //     m_Joint.SetIGain(id, I_GAIN);
     //     m_Joint.SetDGain(id, D_GAIN);
     // }
-
-    /*
-    present_enable = enable;
-    // PreviewControlWalking *prev_walking = PreviewControlWalkingMotionModule::GetInstance();
-
-    if(previous_enable != present_enable)
-    {
-        std::string _status_msg;
-        if(present_enable == true)
-        {
-            _status_msg = WALKING_STATUS_MSG::WALKING_MODULE_IS_ENABLED_MSG;
-        }
-        else {
-            _status_msg = WALKING_STATUS_MSG::WALKING_MODULE_IS_DISABLED_MSG;
-            balance_update_with_loop_ = false;
-
-            prev_walking->HIP_ROLL_FEEDFORWARD_ANGLE_RAD = 0.0;
-
-            prev_walking->WALK_STABILIZER_GAIN_RATIO = 0.0;
-            prev_walking->BALANCE_X_GAIN     = +1.0*20.30*0.625*(prev_walking->FORCE_MOMENT_DISTRIBUTION_RATIO)*prev_walking->WALK_STABILIZER_GAIN_RATIO;
-            prev_walking->BALANCE_Y_GAIN     = -1.0*20.30*0.75*(prev_walking->FORCE_MOMENT_DISTRIBUTION_RATIO)*prev_walking->WALK_STABILIZER_GAIN_RATIO;
-            prev_walking->BALANCE_Z_GAIN     =    0.0*2.0*(prev_walking->FORCE_MOMENT_DISTRIBUTION_RATIO)*prev_walking->WALK_STABILIZER_GAIN_RATIO;
-
-            prev_walking->BALANCE_PITCH_GAIN = -1.0*0.10*0.5 *(1.0 - prev_walking->FORCE_MOMENT_DISTRIBUTION_RATIO)*prev_walking->WALK_STABILIZER_GAIN_RATIO;
-            prev_walking->BALANCE_ROLL_GAIN  = -1.0*0.10*0.75*(1.0 - prev_walking->FORCE_MOMENT_DISTRIBUTION_RATIO)*prev_walking->WALK_STABILIZER_GAIN_RATIO;
-
-            prev_walking->BALANCE_ANKLE_ROLL_GAIN_BY_IMU  = 0.0;
-            prev_walking->BALANCE_ANKLE_PITCH_GAIN_BY_IMU = 0.0;
-
-            prev_walking->BALANCE_X_GAIN_BY_FT              = 0.0;
-            prev_walking->BALANCE_Y_GAIN_BY_FT              = 0.0;
-            prev_walking->BALANCE_Z_GAIN_BY_FT              = 0.0;
-            prev_walking->BALANCE_RIGHT_ROLL_GAIN_BY_FT     = 0.0;
-            prev_walking->BALANCE_LEFT_ROLL_GAIN_BY_FT      = 0.0;
-            prev_walking->BALANCE_RIGHT_PITCH_GAIN_BY_FT    = 0.0;
-            prev_walking->BALANCE_LEFT_PITCH_GAIN_BY_FT     = 0.0;
-
-        }
-
-        PublishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, _status_msg);
-    }
-    previous_enable = present_enable;
-
-    r_foot_fx_N  = sensors["r_foot_fx_scaled_N"];
-    r_foot_fy_N  = sensors["r_foot_fy_scaled_N"];
-    r_foot_fz_N  = sensors["r_foot_fz_scaled_N"];
-    r_foot_Tx_Nm = sensors["r_foot_tx_scaled_Nm"];
-    r_foot_Ty_Nm = sensors["r_foot_ty_scaled_Nm"];
-    r_foot_Tz_Nm = sensors["r_foot_tz_scaled_Nm"];
-
-    l_foot_fx_N  = sensors["l_foot_fx_scaled_N"];
-    l_foot_fy_N  = sensors["l_foot_fy_scaled_N"];
-    l_foot_fz_N  = sensors["l_foot_fz_scaled_N"];
-    l_foot_Tx_Nm = sensors["l_foot_tx_scaled_Nm"];
-    l_foot_Ty_Nm = sensors["l_foot_ty_scaled_Nm"];
-    l_foot_Tz_Nm = sensors["l_foot_tz_scaled_Nm"];
-
-
-    r_foot_fx_N = sign(r_foot_fx_N) * fmin( fabs(r_foot_fx_N), 2000.0);
-    r_foot_fy_N = sign(r_foot_fy_N) * fmin( fabs(r_foot_fy_N), 2000.0);
-    r_foot_fz_N = sign(r_foot_fz_N) * fmin( fabs(r_foot_fz_N), 2000.0);
-    r_foot_Tx_Nm = sign(r_foot_Tx_Nm) *fmin(fabs(r_foot_Tx_Nm), 300.0);
-    r_foot_Ty_Nm = sign(r_foot_Ty_Nm) *fmin(fabs(r_foot_Ty_Nm), 300.0);
-    r_foot_Tz_Nm = sign(r_foot_Tz_Nm) *fmin(fabs(r_foot_Tz_Nm), 300.0);
-
-    l_foot_fx_N = sign(l_foot_fx_N) * fmin( fabs(l_foot_fx_N), 2000.0);
-    l_foot_fy_N = sign(l_foot_fy_N) * fmin( fabs(l_foot_fy_N), 2000.0);
-    l_foot_fz_N = sign(l_foot_fz_N) * fmin( fabs(l_foot_fz_N), 2000.0);
-    l_foot_Tx_Nm = sign(l_foot_Tx_Nm) *fmin(fabs(l_foot_Tx_Nm), 300.0);
-    l_foot_Ty_Nm = sign(l_foot_Ty_Nm) *fmin(fabs(l_foot_Ty_Nm), 300.0);
-    l_foot_Tz_Nm = sign(l_foot_Tz_Nm) *fmin(fabs(l_foot_Tz_Nm), 300.0);
-
-
-    if(enable == false)
-        return;
-
-
-    if(balance_update_with_loop_ == true)
-    {
-        balance_update_sys_time_ += control_cycle_msec_ * 0.001;
-        if(balance_update_sys_time_ >= balance_update_duration_ ) {
-            balance_update_sys_time_ = balance_update_duration_;
-            balance_update_with_loop_ = false;
-            SetBalanceParam(desired_balance_param_);
-            std::string _status_msg = WALKING_STATUS_MSG::BALANCE_PARAM_SETTING_FINISH_MSG;
-            PublishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, _status_msg);
-        }
-        else {
-            double current_update_gain =  balance_update_polynomial_coeff_.coeff(0,0) * powDI(balance_update_sys_time_ , 5)
-                                                + balance_update_polynomial_coeff_.coeff(1,0) * powDI(balance_update_sys_time_ , 4)
-                                                + balance_update_polynomial_coeff_.coeff(2,0) * powDI(balance_update_sys_time_ , 3)
-                                                + balance_update_polynomial_coeff_.coeff(3,0) * powDI(balance_update_sys_time_ , 2)
-                                                + balance_update_polynomial_coeff_.coeff(4,0) * powDI(balance_update_sys_time_ , 1)
-                                                + balance_update_polynomial_coeff_.coeff(5,0) ;
-
-            current_balance_param_.cob_x_offset_m                  = current_update_gain*(desired_balance_param_.cob_x_offset_m                  - previous_balance_param_.cob_x_offset_m                 ) + previous_balance_param_.cob_x_offset_m;
-            current_balance_param_.cob_y_offset_m                  = current_update_gain*(desired_balance_param_.cob_y_offset_m                  - previous_balance_param_.cob_y_offset_m                 ) + previous_balance_param_.cob_y_offset_m;
-
-            current_balance_param_.hip_roll_swap_angle_rad         = current_update_gain*(desired_balance_param_.hip_roll_swap_angle_rad         - previous_balance_param_.hip_roll_swap_angle_rad        ) + previous_balance_param_.hip_roll_swap_angle_rad;
-
-            current_balance_param_.gyro_gain                       = current_update_gain*(desired_balance_param_.gyro_gain                       - previous_balance_param_.gyro_gain                      ) + previous_balance_param_.gyro_gain;
-            current_balance_param_.foot_roll_angle_gain            = current_update_gain*(desired_balance_param_.foot_roll_angle_gain            - previous_balance_param_.foot_roll_angle_gain           ) + previous_balance_param_.foot_roll_angle_gain;
-            current_balance_param_.foot_pitch_angle_gain           = current_update_gain*(desired_balance_param_.foot_pitch_angle_gain           - previous_balance_param_.foot_pitch_angle_gain          ) + previous_balance_param_.foot_pitch_angle_gain;
-
-            current_balance_param_.foot_x_force_gain               = current_update_gain*(desired_balance_param_.foot_x_force_gain               - previous_balance_param_.foot_x_force_gain              ) + previous_balance_param_.foot_x_force_gain;
-            current_balance_param_.foot_y_force_gain               = current_update_gain*(desired_balance_param_.foot_y_force_gain               - previous_balance_param_.foot_y_force_gain              ) + previous_balance_param_.foot_y_force_gain;
-            current_balance_param_.foot_z_force_gain               = current_update_gain*(desired_balance_param_.foot_z_force_gain               - previous_balance_param_.foot_z_force_gain              ) + previous_balance_param_.foot_z_force_gain;
-            current_balance_param_.foot_roll_torque_gain           = current_update_gain*(desired_balance_param_.foot_roll_torque_gain           - previous_balance_param_.foot_roll_torque_gain          ) + previous_balance_param_.foot_roll_torque_gain;
-            current_balance_param_.foot_pitch_torque_gain          = current_update_gain*(desired_balance_param_.foot_pitch_torque_gain          - previous_balance_param_.foot_pitch_torque_gain         ) + previous_balance_param_.foot_pitch_torque_gain;
-
-
-            current_balance_param_.foot_roll_angle_time_constant   = current_update_gain*(desired_balance_param_.foot_roll_angle_time_constant   - previous_balance_param_.foot_roll_angle_time_constant  ) + previous_balance_param_.foot_roll_angle_time_constant;
-            current_balance_param_.foot_pitch_angle_time_constant  = current_update_gain*(desired_balance_param_.foot_pitch_angle_time_constant  - previous_balance_param_.foot_pitch_angle_time_constant ) + previous_balance_param_.foot_pitch_angle_time_constant;
-
-            current_balance_param_.foot_x_force_time_constant      = current_update_gain*(desired_balance_param_.foot_x_force_time_constant      - previous_balance_param_.foot_x_force_time_constant     ) + previous_balance_param_.foot_x_force_time_constant;
-            current_balance_param_.foot_y_force_time_constant      = current_update_gain*(desired_balance_param_.foot_y_force_time_constant      - previous_balance_param_.foot_y_force_time_constant     ) + previous_balance_param_.foot_y_force_time_constant;
-            current_balance_param_.foot_z_force_time_constant      = current_update_gain*(desired_balance_param_.foot_z_force_time_constant      - previous_balance_param_.foot_z_force_time_constant     ) + previous_balance_param_.foot_z_force_time_constant;
-            current_balance_param_.foot_roll_torque_time_constant  = current_update_gain*(desired_balance_param_.foot_roll_torque_time_constant  - previous_balance_param_.foot_roll_torque_time_constant ) + previous_balance_param_.foot_roll_torque_time_constant;
-            current_balance_param_.foot_pitch_torque_time_constant = current_update_gain*(desired_balance_param_.foot_pitch_torque_time_constant - previous_balance_param_.foot_pitch_torque_time_constant) + previous_balance_param_.foot_pitch_torque_time_constant;
-
-
-            SetBalanceParam(current_balance_param_);
-        }
-    }
-
-    prev_walking->current_right_fx_N  = r_foot_fx_N;
-    prev_walking->current_right_fy_N  = r_foot_fy_N;
-    prev_walking->current_right_fz_N  = r_foot_fz_N;
-    prev_walking->current_right_Tx_Nm = r_foot_Tx_Nm;
-    prev_walking->current_right_Ty_Nm = r_foot_Ty_Nm;
-    prev_walking->current_right_Tz_Nm = r_foot_Tz_Nm;
-
-    prev_walking->current_left_fx_N  = l_foot_fx_N;
-    prev_walking->current_left_fy_N  = l_foot_fy_N;
-    prev_walking->current_left_fz_N  = l_foot_fz_N;
-    prev_walking->current_left_Tx_Nm = l_foot_Tx_Nm;
-    prev_walking->current_left_Ty_Nm = l_foot_Ty_Nm;
-    prev_walking->current_left_Tz_Nm = l_foot_Tz_Nm;
-
-
-    prev_walking->Process();
-
-    publish_mutex_.lock();
-    desired_matrix_g_to_cob_   = prev_walking->matGtoCOB;
-    desired_matrix_g_to_rfoot_ = prev_walking->matGtoRF;
-    desired_matrix_g_to_lfoot_ = prev_walking->matGtoLF;
-    publish_mutex_.unlock();
-
-    result["r_hip_yaw"  ]->goal_position = prev_walking->m_OutAngleRad[0];
-    result["r_hip_roll" ]->goal_position = prev_walking->m_OutAngleRad[1];
-    result["r_hip_pitch"]->goal_position = prev_walking->m_OutAngleRad[2];
-    result["r_knee"     ]->goal_position = prev_walking->m_OutAngleRad[3];
-    result["r_ank_pitch"]->goal_position = prev_walking->m_OutAngleRad[4];
-    result["r_ank_roll" ]->goal_position = prev_walking->m_OutAngleRad[5];
-
-    result["l_hip_yaw"  ]->goal_position = prev_walking->m_OutAngleRad[6];
-    result["l_hip_roll" ]->goal_position = prev_walking->m_OutAngleRad[7];
-    result["l_hip_pitch"]->goal_position = prev_walking->m_OutAngleRad[8];
-    result["l_knee"     ]->goal_position = prev_walking->m_OutAngleRad[9];
-    result["l_ank_pitch"]->goal_position = prev_walking->m_OutAngleRad[10];
-    result["l_ank_roll" ]->goal_position = prev_walking->m_OutAngleRad[11];
-
-    result["r_sho_pitch"]->goal_position =
-            result["l_sho_pitch"]->goal_position =
-
-
-
-                    present_running = IsRunning();
-    if(previous_running != present_running) {
-        if(present_running == true) {
-            std::string _status_msg = WALKING_STATUS_MSG::WALKING_START_MSG;
-            PublishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, _status_msg);
-        }
-        else {
-            std::string _status_msg = WALKING_STATUS_MSG::WALKING_FINISH_MSG;
-            PublishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, _status_msg);
-        }
-    }
-    previous_running = present_running;
-     */
 }
 
 void WalkingMotionModule::loadWalkingParam(const std::string &path)
@@ -1437,30 +1199,38 @@ void WalkingMotionModule::loadWalkingParam(const std::string &path)
     }
 
     // parse movement time
-    X_OFFSET =                   doc["x_offset"].as<double>();
-    Y_OFFSET =                   doc["y_offset"].as<double>();
-    Z_OFFSET =                   doc["z_offset"].as<double>();
-    R_OFFSET =                   doc["roll_offset"].as<double>();
-    P_OFFSET =                   doc["pitch_offset"].as<double>();
-    A_OFFSET =                   doc["yaw_offset"].as<double>();
-    HIP_PITCH_OFFSET =           doc["hip_pitch_offset"].as<double>();
-    PERIOD_TIME =                doc["period_time"].as<double>();
-    DSP_RATIO =                  doc["dsp_ratio"].as<double>();
-    STEP_FB_RATIO =              doc["step_forward_back_ratio"].as<double>();
-    Z_MOVE_AMPLITUDE =           doc["foot_height"].as<double>();
-    Y_SWAP_AMPLITUDE =           doc["swing_right_left"].as<double>();
-    Z_SWAP_AMPLITUDE =           doc["swing_top_down"].as<double>();
-    PELVIS_OFFSET =              doc["pelvis_offset"].as<double>();
-    ARM_SWING_GAIN =             doc["arm_swing_gain"].as<double>();
-    BALANCE_KNEE_GAIN =          doc["balance_knee_gain"].as<double>();
-    BALANCE_ANKLE_PITCH_GAIN =   doc["balance_ankle_pitch_gain"].as<double>();
-    BALANCE_HIP_ROLL_GAIN =      doc["balance_hip_roll_gain"].as<double>();
-    BALANCE_ANKLE_ROLL_GAIN =    doc["balance_ankle_roll_gain"].as<double>();
+    walking_param_.init_x_offset              = doc["x_offset"].as<double>();
+    walking_param_.init_y_offset              = doc["y_offset"].as<double>();
+    walking_param_.init_z_offset              = doc["z_offset"].as<double>();
+    walking_param_.init_roll_offset           = doc["roll_offset"].as<double>();
+    walking_param_.init_pitch_offset          = doc["pitch_offset"].as<double>();
+    walking_param_.init_yaw_offset            = doc["yaw_offset"].as<double>();
+    walking_param_.hip_pitch_offset           = doc["hip_pitch_offset"].as<double>();
+    // time
+    walking_param_.period_time                = doc["period_time"].as<double>();
+    walking_param_.dsp_ratio                  = doc["dsp_ratio"].as<double>();
+    walking_param_.step_fb_ratio              = doc["step_forward_back_ratio"].as<double>();
+    // walking
+    // walking_param_.x_move_amplitude
+    // walking_param_.y_move_amplitude
+    walking_param_.z_move_amplitude           = doc["foot_height"].as<double>();
+    // walking_param_.angle_move_amplitude
+    // walking_param_.move_aim_on
+    // balance
+    // walking_param_.balance_enable
+    walking_param_.balance_hip_roll_gain      = doc["balance_hip_roll_gain"].as<double>();
+    walking_param_.balance_knee_gain          = doc["balance_knee_gain"].as<double>();
+    walking_param_.balance_ankle_roll_gain    = doc["balance_ankle_roll_gain"].as<double>();
+    walking_param_.balance_ankle_pitch_gain   = doc["balance_ankle_pitch_gain"].as<double>();
+    walking_param_.y_swap_amplitude           = doc["swing_right_left"].as<double>();
+    walking_param_.z_swap_amplitude           = doc["swing_top_down"].as<double>();
+    walking_param_.pelvis_offset              = doc["pelvis_offset"].as<double>();
+    walking_param_.arm_swing_gain             = doc["arm_swing_gain"].as<double>();
 
-
-    P_GAIN =    doc["p_gain"].as<int>();
-    I_GAIN =    doc["i_gain"].as<int>();
-    D_GAIN =    doc["d_gain"].as<int>();
+    // gain
+    walking_param_.p_gain = doc["p_gain"].as<int>();
+    walking_param_.i_gain = doc["i_gain"].as<int>();
+    walking_param_.d_gain = doc["d_gain"].as<int>();
 }
 
 void WalkingMotionModule::saveWalkingParam(std::string &path)
@@ -1468,29 +1238,29 @@ void WalkingMotionModule::saveWalkingParam(std::string &path)
     YAML::Emitter _out;
 
     _out << YAML::BeginMap;
-    _out << YAML::Key << "x_offset"                  << YAML::Value << X_OFFSET;
-    _out << YAML::Key << "y_offset"                  << YAML::Value << Y_OFFSET;
-    _out << YAML::Key << "z_offset"                  << YAML::Value << Z_OFFSET;
-    _out << YAML::Key << "roll_offset"               << YAML::Value << R_OFFSET;                     ;
-    _out << YAML::Key << "pitch_offset"              << YAML::Value << P_OFFSET;
-    _out << YAML::Key << "yaw_offset"                << YAML::Value << A_OFFSET;
-    _out << YAML::Key << "hip_pitch_offset"          << YAML::Value << HIP_PITCH_OFFSET;
-    _out << YAML::Key << "period_time"               << YAML::Value << PERIOD_TIME;
-    _out << YAML::Key << "dsp_ratio"                 << YAML::Value << DSP_RATIO;
-    _out << YAML::Key << "step_forward_back_ratio"   << YAML::Value << STEP_FB_RATIO;
-    _out << YAML::Key << "foot_height"               << YAML::Value << Z_MOVE_AMPLITUDE;
-    _out << YAML::Key << "swing_right_left"          << YAML::Value << Y_SWAP_AMPLITUDE;
-    _out << YAML::Key << "swing_top_down"            << YAML::Value << Z_SWAP_AMPLITUDE;
-    _out << YAML::Key << "pelvis_offset"             << YAML::Value << PELVIS_OFFSET;
-    _out << YAML::Key << "arm_swing_gain"            << YAML::Value << ARM_SWING_GAIN;
-    _out << YAML::Key << "balance_knee_gain"         << YAML::Value << BALANCE_KNEE_GAIN;
-    _out << YAML::Key << "balance_ankle_pitch_gain"  << YAML::Value << BALANCE_ANKLE_PITCH_GAIN;
-    _out << YAML::Key << "balance_hip_roll_gain"     << YAML::Value << BALANCE_HIP_ROLL_GAIN;
-    _out << YAML::Key << "balance_ankle_roll_gain"   << YAML::Value << BALANCE_ANKLE_ROLL_GAIN;
+    _out << YAML::Key << "x_offset"                  << YAML::Value << walking_param_.init_x_offset;
+    _out << YAML::Key << "y_offset"                  << YAML::Value << walking_param_.init_y_offset;
+    _out << YAML::Key << "z_offset"                  << YAML::Value << walking_param_.init_z_offset;
+    _out << YAML::Key << "roll_offset"               << YAML::Value << walking_param_.init_roll_offset;
+    _out << YAML::Key << "pitch_offset"              << YAML::Value << walking_param_.init_pitch_offset;
+    _out << YAML::Key << "yaw_offset"                << YAML::Value << walking_param_.init_yaw_offset;
+    _out << YAML::Key << "hip_pitch_offset"          << YAML::Value << walking_param_.hip_pitch_offset;
+    _out << YAML::Key << "period_time"               << YAML::Value << walking_param_.period_time;
+    _out << YAML::Key << "dsp_ratio"                 << YAML::Value << walking_param_.dsp_ratio;
+    _out << YAML::Key << "step_forward_back_ratio"   << YAML::Value << walking_param_.step_fb_ratio;
+    _out << YAML::Key << "foot_height"               << YAML::Value << walking_param_.z_move_amplitude;
+    _out << YAML::Key << "swing_right_left"          << YAML::Value << walking_param_.y_swap_amplitude;
+    _out << YAML::Key << "swing_top_down"            << YAML::Value << walking_param_.z_swap_amplitude;
+    _out << YAML::Key << "pelvis_offset"             << YAML::Value << walking_param_.pelvis_offset;
+    _out << YAML::Key << "arm_swing_gain"            << YAML::Value << walking_param_.arm_swing_gain;
+    _out << YAML::Key << "balance_knee_gain"         << YAML::Value << walking_param_.balance_hip_roll_gain;
+    _out << YAML::Key << "balance_ankle_pitch_gain"  << YAML::Value << walking_param_.balance_knee_gain;
+    _out << YAML::Key << "balance_hip_roll_gain"     << YAML::Value << walking_param_.balance_ankle_roll_gain;
+    _out << YAML::Key << "balance_ankle_roll_gain"   << YAML::Value << walking_param_.balance_ankle_pitch_gain;
 
-    _out << YAML::Key << "p_gain"                    << YAML::Value << P_GAIN;
-    _out << YAML::Key << "i_gain"                    << YAML::Value << I_GAIN;
-    _out << YAML::Key << "d_gain"                    << YAML::Value << D_GAIN;
+    _out << YAML::Key << "p_gain"                    << YAML::Value << walking_param_.p_gain;
+    _out << YAML::Key << "i_gain"                    << YAML::Value << walking_param_.i_gain;
+    _out << YAML::Key << "d_gain"                    << YAML::Value << walking_param_.d_gain;
     _out << YAML::EndMap;
 
     // output to file

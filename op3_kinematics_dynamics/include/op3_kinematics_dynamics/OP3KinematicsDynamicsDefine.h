@@ -14,7 +14,7 @@ namespace ROBOTIS
 #define MAX_ITER        5
 
 #define id_head_end     20
-#define id_cob          49
+#define id_cob          29
 #define id_torso        29
 
 #define id_r_arm_start   1

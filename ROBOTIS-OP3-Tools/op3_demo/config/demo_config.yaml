@@ -20,8 +20,9 @@ id_joint:
   19 : head_pan 
   20 : head_tilt
   200 : cm_740
-module_list: [none, head_control_module, base_module, walking_module, manipulation_module, action_module]
+module_list: [none, head_control_module, base_module, walking_module, manipulation_module, action_module, walking_module]
 module_button:
   1 : none
   2 : head_control_module
   3 : action_module
+  4 : walking_module

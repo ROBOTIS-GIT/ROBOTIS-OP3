@@ -63,7 +63,11 @@ void CM740Module::QueueThread()
     reset_dxl_pub_          = _ros_node.advertise<std_msgs::String>("/robotis/cm_740/button", 1);
 
     while(_ros_node.ok())
+    {
         _callback_queue.callAvailable();
+
+        usleep(100);
+    }
 }
 
 void CM740Module::Process(std::map<std::string, Dynamixel *> dxls)
@@ -97,7 +101,7 @@ void CM740Module::Process(std::map<std::string, Dynamixel *> dxls)
     result["button_start"] = (button_flag & 0x02) >> 1;
 
     buttonMode(result["button_mode"] == 1.0);
-    buttonMode(result["button_start"] == 1.0);
+    buttonStart(result["button_start"] == 1.0);
 
     result["present_voltage"] = present_volt * 0.1;
     handleVoltage(result["present_voltage"]);

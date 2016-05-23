@@ -146,7 +146,11 @@ void ActionModule::QueueThread()
     status_msg_pub_ = _ros_node.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 0);
 
     while(_ros_node.ok())
+    {
         _callback_queue.callAvailable();
+
+        usleep(100);
+    }
 }
 
 

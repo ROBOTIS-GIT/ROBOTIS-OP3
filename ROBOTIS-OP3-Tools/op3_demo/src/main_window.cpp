@@ -212,40 +212,14 @@ void MainWindow::on_button_param_refresh_clicked(bool check)
     qnode_op3.refreshWalkingParam();
 }
 
+void MainWindow::on_button_param_save_clicked(bool check)
+{
+    qnode_op3.setWalkingCommand("save");
+}
+
 void MainWindow::on_button_param_apply_clicked(bool check)
 {
-    op3_walking_module_msgs::WalkingParam _walking_param;
-
-    // init pose
-    _walking_param.init_x_offset            = ui.dSpinBox_init_offset_x->value();
-    _walking_param.init_y_offset            = ui.dSpinBox_init_offset_y->value();
-    _walking_param.init_z_offset            = ui.dSpinBox_init_offset_z->value();
-    _walking_param.init_roll_offset         = ui.dSpinBox_init_offset_roll->value();
-    _walking_param.init_pitch_offset        = ui.dSpinBox_init_offset_pitch->value();
-    _walking_param.init_yaw_offset          = ui.dSpinBox_init_offset_yaw->value();
-    _walking_param.hip_pitch_offset         = ui.dSpinBox_hip_pitch_offset->value();
-    // time
-    _walking_param.period_time              = ui.dSpinBox_period_time->value();
-    _walking_param.dsp_ratio                = ui.dSpinBox_dsp_ratio->value();
-    _walking_param.step_fb_ratio            = ui.dSpinBox_step_fb_ratio->value();;
-    // walking
-    _walking_param.x_move_amplitude         = ui.dSpinBox_x_move_amplitude->value();
-    _walking_param.y_move_amplitude         = ui.dSpinBox_y_move_amplitude->value();
-    _walking_param.z_move_amplitude         = ui.dSpinBox_z_move_amplitude->value();
-    _walking_param.angle_move_amplitude     = ui.dSpinBox_y_move_amplitude->value();
-    _walking_param.move_aim_on              = ui.checkBox_move_aim_on->isChecked();
-    // balance
-    _walking_param.balance_enable           = ui.checkBox_balance_on->isChecked();
-    _walking_param.balance_hip_roll_gain    = ui.dSpinBox_hip_roll_gain->value();
-    _walking_param.balance_knee_gain        = ui.dSpinBox_knee_gain->value();
-    _walking_param.balance_ankle_roll_gain  = ui.dSpinBox_ankle_roll_gain->value();
-    _walking_param.balance_ankle_pitch_gain = ui.dSpinBox_ankle_pitch_gain->value();
-    _walking_param.y_swap_amplitude         = ui.dSpinBox_y_swap_amplitude->value();
-    _walking_param.z_swap_amplitude         = ui.dSpinBox_z_swap_amplitude->value();
-    _walking_param.pelvis_offset            = ui.dSpinBox_pelvis_offset->value();
-    _walking_param.arm_swing_gain           = ui.dSpinBox_arm_swing_gain->value();
-
-    qnode_op3.applyWalkingParam(_walking_param);
+    applyWalkingParams();
 }
 
 void MainWindow::on_checkBox_balance_on_clicked(bool check) { }
@@ -498,12 +472,12 @@ void MainWindow::updateWalkingParams(op3_walking_module_msgs::WalkingParam param
     ui.dSpinBox_init_offset_x->setValue(params.init_x_offset);
     ui.dSpinBox_init_offset_y->setValue(params.init_y_offset);
     ui.dSpinBox_init_offset_z->setValue(params.init_z_offset);
-    ui.dSpinBox_init_offset_roll->setValue(params.init_roll_offset);
-    ui.dSpinBox_init_offset_pitch->setValue(params.init_pitch_offset);
-    ui.dSpinBox_init_offset_yaw->setValue(params.init_yaw_offset);
-    ui.dSpinBox_hip_pitch_offset->setValue(params.hip_pitch_offset);
+    ui.dSpinBox_init_offset_roll->setValue(params.init_roll_offset * rad2deg);
+    ui.dSpinBox_init_offset_pitch->setValue(params.init_pitch_offset * rad2deg);
+    ui.dSpinBox_init_offset_yaw->setValue(params.init_yaw_offset * rad2deg);
+    ui.dSpinBox_hip_pitch_offset->setValue(params.hip_pitch_offset * rad2deg);
     // time
-    ui.dSpinBox_period_time->setValue(params.period_time);
+    ui.dSpinBox_period_time->setValue(params.period_time * 1000);       // s -> ms
     ui.dSpinBox_dsp_ratio->setValue(params.dsp_ratio);
     ui.dSpinBox_step_fb_ratio->setValue(params.step_fb_ratio);;
     // walking
@@ -522,10 +496,45 @@ void MainWindow::updateWalkingParams(op3_walking_module_msgs::WalkingParam param
     ui.dSpinBox_ankle_pitch_gain->setValue(params.balance_ankle_pitch_gain);
     ui.dSpinBox_y_swap_amplitude->setValue(params.y_swap_amplitude);
     ui.dSpinBox_z_swap_amplitude->setValue(params.z_swap_amplitude);
-    ui.dSpinBox_pelvis_offset->setValue(params.pelvis_offset);
+    ui.dSpinBox_pelvis_offset->setValue(params.pelvis_offset * rad2deg);
     ui.dSpinBox_arm_swing_gain->setValue(params.arm_swing_gain);
 }
 
+void MainWindow::applyWalkingParams()
+{
+    op3_walking_module_msgs::WalkingParam _walking_param;
+
+    // init pose
+    _walking_param.init_x_offset            = ui.dSpinBox_init_offset_x->value();
+    _walking_param.init_y_offset            = ui.dSpinBox_init_offset_y->value();
+    _walking_param.init_z_offset            = ui.dSpinBox_init_offset_z->value();
+    _walking_param.init_roll_offset         = ui.dSpinBox_init_offset_roll->value() * deg2rad;
+    _walking_param.init_pitch_offset        = ui.dSpinBox_init_offset_pitch->value() * deg2rad;
+    _walking_param.init_yaw_offset          = ui.dSpinBox_init_offset_yaw->value() * deg2rad;
+    _walking_param.hip_pitch_offset         = ui.dSpinBox_hip_pitch_offset->value() * deg2rad;
+    // time
+    _walking_param.period_time              = ui.dSpinBox_period_time->value() * 0.001;     // ms -> s
+    _walking_param.dsp_ratio                = ui.dSpinBox_dsp_ratio->value();
+    _walking_param.step_fb_ratio            = ui.dSpinBox_step_fb_ratio->value();;
+    // walking
+    _walking_param.x_move_amplitude         = ui.dSpinBox_x_move_amplitude->value();
+    _walking_param.y_move_amplitude         = ui.dSpinBox_y_move_amplitude->value();
+    _walking_param.z_move_amplitude         = ui.dSpinBox_z_move_amplitude->value();
+    _walking_param.angle_move_amplitude     = ui.dSpinBox_a_move_amplitude->value() * deg2rad;
+    _walking_param.move_aim_on              = ui.checkBox_move_aim_on->isChecked();
+    // balance
+    _walking_param.balance_enable           = ui.checkBox_balance_on->isChecked();
+    _walking_param.balance_hip_roll_gain    = ui.dSpinBox_hip_roll_gain->value();
+    _walking_param.balance_knee_gain        = ui.dSpinBox_knee_gain->value();
+    _walking_param.balance_ankle_roll_gain  = ui.dSpinBox_ankle_roll_gain->value();
+    _walking_param.balance_ankle_pitch_gain = ui.dSpinBox_ankle_pitch_gain->value();
+    _walking_param.y_swap_amplitude         = ui.dSpinBox_y_swap_amplitude->value();
+    _walking_param.z_swap_amplitude         = ui.dSpinBox_z_swap_amplitude->value();
+    _walking_param.pelvis_offset            = ui.dSpinBox_pelvis_offset->value() * deg2rad;
+    _walking_param.arm_swing_gain           = ui.dSpinBox_arm_swing_gain->value();
+
+    qnode_op3.applyWalkingParam(_walking_param);
+}
 
 /*****************************************************************************
  ** Implementation [Menu]

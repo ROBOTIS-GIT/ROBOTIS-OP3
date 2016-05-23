@@ -748,13 +748,24 @@ void QNodeOP3::refreshWalkingParam()
     else
         log(Error, "Fail to get walking parameters.");
 }
+
+void QNodeOP3::saveWalkingParam()
+{
+    std_msgs::String _command_msg;
+    _command_msg.data = "save";
+    set_walking_command_pub.publish(_command_msg);
+
+    log(Info, "Save Walking parameters.");
+}
+
 void QNodeOP3::applyWalkingParam(const op3_walking_module_msgs::WalkingParam &walking_param)
 {
     walking_param_ = walking_param;
 
     set_walking_param_pub.publish(walking_param_);
-    log(Info, "Apply Walking paramters.");
+    log(Info, "Apply Walking parameters.");
 }
+
 //void QNodeOP3::setWalkingBalance(bool on_command)
 //{
 //    std_msgs::Bool _msg;

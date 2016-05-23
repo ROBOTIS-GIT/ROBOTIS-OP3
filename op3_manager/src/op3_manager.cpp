@@ -26,6 +26,8 @@ std::string         _init_file;
 
 void PowerOnDXLMsgCallback( const std_msgs::String::ConstPtr& msg )
 {
+    if(msg->data != "mode") return;
+
     RobotisController  *_controller     = RobotisController::GetInstance();
 
     _controller->StopTimer();
@@ -76,7 +78,7 @@ int main(int argc, char **argv)
     _nh.param<std::string>("robot_file_path", _robot_file, "");
     _nh.param<std::string>("init_file_path", _init_file, "");
 
-    ros::Subscriber _power_on_sub = _nh.subscribe("/robotis/io/reset", 1, PowerOnDXLMsgCallback);
+    ros::Subscriber _power_on_sub = _nh.subscribe("/robotis/cm_740/button", 1, PowerOnDXLMsgCallback);
 
     PortHandler *_port_h = (PortHandler *)PortHandler::GetPortHandler("/dev/ttyUSB0");
     bool _set_port = _port_h->SetBaudRate(1000000);
@@ -87,7 +89,10 @@ int main(int argc, char **argv)
     ROS_INFO("Torque on DXLs! [%d]", _return);
     _packet_h->PrintTxRxResult(_return);
 
+
     _port_h->ClosePort();
+
+    usleep(100 * 1000);
 
     /* gazebo simulation */
     _nh.param<bool>("gazebo", _controller->gazebo_mode, false);

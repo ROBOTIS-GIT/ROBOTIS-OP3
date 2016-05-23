@@ -34,12 +34,12 @@ via_pose :
 # target pose [deg]
 
 tar_pose :
-  1 : -48   	# r_sho_pitch
-  2 : 48   	    # l_sho_pitch
-  3 : -20   	# r_sho_roll
-  4 : 20   	    # l_sho_roll
-  5 : 30   	    # r_el
-  6 : -30   	# l_el
+  1 : -38   	# r_sho_pitch
+  2 : 38   	    # l_sho_pitch
+  3 : -75   	# r_sho_roll
+  4 : 75   	    # l_sho_roll
+  5 : 0   	    # r_el
+  6 : 0   	    # l_el
   7 : 0   	    # r_hip_yaw
   8 : 0   	    # l_hip_yaw
   9 : 0   	    # r_hip_roll

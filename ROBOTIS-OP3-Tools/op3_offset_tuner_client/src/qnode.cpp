@@ -29,7 +29,8 @@ namespace op3_offset_tuner_client {
 
 QNode::QNode(int argc, char** argv ) :
 	init_argc(argc),
-	init_argv(argv)
+	init_argv(argv),
+	is_refresh_(false)
 	{}
 
 QNode::~QNode() {
@@ -100,6 +101,8 @@ void QNode::send_command_msg( std_msgs::String msg )
 
 void QNode::getPresentJointOffsetData()
 {
+    is_refresh_ = true;
+
     op3_offset_tuner_msgs::GetPresentJointOffsetData _get_present_joint_offset_data;
 
     //request
@@ -118,6 +121,7 @@ void QNode::getPresentJointOffsetData()
     else
         log(Error, "Fail to get joint offset data");
 
+    is_refresh_ = false;
 }
 
 

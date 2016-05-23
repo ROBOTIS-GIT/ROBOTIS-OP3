@@ -174,6 +174,8 @@ void MainWindow::publish_torque_msgs(std::string &joint_name, bool torque_on )
 
 void MainWindow::spinBox_valueChanged(QString joint_name)
 {
+    if(qnode.is_refresh() == true) return;
+
     op3_offset_tuner_msgs::JointOffsetData _msg;
     std::string _joint_name = joint_name.toStdString();
 

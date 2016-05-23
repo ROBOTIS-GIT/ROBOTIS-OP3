@@ -121,6 +121,7 @@ class QNodeOP3 : public QThread {
         // Walking
         void setWalkingCommand(const std::string &command);
         void refreshWalkingParam();
+        void saveWalkingParam();
         void applyWalkingParam(const op3_walking_module_msgs::WalkingParam &walking_param);
 //        void setWalkingBalance(bool on_command);
 

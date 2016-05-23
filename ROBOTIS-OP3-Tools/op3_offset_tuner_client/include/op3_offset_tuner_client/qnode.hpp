@@ -68,6 +68,7 @@ public:
     void send_torque_enable_msg( op3_offset_tuner_msgs::JointTorqueOnOffArray msg );
     void send_joint_offset_data_msg( op3_offset_tuner_msgs::JointOffsetData msg );
     void send_command_msg( std_msgs::String msg );
+    bool is_refresh() {return is_refresh_;}
 
     std::map<int, std::string> right_arm_offset_group;
     std::map<int, std::string> left_arm_offset_group;
@@ -86,6 +87,7 @@ Q_SIGNALS:
 private:
 	int init_argc;
 	char** init_argv;
+	bool is_refresh_;
 	ros::Publisher chatter_publisher;
     QStringListModel logging_model;
 

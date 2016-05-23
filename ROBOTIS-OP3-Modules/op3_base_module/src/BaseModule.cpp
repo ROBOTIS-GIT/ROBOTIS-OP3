@@ -13,9 +13,9 @@ using namespace ROBOTIS;
 BaseModule *BaseModule::unique_instance_ = new BaseModule();
 
 BaseModule::BaseModule()
-    : control_cycle_msec_(0)
-    , has_goal_joints_(false)
-    , ini_pose_only_(false)
+: control_cycle_msec_(0)
+, has_goal_joints_(false)
+, ini_pose_only_(false)
 {
     enable          = false;
     module_name     = "base_module";
@@ -92,7 +92,7 @@ void BaseModule::Initialize(const int control_cycle_msec, Robot *robot)
 
     /* publish topics */
     status_msg_pub_         = _ros_node.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 1);
-//    set_ctrl_module_pub_	= _ros_node.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_ctrl_module", 1);
+    //    set_ctrl_module_pub_	= _ros_node.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_ctrl_module", 1);
     set_ctrl_module_pub_	= _ros_node.advertise<std_msgs::String>("/robotis/enable_ctrl_module", 1);
 }
 
@@ -183,6 +183,8 @@ void BaseModule::QueueThread()
     while(_ros_node.ok())
     {
         _callback_queue.callAvailable();
+
+        usleep(100);
     }
 }
 
@@ -224,8 +226,8 @@ void BaseModule::IniposeTraGeneProc()
         if ( Robotis->via_num == 0 )
         {
             tra = minimum_jerk_tra( ini_value , 0.0 , 0.0 ,
-                                    tar_value , 0.0 , 0.0 ,
-                                    Robotis->smp_time , Robotis->mov_time );
+                    tar_value , 0.0 , 0.0 ,
+                    Robotis->smp_time , Robotis->mov_time );
         }
         else
         {
@@ -234,10 +236,10 @@ void BaseModule::IniposeTraGeneProc()
             Eigen::MatrixXd dd_via_value = Robotis->joint_via_ddpose.col( id );
 
             tra = minimum_jerk_tra_via_n_qdqddq( Robotis->via_num,
-                                                 ini_value , 0.0 , 0.0 ,
-                                                 via_value , d_via_value, dd_via_value,
-                                                 tar_value , 0.0 , 0.0 ,
-                                                 Robotis->smp_time , Robotis->via_time , Robotis->mov_time );
+                    ini_value , 0.0 , 0.0 ,
+                    via_value , d_via_value, dd_via_value,
+                    tar_value , 0.0 , 0.0 ,
+                    Robotis->smp_time , Robotis->via_time , Robotis->mov_time );
         }
 
         Robotis->calc_joint_tra.block( 0 , id , Robotis->all_time_steps , 1 ) = tra;
@@ -269,8 +271,8 @@ void BaseModule::PoseGenProc(Eigen::MatrixXd _joint_angle_pose)
 
 
         Eigen::MatrixXd tra = minimum_jerk_tra( ini_value , 0.0 , 0.0 ,
-                                                tar_value , 0.0 , 0.0 ,
-                                                Robotis->smp_time , Robotis->mov_time );
+                tar_value , 0.0 , 0.0 ,
+                Robotis->smp_time , Robotis->mov_time );
 
 
         Robotis->calc_joint_tra.block( 0 , id , Robotis->all_time_steps , 1 ) = tra;
@@ -408,15 +410,15 @@ void BaseModule::Stop()
 
 void BaseModule::setCtrlModule(std::string module)
 {
-//    robotis_controller_msgs::JointCtrlModule _control_msg;
+    //    robotis_controller_msgs::JointCtrlModule _control_msg;
 
-//    std::map<std::string, DynamixelState *>::iterator _joint_iter;
+    //    std::map<std::string, DynamixelState *>::iterator _joint_iter;
 
-//    for(_joint_iter = result.begin(); _joint_iter != result.end(); ++_joint_iter)
-//    {
-//        _control_msg.joint_name.push_back(_joint_iter->first);
-//        _control_msg.module_name.push_back(module);
-//    }
+    //    for(_joint_iter = result.begin(); _joint_iter != result.end(); ++_joint_iter)
+    //    {
+    //        _control_msg.joint_name.push_back(_joint_iter->first);
+    //        _control_msg.module_name.push_back(module);
+    //    }
 
     std_msgs::String _control_msg;
     _control_msg.data = module_name;

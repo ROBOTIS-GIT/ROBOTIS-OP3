@@ -72,6 +72,8 @@ private:
 
 
     Eigen::MatrixXd goal_position_;
+    Eigen::MatrixXd init_position_;
+    Eigen::MatrixXi joint_axis_direction_;
     std::map<std::string, int> joint_table_;
 
     op3_walking_module_msgs::WalkingParam walking_param_;
@@ -114,6 +116,12 @@ private:
     //
     //    void    SetBalanceParam(thormang3_walking_module_msgs::BalanceParam& balance_param_msg);
 
+    void processPhase(const double &time_unit);
+    void computeLegAngle(double *leg_angle);
+    void computeArmAngle(double *arm_angle);
+    void sensoryFeedback(const double &rlGyroErr, const double &fbGyroErr, double *balance_angle);
+
+    // variable for walking
     double m_PeriodTime;
     double m_DSP_Ratio;
     double m_SSP_Ratio;

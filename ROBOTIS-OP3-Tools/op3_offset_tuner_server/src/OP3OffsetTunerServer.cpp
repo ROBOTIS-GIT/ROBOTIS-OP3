@@ -551,16 +551,16 @@ bool OffsetTunerServer::GetPresentJointOffsetDataServiceCallback(op3_offset_tune
 
         op3_offset_tuner_msgs::JointOffsetPositionData _joint_offset_pos;
 
-        INT32_T present_pos_value = 0;
-        UINT8_T  _dxl_error = 0;
-        int 	 comm_result = COMM_SUCCESS;
+        INT32_T _present_pos_value = 0;
+        UINT8_T _dxl_error = 0;
+        int 	_comm_result = COMM_SUCCESS;
 
 
         if(controller_->robot->dxls[_joint_name]->present_position_item == NULL)
             continue;
 
-        comm_result = controller_->ReadCtrlItem(_joint_name, controller_->robot->dxls[_joint_name]->present_position_item->item_name, (UINT32_T*)& present_pos_value, &_dxl_error);
-        if(comm_result != COMM_SUCCESS)
+        _comm_result = controller_->ReadCtrlItem(_joint_name, controller_->robot->dxls[_joint_name]->present_position_item->item_name, (UINT32_T*)& _present_pos_value, &_dxl_error);
+        if(_comm_result != COMM_SUCCESS)
         {
             ROS_ERROR("Failed to read present pos");
             return false;
@@ -573,7 +573,7 @@ bool OffsetTunerServer::GetPresentJointOffsetDataServiceCallback(op3_offset_tune
             _joint_offset_pos.joint_name	= _joint_name;
             _joint_offset_pos.goal_value	= _joint_data->joint_init_pos_rad;
             _joint_offset_pos.offset_value	= _joint_data->joint_offset_rad;
-            _joint_offset_pos.present_value	= controller_->robot->dxls[_joint_name]->ConvertValue2Radian(present_pos_value);
+            _joint_offset_pos.present_value	= controller_->robot->dxls[_joint_name]->ConvertValue2Radian(_present_pos_value);
             _joint_offset_pos.p_gain		= _joint_data->p_gain;
             _joint_offset_pos.i_gain		= _joint_data->i_gain;
             _joint_offset_pos.d_gain		= _joint_data->d_gain;

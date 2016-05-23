@@ -268,7 +268,7 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TREE_SELECT tree)
         op3_link_data[7]->sibling               =   8;
         op3_link_data[7]->child                 =   9;
         op3_link_data[7]->mass                  =   0.243;
-        op3_link_data[7]->relative_position     =   transitionXYZ( -0.005 , -0.037 , -0.0907 );
+        op3_link_data[7]->relative_position     =   transitionXYZ( -0.005 , -0.035 , -0.0907 );
         op3_link_data[7]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , -1.0 );
         op3_link_data[7]->center_of_mass        =   transitionXYZ( -0.012 , 0.000 , -0.025 );
         op3_link_data[7]->joint_limit_max       =   0.45 * M_PI;
@@ -361,7 +361,7 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TREE_SELECT tree)
         op3_link_data[8]->sibling               =   -1;
         op3_link_data[8]->child                 =   10;
         op3_link_data[8]->mass                  =   0.243;
-        op3_link_data[8]->relative_position     =   transitionXYZ( -0.005 , 0.037 , -0.0907 );
+        op3_link_data[8]->relative_position     =   transitionXYZ( -0.005 , 0.035 , -0.0907 );
         op3_link_data[8]->joint_axis            =   transitionXYZ( 0.0 , 0.0 , -1.0 );
         op3_link_data[8]->center_of_mass        =   transitionXYZ( 0.012 , 0.000 , -0.025 );
         op3_link_data[8]->joint_limit_max       =   0.45 * M_PI;

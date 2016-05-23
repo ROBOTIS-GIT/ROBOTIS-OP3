@@ -129,7 +129,7 @@
           <bool>true</bool>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="tab_mode">
           <attribute name="title">
@@ -885,9 +885,19 @@
                </widget>
               </item>
               <item>
+               <widget class="QPushButton" name="button_param_save">
+                <property name="text">
+                 <string>Save</string>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QPushButton" name="button_param_apply">
                 <property name="text">
                  <string>Apply</string>
+                </property>
+                <property name="shortcut">
+                 <string>\</string>
                 </property>
                </widget>
               </item>
@@ -912,12 +922,18 @@
                 <property name="text">
                  <string>Start</string>
                 </property>
+                <property name="shortcut">
+                 <string>Space</string>
+                </property>
                </widget>
               </item>
               <item>
                <widget class="QPushButton" name="button_walking_stop">
                 <property name="text">
                  <string>Stop</string>
+                </property>
+                <property name="shortcut">
+                 <string>Esc</string>
                 </property>
                </widget>
               </item>
@@ -1689,6 +1705,71 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>tab_manager</tabstop>
+  <tabstop>view_logging</tabstop>
+  <tabstop>button_clear_log</tabstop>
+  <tabstop>button_init_pose</tabstop>
+  <tabstop>tabWidget_control</tabstop>
+  <tabstop>button_walking_start</tabstop>
+  <tabstop>button_walking_stop</tabstop>
+  <tabstop>dSpinBox_init_offset_x</tabstop>
+  <tabstop>dSpinBox_init_offset_y</tabstop>
+  <tabstop>dSpinBox_init_offset_z</tabstop>
+  <tabstop>dSpinBox_init_offset_roll</tabstop>
+  <tabstop>dSpinBox_init_offset_pitch</tabstop>
+  <tabstop>dSpinBox_init_offset_yaw</tabstop>
+  <tabstop>dSpinBox_hip_pitch_offset</tabstop>
+  <tabstop>dSpinBox_period_time</tabstop>
+  <tabstop>dSpinBox_dsp_ratio</tabstop>
+  <tabstop>dSpinBox_step_fb_ratio</tabstop>
+  <tabstop>checkBox_move_aim_on</tabstop>
+  <tabstop>checkBox_move_aim_off</tabstop>
+  <tabstop>dSpinBox_x_move_amplitude</tabstop>
+  <tabstop>dSpinBox_y_move_amplitude</tabstop>
+  <tabstop>dSpinBox_z_move_amplitude</tabstop>
+  <tabstop>dSpinBox_a_move_amplitude</tabstop>
+  <tabstop>checkBox_balance_on</tabstop>
+  <tabstop>checkBox_balance_off</tabstop>
+  <tabstop>dSpinBox_hip_roll_gain</tabstop>
+  <tabstop>dSpinBox_knee_gain</tabstop>
+  <tabstop>dSpinBox_ankle_roll_gain</tabstop>
+  <tabstop>dSpinBox_ankle_pitch_gain</tabstop>
+  <tabstop>dSpinBox_y_swap_amplitude</tabstop>
+  <tabstop>dSpinBox_z_swap_amplitude</tabstop>
+  <tabstop>dSpinBox_arm_swing_gain</tabstop>
+  <tabstop>dSpinBox_pelvis_offset</tabstop>
+  <tabstop>button_param_refresh</tabstop>
+  <tabstop>button_param_save</tabstop>
+  <tabstop>button_param_apply</tabstop>
+  <tabstop>head_pan_slider</tabstop>
+  <tabstop>head_pan_spinbox</tabstop>
+  <tabstop>head_tilt_slider</tabstop>
+  <tabstop>head_tilt_spinbox</tabstop>
+  <tabstop>head_center_button</tabstop>
+  <tabstop>scrollArea</tabstop>
+  <tabstop>button_grip_off</tabstop>
+  <tabstop>demo_group_combobox</tabstop>
+  <tabstop>button_pathplanning_ini</tabstop>
+  <tabstop>button_pathplanning_a</tabstop>
+  <tabstop>button_pathplanning_b</tabstop>
+  <tabstop>despos_button</tabstop>
+  <tabstop>joint_spinbox</tabstop>
+  <tabstop>ori_pitch_spinbox</tabstop>
+  <tabstop>pos_z_spinbox</tabstop>
+  <tabstop>desjoint_button</tabstop>
+  <tabstop>gripper_comboBox</tabstop>
+  <tabstop>ori_yaw_spinbox</tabstop>
+  <tabstop>pos_y_spinbox</tabstop>
+  <tabstop>inipose_button</tabstop>
+  <tabstop>currjoint_button</tabstop>
+  <tabstop>group_combobox</tabstop>
+  <tabstop>pos_x_spinbox</tabstop>
+  <tabstop>button_grip_on</tabstop>
+  <tabstop>ori_roll_spinbox</tabstop>
+  <tabstop>currpos_button</tabstop>
+  <tabstop>joint_combobox</tabstop>
+ </tabstops>
  <resources>
   <include location="../resources/images.qrc"/>
  </resources>

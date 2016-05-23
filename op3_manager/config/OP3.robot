@@ -1,6 +1,6 @@
 [ port info ]
 # PORT NAME  | BAUDRATE  | DEFAULT JOINT
-/dev/ttyUSB1 | 3000000   | r_sho_pitch
+/dev/ttyUSB1 | 3000000   | l_hip_yaw
 /dev/ttyUSB0 | 1000000   | cm_740
 
 [ device info ]

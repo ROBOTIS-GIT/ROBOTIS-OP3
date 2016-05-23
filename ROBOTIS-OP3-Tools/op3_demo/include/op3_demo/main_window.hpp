@@ -22,6 +22,9 @@
 
 namespace op3_demo {
 
+#define deg2rad     (M_PI / 180.0)
+#define rad2deg     (180.0 / M_PI)
+
 /*****************************************************************************
 ** Interface [MainWindow]
 *****************************************************************************/
@@ -70,6 +73,7 @@ class MainWindow : public QMainWindow {
 
         void on_button_param_refresh_clicked(bool check);
         void on_button_param_apply_clicked(bool check);
+        void on_button_param_save_clicked(bool check);
 
         void on_checkBox_balance_on_clicked(bool check);
         void on_checkBox_balance_off_clicked(bool check);
@@ -107,6 +111,7 @@ class MainWindow : public QMainWindow {
         std::map< std::string, QList<QWidget *> > module_ui_table_;
         void updateModuleUI();
         void setHeadAngle(double pan, double tilt);
+        void applyWalkingParams();
 
         //void sendWalkingCommand(const std::string &command);
         //void sendDemoMsg(const std::string &demo_command);

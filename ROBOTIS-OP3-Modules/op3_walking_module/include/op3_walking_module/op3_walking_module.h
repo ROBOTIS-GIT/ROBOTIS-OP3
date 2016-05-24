@@ -26,6 +26,7 @@
 
 #include "robotis_framework_common/MotionModule.h"
 #include "robotis_math/RobotisMath.h"
+#include "robotis_math/RobotisTrajectoryCalculator.h"
 #include "op3_kinematics_dynamics/OP3KinematicsDynamics.h"
 
 #include "robotis_controller_msgs/StatusMsg.h"
@@ -70,11 +71,23 @@ private:
     ros::Publisher robot_pose_pub_;
     ros::Publisher status_msg_pub_;
 
+    Eigen::MatrixXd calc_joint_tra_;
 
+    Eigen::MatrixXd target_position_;
     Eigen::MatrixXd goal_position_;
     Eigen::MatrixXd init_position_;
     Eigen::MatrixXi joint_axis_direction_;
     std::map<std::string, int> joint_table_;
+    int walking_state_;
+    enum
+    {
+        WalkingDisable = 0,
+        WalkingEnable = 1,
+        WalkingInitPose = 2,
+        WalkingReady = 3
+    };
+    bool DEBUG;
+    int init_count_;
 
     op3_walking_module_msgs::WalkingParam walking_param_;
 
@@ -117,7 +130,7 @@ private:
     //    void    SetBalanceParam(thormang3_walking_module_msgs::BalanceParam& balance_param_msg);
 
     void processPhase(const double &time_unit);
-    void computeLegAngle(double *leg_angle);
+    bool computeLegAngle(double *leg_angle);
     void computeArmAngle(double *arm_angle);
     void sensoryFeedback(const double &rlGyroErr, const double &fbGyroErr, double *balance_angle);
 
@@ -194,6 +207,8 @@ private:
     void loadWalkingParam(const std::string &path);
     void saveWalkingParam(std::string &path);
 
+    void IniposeTraGene(double mov_time);
+
 public:
     virtual ~WalkingMotionModule();
 
@@ -223,7 +238,9 @@ public:
     double GetBodySwingY()      { return m_Body_Swing_Y; }
     double GetBodySwingZ()      { return m_Body_Swing_Z; }
 
-
+protected:
+    void OnEnable();
+    void OnDisable();
 };
 
 }

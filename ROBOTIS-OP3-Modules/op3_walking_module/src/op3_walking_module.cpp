@@ -16,6 +16,9 @@ WalkingMotionModule *WalkingMotionModule::unique_instance_ = new WalkingMotionMo
 
 WalkingMotionModule::WalkingMotionModule()
 : control_cycle_msec_(8)
+, walking_state_(WalkingReady)
+, DEBUG(false)
+, init_count_(0)
 {
     enable          = false;
     module_name     = "walking_module";
@@ -61,6 +64,7 @@ WalkingMotionModule::WalkingMotionModule()
     joint_table_["l_sho_pitch"] = 13;
     // joint_table_["head_pan"   ] = 14;
 
+    target_position_      = Eigen::MatrixXd::Zero(1, result.size());
     goal_position_      = Eigen::MatrixXd::Zero(1, result.size());
     init_position_      = Eigen::MatrixXd::Zero(1, result.size());
     joint_axis_direction_      = Eigen::MatrixXi::Zero(1, result.size());
@@ -465,7 +469,7 @@ void WalkingMotionModule::Stop()
 
 bool WalkingMotionModule::IsRunning()
 {
-    return m_Real_Running;
+    return m_Real_Running || (walking_state_ == WalkingInitPose);
 }
 
 // default [angle : radian, length : m]
@@ -474,31 +478,92 @@ void WalkingMotionModule::Process(std::map<std::string, Dynamixel *> dxls, std::
     if(enable == false)
         return;
 
-//    ros::Time _start_time = ros::Time::now();
+    //    ros::Time _start_time = ros::Time::now();
 
     const double _time_unit = control_cycle_msec_ * 0.001;  // ms -> s
     int _joint_size = result.size();
-    double angle[_joint_size];
-    double balance_angle[_joint_size];
+    double _angle[_joint_size];
+    double _balance_angle[_joint_size];
 
-
-    processPhase(_time_unit);
-
-    computeLegAngle(&angle[0]);
-    computeArmAngle(&angle[12]);
-
-    double rlGyroErr = sensors["gyro_x"] * deg2rad;
-    double fbGyroErr = sensors["gyro_y"] * deg2rad;
-
-    sensoryFeedback(rlGyroErr, fbGyroErr, balance_angle);
-
-    // set goal position
-    for(int idx = 0; idx < 14; idx++)
+    if(walking_state_ == WalkingInitPose)
     {
-        goal_position_.coeffRef(0, idx) =  init_position_.coeff(0, idx) + angle[idx] + balance_angle[idx];
+        int _total_count = calc_joint_tra_.rows();
+        for ( int id = 1; id <= result.size(); id++ )
+            target_position_.coeffRef(0, id) = calc_joint_tra_( init_count_ , id );
+
+        init_count_ += 1;
+        if(init_count_ >= _total_count)
+        {
+            walking_state_ = WalkingReady;
+            if(DEBUG) std::cout << "End moving : " << init_count_ << std::endl;
+        }
+
     }
-    // head joint
-    //goal_position_.coeffRef(0, joint_table_["head_pan"]) = A_MOVE_AMPLITUDE;
+    else if(walking_state_ == WalkingReady || walking_state_ == WalkingEnable)
+    {
+        // present angle
+        for(std::map<std::string, DynamixelState *>::iterator state_iter = result.begin(); state_iter != result.end(); state_iter++)
+        {
+            std::string _joint_name = state_iter->first;
+            int _index = joint_table_[_joint_name];
+
+            Dynamixel *_dxl = NULL;
+            std::map<std::string, Dynamixel*>::iterator _dxl_it = dxls.find(_joint_name);
+            if(_dxl_it != dxls.end())
+                _dxl = _dxl_it->second;
+            else
+                continue;
+
+            goal_position_.coeffRef(0, _index)      = _dxl->dxl_state->goal_position;
+        }
+
+        processPhase(_time_unit);
+
+        bool _get_angle = false;
+        _get_angle = computeLegAngle(&_angle[0]);
+
+        computeArmAngle(&_angle[12]);
+
+        double rlGyroErr = sensors["gyro_x"] * deg2rad;
+        double fbGyroErr = sensors["gyro_y"] * deg2rad;
+
+        sensoryFeedback(rlGyroErr, fbGyroErr, _balance_angle);
+
+        double _err_total = 0.0, _err_max = 0.0;
+        // set goal position
+        for(int idx = 0; idx < 14; idx++)
+        {
+            double _goal_position = 0.0;
+            if(_get_angle == false && idx < 12)
+                _goal_position =  goal_position_.coeff(0, idx);
+            else
+                _goal_position =  init_position_.coeff(0, idx) + _angle[idx] + _balance_angle[idx];
+
+            target_position_.coeffRef(0, idx) = _goal_position;
+
+            double _err = fabs(target_position_.coeff(0, idx) - goal_position_.coeff(0, idx)) * rad2deg;
+            if(_err > _err_max) _err_max = _err;
+            _err_total += _err;
+        }
+        // head joint
+        //goal_position_.coeffRef(0, joint_table_["head_pan"]) = A_MOVE_AMPLITUDE;
+
+        // Check Enable
+        if(walking_state_ == WalkingEnable && _err_total > 5.0)
+        {
+            if(DEBUG) std::cout << "Check Err : " << _err_max << std::endl;
+            // make trajecotry for init pose
+            int _mov_time = _err_max / 30;
+            IniposeTraGene(_mov_time < 1 ? 1 : _mov_time);
+
+            // set target to goal
+            target_position_ = goal_position_;
+        }
+        else
+        {
+            walking_state_ = WalkingReady;
+        }
+    }
 
     // set result
     for(std::map<std::string, DynamixelState *>::iterator state_iter = result.begin(); state_iter != result.end(); state_iter++)
@@ -506,7 +571,7 @@ void WalkingMotionModule::Process(std::map<std::string, Dynamixel *> dxls, std::
         std::string _joint_name = state_iter->first;
         int _index = joint_table_[_joint_name];
 
-        result[_joint_name]->goal_position = goal_position_.coeff(0, _index);
+        result[_joint_name]->goal_position = target_position_.coeff(0, _index);
     }
 
     // Todo : pid gain
@@ -526,9 +591,9 @@ void WalkingMotionModule::Process(std::map<std::string, Dynamixel *> dxls, std::
             m_Time = 0;
     }
 
-//    ros::Duration _dur = ros::Time::now() - _start_time;
-//    double _msec = _dur.sec * 1000 + _dur.nsec * 0.000001;
-//    std::cout << "Walking Process Time : " << _msec << std::endl;
+    //    ros::Duration _dur = ros::Time::now() - _start_time;
+    //    double _msec = _dur.sec * 1000 + _dur.nsec * 0.000001;
+    //    std::cout << "Walking Process Time : " << _msec << std::endl;
 }
 
 void WalkingMotionModule::processPhase(const double &time_unit)
@@ -586,7 +651,7 @@ void WalkingMotionModule::processPhase(const double &time_unit)
     }
 }
 
-void WalkingMotionModule::computeLegAngle(double *leg_angle)
+bool WalkingMotionModule::computeLegAngle(double *leg_angle)
 {
     Pose3D _swap, _right_leg_move, _left_leg_move;
     double _pelvis_offset_r, _pelvis_offset_l;
@@ -707,13 +772,13 @@ void WalkingMotionModule::computeLegAngle(double *leg_angle)
     if(op3_kd_->InverseKinematicsforRightLeg(&leg_angle[0], ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]) == false)
     {
         printf("IK not Solved EPR : %f %f %f %f %f %f\n", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
-        return;
+        return false;
     }
 
     if(op3_kd_->InverseKinematicsforLeftLeg(&leg_angle[6], ep[6], ep[7], ep[8], ep[9], ep[10], ep[11]) == false)
     {
         printf("IK not Solved EPL : %f %f %f %f %f %f\n", ep[6], ep[7], ep[8], ep[9], ep[10], ep[11]);
-        return;
+        return false;
     }
     // printf("EPR[R] : %f %f %f %f %f %f\n", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
     // printf("EPR[L] : %f %f %f %f %f %f\n", ep[6], ep[7], ep[8], ep[9], ep[10], ep[11]);
@@ -758,6 +823,8 @@ void WalkingMotionModule::computeLegAngle(double *leg_angle)
 
         leg_angle[i] += _offset;
     }
+
+    return true;
 }
 
 void WalkingMotionModule::computeArmAngle(double *arm_angle)
@@ -771,9 +838,9 @@ void WalkingMotionModule::computeArmAngle(double *arm_angle)
     else
     {
         arm_angle[0] = wSin(m_Time, m_PeriodTime, M_PI * 1.5, -m_X_Move_Amplitude * m_Arm_Swing_Gain * 1000, 0)
-                                        * joint_axis_direction_(0, joint_table_["r_sho_pitch"]) * deg2rad;
+                                                                                        * joint_axis_direction_(0, joint_table_["r_sho_pitch"]) * deg2rad;
         arm_angle[1] = wSin(m_Time, m_PeriodTime, M_PI * 1.5, m_X_Move_Amplitude * m_Arm_Swing_Gain * 1000, 0)
-                                        * joint_axis_direction_(0, joint_table_["l_sho_pitch"]) * deg2rad;
+                                                                                        * joint_axis_direction_(0, joint_table_["l_sho_pitch"]) * deg2rad;
     }
 }
 
@@ -878,4 +945,42 @@ void WalkingMotionModule::saveWalkingParam(std::string &path)
     // output to file
     std::ofstream fout(path.c_str());
     fout << _out.c_str();
+}
+
+void WalkingMotionModule::OnEnable()
+{
+    walking_state_ = WalkingEnable;
+    ROS_INFO("Walking Enable");
+}
+
+void WalkingMotionModule::OnDisable()
+{
+    ROS_INFO("Walking Disable");
+    walking_state_ = WalkingDisable;
+}
+
+void WalkingMotionModule::IniposeTraGene(double mov_time)
+{
+    double _smp_time = control_cycle_msec_ * 0.001;
+    int _all_time_steps = int( mov_time / _smp_time ) + 1;
+    calc_joint_tra_.resize(_all_time_steps , result.size() + 1 );
+
+    for ( int id = 0; id <= result.size(); id++ )
+    {
+        double ini_value = goal_position_.coeff(0, id);
+        double tar_value = target_position_.coeff(0, id);
+
+        Eigen::MatrixXd tra;
+
+        tra = minimum_jerk_tra( ini_value , 0.0 , 0.0 ,
+                tar_value , 0.0 , 0.0 ,
+                _smp_time , mov_time );
+
+        calc_joint_tra_.block( 0 , id , _all_time_steps , 1 ) = tra;
+    }
+
+    std::cout << "Generate Trajecotry : " << mov_time << "s [" << _all_time_steps << "]" << std::endl;
+
+    walking_state_ = WalkingInitPose;
+    init_count_ = 0;
 }

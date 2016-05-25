@@ -558,6 +558,8 @@ void WalkingMotionModule::Process(std::map<std::string, Dynamixel *> dxls, std::
 
             // set target to goal
             target_position_ = goal_position_;
+
+            walking_state_ = WalkingInitPose;
         }
         else
         {
@@ -981,6 +983,5 @@ void WalkingMotionModule::IniposeTraGene(double mov_time)
 
     std::cout << "Generate Trajecotry : " << mov_time << "s [" << _all_time_steps << "]" << std::endl;
 
-    walking_state_ = WalkingInitPose;
     init_count_ = 0;
 }

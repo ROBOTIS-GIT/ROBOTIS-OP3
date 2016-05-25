@@ -106,6 +106,10 @@ public:
 	void ResetPage(ACTION_FILE::PAGE* _page);
 
 	void ActionPlayProcess(std::map<std::string, Dynamixel *> dxls);
+
+protected:
+    void OnEnable();
+    void OnDisable();
 };
 
 }

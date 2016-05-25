@@ -185,13 +185,15 @@ void ActionModule::PageNumberCallback(const std_msgs::Int32::ConstPtr& _msg)
 
 void ActionModule::Process(std::map<std::string, Dynamixel *> dxls, std::map<std::string, double> sensors)
 {
-	previous_enable_ = present_enable_;
-	present_enable_  = enable;
+	//previous_enable_ = present_enable_;
+	//present_enable_  = enable;
 
     if(enable == false)
         return;
 
-    if((present_enable_ == true) && (present_enable_ != previous_enable_)) {
+//     if((present_enable_ == true) && (present_enable_ != previous_enable_))
+    if(present_enable_ == true)
+    {
     	for(std::map<std::string, Dynamixel *>::iterator _it = dxls.begin() ; _it != dxls.end(); _it++)
     	{
     		std::string _joint_name = _it->first;
@@ -199,7 +201,7 @@ void ActionModule::Process(std::map<std::string, Dynamixel *> dxls, std::map<std
     		if(result.find(_joint_name) == result.end())
     			continue;
     		else {
-    			result[_joint_name]->goal_position = _it->second->dxl_state->present_position;
+    			result[_joint_name]->goal_position = _it->second->dxl_state->goal_position;
     		}
     	}
     }
@@ -954,3 +956,12 @@ void ActionModule::PublishStatusMsg(unsigned int type, std::string msg)
     status_msg_pub_.publish(_status);
 }
 
+void ActionModule::OnEnable()
+{
+    present_enable_ = true;
+}
+
+void ActionModule::OnDisable()
+{
+    present_enable_ = false;
+}

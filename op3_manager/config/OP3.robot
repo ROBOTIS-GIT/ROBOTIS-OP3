@@ -7,10 +7,10 @@
 # TYPE    | PORT NAME    | ID  | MODEL          | PROTOCOL | DEV NAME       | BULK READ ITEMS
 dynamixel | /dev/ttyUSB1 | 1   | XM-430         | 2.0      | r_sho_pitch    | present_position
 dynamixel | /dev/ttyUSB1 | 2   | XM-430         | 2.0      | l_sho_pitch    | present_position
-#dynamixel | /dev/ttyUSB1 | 3   | XM-430         | 2.0      | r_sho_roll     | present_position
-#dynamixel | /dev/ttyUSB1 | 4   | XM-430         | 2.0      | l_sho_roll     | present_position
-#dynamixel | /dev/ttyUSB1 | 5   | XM-430         | 2.0      | r_el           | present_position
-#dynamixel | /dev/ttyUSB1 | 6   | XM-430         | 2.0      | l_el           | present_position
+dynamixel | /dev/ttyUSB1 | 3   | XM-430         | 2.0      | r_sho_roll     | present_position
+dynamixel | /dev/ttyUSB1 | 4   | XM-430         | 2.0      | l_sho_roll     | present_position
+dynamixel | /dev/ttyUSB1 | 5   | XM-430         | 2.0      | r_el           | present_position
+dynamixel | /dev/ttyUSB1 | 6   | XM-430         | 2.0      | l_el           | present_position
 dynamixel | /dev/ttyUSB1 | 7   | XM-430         | 2.0      | r_hip_yaw      | present_position
 dynamixel | /dev/ttyUSB1 | 8   | XM-430         | 2.0      | l_hip_yaw      | present_position
 dynamixel | /dev/ttyUSB1 | 9   | XM-430         | 2.0      | r_hip_roll     | present_position

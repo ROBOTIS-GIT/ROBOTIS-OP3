@@ -30,6 +30,8 @@ void PowerOnDXLMsgCallback( const std_msgs::String::ConstPtr& msg )
 
     RobotisController  *_controller     = RobotisController::GetInstance();
 
+    _controller->SetCtrlModule("none");
+
     _controller->StopTimer();
 
     // power on

@@ -109,7 +109,7 @@ void CM740Module::Process(std::map<std::string, Dynamixel *> dxls)
 
 double CM740Module::getGyroValue(int dxl_value)
 {
-    return (dxl_value - 512) * 1600.0 * 2.0 / 1023;
+    return (dxl_value - 512) * 500.0 * 2.0 / 1023;
 }
 
 double CM740Module::getAccValue(int dxl_value)

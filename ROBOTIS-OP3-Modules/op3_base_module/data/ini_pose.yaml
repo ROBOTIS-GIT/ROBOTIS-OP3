@@ -11,8 +11,8 @@ via_time : [ 4.0 ] # via-point time
 via_pose :
   1 : [ 0.0 ]       # r_sho_pitch
   2 : [ 0.0 ]       # l_sho_pitch
-  3 : [ 0.0 ]       # r_sho_roll
-  4 : [ 0.0 ]       # l_sho_roll
+  3 : [ -15.0 ]       # r_sho_roll
+  4 : [ 15.0 ]       # l_sho_roll
   5 : [ 0.0 ]       # r_el
   6 : [ 0.0 ]       # l_el
   7 : [ 0.0 ]       # r_hip_yaw
@@ -36,10 +36,10 @@ via_pose :
 tar_pose :
   1 : -38   	# r_sho_pitch
   2 : 38   	    # l_sho_pitch
-  3 : -75   	# r_sho_roll
-  4 : 75   	    # l_sho_roll
-  5 : 0   	    # r_el
-  6 : 0   	    # l_el
+  3 : -45   	# r_sho_roll
+  4 : 45   	    # l_sho_roll
+  5 : 45   	    # r_el
+  6 : -45   	    # l_el
   7 : 0   	    # r_hip_yaw
   8 : 0   	    # l_hip_yaw
   9 : 0   	    # r_hip_roll

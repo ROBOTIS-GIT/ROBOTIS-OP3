@@ -155,7 +155,7 @@ void WalkingMotionModule::Initialize(const int control_cycle_msec, Robot *robot)
 
   //                     R_HIP_YAW, R_HIP_ROLL, R_HIP_PITCH, R_KNEE, R_ANKLE_PITCH, R_ANKLE_ROLL, L_HIP_YAW, L_HIP_ROLL, L_HIP_PITCH, L_KNEE, L_ANKLE_PITCH, L_ANKLE_ROLL, R_ARM_SWING, L_ARM_SWING
   joint_axis_direction_   <<    -1,        -1,          1,         1,         -1,            1,          -1,        -1,         -1,         -1,         1,            1,           1,           -1;
-  init_position_          <<   0.0,       0.0,        0.0,       0.0,        0.0,          0.0,         0.0,       0.0,        0.0,        0.0,       0.0,          0.0,       -38.0,         38.0;
+  init_position_          <<   0.0,       0.0,        0.0,       0.0,        0.0,          0.0,         0.0,       0.0,        0.0,        0.0,       0.0,          0.0,         5.0,         -5.0;
   init_position_ *= deg2rad;
 
   ros::NodeHandle _ros_node;
@@ -794,17 +794,34 @@ void WalkingMotionModule::sensoryFeedback(const double &rlGyroErr, const double 
   if(walking_param_.balance_enable == false)
     return;
 
-  balance_angle[joint_table_["r_hip_roll"]] += (joint_axis_direction_.coeff(0, joint_table_["r_hip_roll"]) * rlGyroErr * walking_param_.balance_hip_roll_gain); // R_HIP_ROLL
-  balance_angle[joint_table_["l_hip_roll"]] += (joint_axis_direction_.coeff(0, joint_table_["l_hip_roll"]) * rlGyroErr * walking_param_.balance_hip_roll_gain); // L_HIP_ROLL
+  double balance_gain = 0.36;
 
-  balance_angle[joint_table_["r_knee"]] -= (joint_axis_direction_.coeff(0, joint_table_["r_knee"]) * fbGyroErr * walking_param_.balance_knee_gain); // R_KNEE
-  balance_angle[joint_table_["l_knee"]] -= (joint_axis_direction_.coeff(0, joint_table_["l_knee"]) * fbGyroErr * walking_param_.balance_knee_gain); // L_KNEE
+  balance_angle[joint_table_["r_hip_roll"]] = joint_axis_direction_.coeff(0, joint_table_["r_hip_roll"]) * balance_gain
+                                              * rlGyroErr * walking_param_.balance_hip_roll_gain; // R_HIP_ROLL
+  balance_angle[joint_table_["l_hip_roll"]] = joint_axis_direction_.coeff(0, joint_table_["l_hip_roll"]) * balance_gain
+                                              * rlGyroErr * walking_param_.balance_hip_roll_gain; // L_HIP_ROLL
 
-  balance_angle[joint_table_["r_ank_pitch"]] -= (joint_axis_direction_.coeff(0, joint_table_["r_ank_pitch"]) * fbGyroErr * walking_param_.balance_ankle_pitch_gain); // R_ANKLE_PITCH
-  balance_angle[joint_table_["l_ank_pitch"]] -= (joint_axis_direction_.coeff(0, joint_table_["l_ank_pitch"]) * fbGyroErr * walking_param_.balance_ankle_pitch_gain); // L_ANKLE_PITCH
+  balance_angle[joint_table_["r_knee"]] = - joint_axis_direction_.coeff(0, joint_table_["r_knee"]) * balance_gain
+                                          * fbGyroErr * walking_param_.balance_knee_gain; // R_KNEE
+  balance_angle[joint_table_["l_knee"]] = - joint_axis_direction_.coeff(0, joint_table_["l_knee"]) * balance_gain
+                                          * fbGyroErr * walking_param_.balance_knee_gain; // L_KNEE
 
-  balance_angle[joint_table_["r_ank_roll"]] -= (joint_axis_direction_.coeff(0, joint_table_["r_ank_roll"]) * rlGyroErr * walking_param_.balance_ankle_roll_gain); // R_ANKLE_ROLL
-  balance_angle[joint_table_["l_ank_roll"]] -= (joint_axis_direction_.coeff(0, joint_table_["l_ank_roll"]) * rlGyroErr * walking_param_.balance_ankle_roll_gain); // L_ANKLE_ROLL
+  balance_angle[joint_table_["r_ank_pitch"]] = - joint_axis_direction_.coeff(0, joint_table_["r_ank_pitch"]) * balance_gain
+                                              * fbGyroErr * walking_param_.balance_ankle_pitch_gain; // R_ANKLE_PITCH
+  balance_angle[joint_table_["l_ank_pitch"]] = - joint_axis_direction_.coeff(0, joint_table_["l_ank_pitch"]) * balance_gain
+                                              * fbGyroErr * walking_param_.balance_ankle_pitch_gain; // L_ANKLE_PITCH
+
+  balance_angle[joint_table_["r_ank_roll"]] = - joint_axis_direction_.coeff(0, joint_table_["r_ank_roll"]) * balance_gain
+                                              * rlGyroErr * walking_param_.balance_ankle_roll_gain; // R_ANKLE_ROLL
+  balance_angle[joint_table_["l_ank_roll"]] = - joint_axis_direction_.coeff(0, joint_table_["l_ank_roll"]) * balance_gain
+                                              * rlGyroErr * walking_param_.balance_ankle_roll_gain; // L_ANKLE_ROLL
+
+//  std::cout << "Balance =====================================" << std::endl;
+//  std::cout << "Gyro : " << rlGyroErr * rad2deg << " | " << fbGyroErr * rad2deg << std::endl;
+//  std::cout << "Hip roll : " << balance_angle[joint_table_["l_hip_roll"]] * rad2deg << " | " << balance_angle[joint_table_["r_hip_roll"]] * rad2deg << std::endl;
+//  std::cout << "Knee : " << balance_angle[joint_table_["l_knee"]] * rad2deg << " | " << balance_angle[joint_table_["r_knee"]] * rad2deg << std::endl;
+//  std::cout << "Ankle pitch : " << balance_angle[joint_table_["l_ank_pitch"]] * rad2deg << " | " << balance_angle[joint_table_["r_ank_pitch"]] * rad2deg << std::endl;
+//  std::cout << "Ankle roll : " << balance_angle[joint_table_["l_ank_roll"]] * rad2deg << " | " << balance_angle[joint_table_["r_ank_roll"]] * rad2deg << std::endl;
 }
 
 void WalkingMotionModule::loadWalkingParam(const std::string &path)
@@ -876,10 +893,10 @@ void WalkingMotionModule::saveWalkingParam(std::string &path)
   out_emitter << YAML::Key << "swing_top_down"            << YAML::Value << walking_param_.z_swap_amplitude;
   out_emitter << YAML::Key << "pelvis_offset"             << YAML::Value << walking_param_.pelvis_offset * rad2deg;
   out_emitter << YAML::Key << "arm_swing_gain"            << YAML::Value << walking_param_.arm_swing_gain;
-  out_emitter << YAML::Key << "balance_knee_gain"         << YAML::Value << walking_param_.balance_hip_roll_gain;
-  out_emitter << YAML::Key << "balance_ankle_pitch_gain"  << YAML::Value << walking_param_.balance_knee_gain;
-  out_emitter << YAML::Key << "balance_hip_roll_gain"     << YAML::Value << walking_param_.balance_ankle_roll_gain;
-  out_emitter << YAML::Key << "balance_ankle_roll_gain"   << YAML::Value << walking_param_.balance_ankle_pitch_gain;
+  out_emitter << YAML::Key << "balance_hip_roll_gain"     << YAML::Value << walking_param_.balance_hip_roll_gain;
+  out_emitter << YAML::Key << "balance_knee_gain"         << YAML::Value << walking_param_.balance_knee_gain;
+  out_emitter << YAML::Key << "balance_ankle_roll_gain"   << YAML::Value << walking_param_.balance_ankle_roll_gain;
+  out_emitter << YAML::Key << "balance_ankle_pitch_gain"  << YAML::Value << walking_param_.balance_ankle_pitch_gain;
 
   out_emitter << YAML::Key << "p_gain"                    << YAML::Value << walking_param_.p_gain;
   out_emitter << YAML::Key << "i_gain"                    << YAML::Value << walking_param_.i_gain;

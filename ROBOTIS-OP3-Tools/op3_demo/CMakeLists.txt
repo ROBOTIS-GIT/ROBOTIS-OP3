@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   cmake_modules
   eigen_conversions
   robotis_controller_msgs
+  op3_walking_module_msgs
 )
 
 find_package(Eigen REQUIRED)

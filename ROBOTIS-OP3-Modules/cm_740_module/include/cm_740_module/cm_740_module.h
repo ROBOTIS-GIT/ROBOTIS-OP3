@@ -20,10 +20,31 @@
 namespace ROBOTIS
 {
 
-class CM740Module : public SensorModule
+class CM740Module : public SensorModule, public Singleton<CM740Module>
 {
+public:
+  CM740Module();
+    virtual ~CM740Module();
+
+    /* ROS Topic Callback Functions */
+    // void    TopicCallback(const std_msgs::Int16::ConstPtr &msg);
+
+    void    Initialize(const int control_cycle_msec, Robot *robot);
+    void    Process(std::map<std::string, Dynamixel *> dxls,
+                    std::map<std::string, Sensor *> sensors);
+
 private:
-    static CM740Module *unique_instance_;
+    void QueueThread();
+
+    double getGyroValue(int dxl_value);
+    double getAccValue(int dxl_value);
+    void fusionIMU();
+
+    void buttonMode(bool pushed);
+    void buttonStart(bool pushed);
+    void handleButton(const std::string &button_name);
+    void handleVoltage(double present_volt);
+    void publishStatusMsg(unsigned int type, std::string msg);
 
     int             control_cycle_msec_;
     boost::thread   queue_thread_;
@@ -39,31 +60,6 @@ private:
     ros::Publisher      imu_pub_;
     ros::Publisher      reset_dxl_pub_;
     ros::Publisher      status_msg_pub_;
-
-    CM740Module();
-
-    void QueueThread();
-
-    double getGyroValue(int dxl_value);
-    double getAccValue(int dxl_value);
-    void fusionIMU();
-
-    void buttonMode(bool pushed);
-    void buttonStart(bool pushed);
-    void handleButton(const std::string &button_name);
-    void handleVoltage(double present_volt);
-    void publishStatusMsg(unsigned int type, std::string msg);
-
-public:
-    virtual ~CM740Module();
-
-    static CM740Module *GetInstance() { return unique_instance_; }
-
-    /* ROS Topic Callback Functions */
-    // void    TopicCallback(const std_msgs::Int16::ConstPtr &msg);
-
-    void    Initialize(const int control_cycle_msec, Robot *robot);
-    void    Process(std::map<std::string, Dynamixel *> dxls);
 };
 
 }

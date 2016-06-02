@@ -35,8 +35,6 @@
 
 using namespace ROBOTIS;
 
-WalkingMotionModule *WalkingMotionModule::unique_instance_ = new WalkingMotionModule();
-
 WalkingMotionModule::WalkingMotionModule()
 : control_cycle_msec_(8)
 , DEBUG_(false)
@@ -921,13 +919,13 @@ void WalkingMotionModule::saveWalkingParam(std::string &path)
   fout << out_emitter.c_str();
 }
 
-void WalkingMotionModule::OnEnable()
+void WalkingMotionModule::OnModuleEnable()
 {
   walking_state_ = WalkingEnable;
   ROS_INFO("Walking Enable");
 }
 
-void WalkingMotionModule::OnDisable()
+void WalkingMotionModule::OnModuleDisable()
 {
   ROS_INFO("Walking Disable");
   walking_state_ = WalkingDisable;

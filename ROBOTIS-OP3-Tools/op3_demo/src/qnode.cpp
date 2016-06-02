@@ -1,10 +1,36 @@
-/**
- * @file /src/qnode.cpp
- *
- * @brief Ros communication central!
- *
- * @date February 2011
- **/
+/*******************************************************************************
+* Copyright (c) 2016, ROBOTIS CO., LTD.
+* All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* * Redistributions of source code must retain the above copyright notice, this
+*   list of conditions and the following disclaimer.
+*
+* * Redistributions in binary form must reproduce the above copyright notice,
+*   this list of conditions and the following disclaimer in the documentation
+*   and/or other materials provided with the distribution.
+*
+* * Neither the name of ROBOTIS nor the names of its
+*   contributors may be used to endorse or promote products derived from
+*   this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*******************************************************************************/
+
+
+/* Author: Kayman Jung */
+
 
 /*****************************************************************************
  ** Includes
@@ -64,10 +90,7 @@ bool QNodeOP3::init()
     module_control_pub_  = _nh.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_joint_ctrl_modules", 0);
     module_control_preset_pub_ = _nh.advertise<std_msgs::String>("/robotis/enable_ctrl_module", 0);
     init_pose_pub_      = _nh.advertise<std_msgs::String>("/robotis/base/ini_pose", 0);
-    // init_ft_pub_        = _nh.advertise<std_msgs::String>("/robotis/feet_ft/ft_calib_command", 0);
     set_head_joint_angle_pub_ = _nh.advertise<sensor_msgs::JointState>("/robotis/head_control/set_joint_states", 0);
-
-    //    init_ft_foot_sub_ = _nh.subscribe("/robotis/base/ini_ft_value", 10, &QNodeOP3::initFTFootCallback, this);
 
     status_msg_sub_ = _nh.subscribe("/robotis/status", 10, &QNodeOP3::statusMsgCallback, this);
     current_module_control_sub_ = _nh.subscribe("/robotis/present_joint_ctrl_modules", 10, &QNodeOP3::refreshCurrentJointControlCallback, this);
@@ -75,22 +98,11 @@ bool QNodeOP3::init()
 
     get_module_control_client_ = _nh.serviceClient<robotis_controller_msgs::GetJointModule>("/robotis/get_present_joint_ctrl_modules");
 
-    // Manipulation
-    //    set_control_mode_msg_pub = _nh.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_ctrl_module", 0);
-    //    kenematics_pose_sub = _nh.subscribe("/thormang3_demo/ik_target_pose", 10, &QNodeOP3::getKinematicsPoseCallback, this);
-
     send_ini_pose_msg_pub = _nh.advertise<std_msgs::String>("/robotis/manipulation/ini_pose_msg", 0);
-    //    send_des_joint_msg_pub = _nh.advertise<thormang3_manipulation_module_msgs::JointPose>("/robotis/manipulation/des_joint_msg", 0);
-    //    send_ik_msg_pub = _nh.advertise<thormang3_manipulation_module_msgs::KinematicsPose>("/robotis/manipulation/ik_msg", 0);
-    //    send_pathplan_demo_pub = _nh.advertise<thormang3_manipulation_module_msgs::DemoPose>("/robotis/manipulation/demo_msg", 0);
-
-    //    get_joint_pose_client = _nh.serviceClient<thormang3_manipulation_module_msgs::GetJointPose>("/robotis/manipulation/get_joint_pose");
-    //    get_kinematics_pose_client = _nh.serviceClient<thormang3_manipulation_module_msgs::GetKinematicsPose>("/robotis/manipulation/get_kinematics_pose");
 
     // Walking
     set_walking_command_pub = _nh.advertise<std_msgs::String>("/robotis/walking/command", 0);
     set_walking_param_pub = _nh.advertise<op3_walking_module_msgs::WalkingParam>("/robotis/walking/set_params", 0);
-    //    set_walking_balance_pub = _nh.advertise<std_msgs::Bool>("/robotis/thormang3_foot_step_generator/balance_command", 0);
     get_walking_param_client_ = _nh.serviceClient<op3_walking_module_msgs::GetWalkingParam>("/robotis/walking/get_params");
 
     // Action
@@ -170,7 +182,6 @@ void QNodeOP3::parseJointNameFromYaml(const std::string &path)
 
         using_mode_table_[_module_name]     = false;
     }
-
 
     // parse module_joint preset
     YAML::Node _sub_node = doc["module_button"];

@@ -7,8 +7,8 @@
      op3_demo
 
   </description>
-  <maintainer email="thor@gmail.com">thor</maintainer>
-  <author>thor</author>
+  <maintainer email="kmjung@robotis.com">kayman</maintainer>
+  <author>kayman</author>
   <license>BSD</license>
   <!-- <url type="bugtracker">https://github.com/stonier/qt_ros/issues</url> -->
   <!-- <url type="repository">https://github.com/stonier/qt_ros</url> -->

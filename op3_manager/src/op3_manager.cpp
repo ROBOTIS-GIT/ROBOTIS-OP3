@@ -13,9 +13,9 @@
 #include "cm_740_module/cm_740_module.h"
 
 /* Motion Module Header */
-#include "op3_base_module/BaseModule.h"
-#include "op3_head_control_module/HeadControlModule.h"
-#include "op3_action_module/ActionModule.h"
+#include "op3_base_module/base_module.h"
+#include "op3_head_control_module/head_control_module.h"
+#include "op3_action_module/action_module.h"
 #include "op3_walking_module/op3_walking_module.h"
 
 using namespace ROBOTIS;
@@ -57,11 +57,7 @@ void PowerOnDXLMsgCallback( const std_msgs::String::ConstPtr& msg )
     // _port_h2->ClosePort();
     usleep(50 * 1000);
 
-    if(_controller->InitializeDXL(_init_file) == false)
-    {
-        ROS_ERROR("ROBOTIS Controller Initialize Fail!");
-        return;
-    }
+    _controller->InitDevice(_init_file);
 
     _controller->StartTimer();
 }

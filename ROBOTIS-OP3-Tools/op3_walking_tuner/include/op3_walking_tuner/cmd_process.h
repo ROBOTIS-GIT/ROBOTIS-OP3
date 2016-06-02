@@ -7,7 +7,7 @@
 #include "robotis_controller/RobotisController.h"
 
 #include "cm_740_module/cm_740_module.h"
-#include "op3_base_module/BaseModule.h"
+#include "op3_base_module/base_module.h"
 #include "op3_walking_module/op3_walking_module.h"
 #include "op3_walking_module_msgs/GetWalkingParam.h"
 

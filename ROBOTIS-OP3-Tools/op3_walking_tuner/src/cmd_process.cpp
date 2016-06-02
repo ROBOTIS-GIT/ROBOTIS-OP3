@@ -190,7 +190,7 @@ bool InitializeWalkingTuner(std::string robot_file_path, std::string init_file_p
 
     for(std::map<std::string, PortHandler *>::iterator _it = op3_robot->ports.begin(); _it != op3_robot->ports.end(); _it++)
     {
-        std::string _port_defalut_joint_name = op3_robot->port_default_joint[_it->first];
+        std::string _port_defalut_joint_name = op3_robot->port_default_device[_it->first];
 
         //if there is actuator at this port, then add to port_to_sync_write.
         if(op3_robot->dxls[_port_defalut_joint_name]->goal_position_item == NULL)

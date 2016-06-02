@@ -47,6 +47,7 @@ WalkingMotionModule::WalkingMotionModule()
 
   init_count_ = 0;
   walking_state_ = WalkingReady;
+  previous_X_Move_Amplitude = 0.0;
 
   op3_kd_ = new ROBOTIS::OP3KinematicsDynamics(ROBOTIS::WHOLE_BODY);
 
@@ -352,6 +353,12 @@ void WalkingMotionModule::updateMovementParam()
   m_X_Move_Amplitude = walking_param_.x_move_amplitude;
   m_X_Swap_Amplitude = walking_param_.x_move_amplitude * walking_param_.step_fb_ratio;
 
+  if(previous_X_Move_Amplitude == 0)
+  {
+    m_X_Move_Amplitude *= 0.5;
+    m_X_Swap_Amplitude *= 0.5;
+  }
+
   // Right/Left
   m_Y_Move_Amplitude = walking_param_.y_move_amplitude / 2;
   if(m_Y_Move_Amplitude > 0)
@@ -532,7 +539,10 @@ void WalkingMotionModule::Process(std::map<std::string, Dynamixel *> dxls, std::
     // m_Time += control_cycle_msec_;
     m_Time += time_unit;
     if(m_Time >= m_PeriodTime)
+    {
       m_Time = 0;
+      previous_X_Move_Amplitude = walking_param_.x_move_amplitude * 0.5;
+    }
   }
 
   //    ros::Duration _dur = ros::Time::now() - _start_time;
@@ -555,10 +565,12 @@ void WalkingMotionModule::processPhase(const double &time_unit)
       }
       else
       {
-        // init walking param
+        // set walking param to init
         walking_param_.x_move_amplitude = 0;
         walking_param_.y_move_amplitude = 0;
         walking_param_.angle_move_amplitude = 0;
+
+        previous_X_Move_Amplitude = 0;
       }
     }
   }
@@ -581,8 +593,9 @@ void WalkingMotionModule::processPhase(const double &time_unit)
       }
       else
       {
-        // init walking param
-        walking_param_.x_move_amplitude = 0;
+        // set walking param to init
+        // walking_param_.x_move_amplitude = 0;
+        walking_param_.x_move_amplitude = previous_X_Move_Amplitude;
         walking_param_.y_move_amplitude = 0;
         walking_param_.angle_move_amplitude = 0;
       }

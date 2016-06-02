@@ -163,6 +163,7 @@ class WalkingMotionModule : public MotionModule
   bool DEBUG_;
   int init_count_;
   op3_walking_module_msgs::WalkingParam walking_param_;
+  double previous_X_Move_Amplitude;
 
   // variable for walking
   double m_PeriodTime;

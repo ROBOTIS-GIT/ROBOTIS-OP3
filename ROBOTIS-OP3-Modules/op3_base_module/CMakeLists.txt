@@ -42,8 +42,8 @@ include_directories(
 
 ## Declare a C++ library
 add_library(op3_base_module
-  src/BaseModule.cpp
-  src/RobotisState.cpp
+  src/base_module.cpp
+  src/robotis_state.cpp
 )
 
 add_dependencies(op3_base_module ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

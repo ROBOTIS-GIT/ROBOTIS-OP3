@@ -6,11 +6,9 @@
  */
 
 #include <stdio.h>
-#include "op3_head_control_module/HeadControlModule.h"
+#include "op3_head_control_module/head_control_module.h"
 
 using namespace ROBOTIS;
-
-HeadControlModule *HeadControlModule::unique_instance_ = new HeadControlModule();
 
 HeadControlModule::HeadControlModule()
 : control_cycle_msec_(0)

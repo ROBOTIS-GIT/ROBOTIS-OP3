@@ -28,7 +28,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-
 /* Author: Kayman Jung */
 
 #ifndef OP3_WALKING_MODULE_INCLUDE_OP3_WALKING_MODULE_OP3_WALKING_MODULE_H_
@@ -72,7 +71,7 @@ typedef struct
   double x, y, z, roll, pitch, yaw;
 } Pose3D;
 
-class WalkingMotionModule : public MotionModule
+class WalkingMotionModule : public MotionModule, public Singleton<WalkingMotionModule>
 {
 
  public:
@@ -84,6 +83,7 @@ class WalkingMotionModule : public MotionModule
     PHASE3 = 3
   };
 
+  WalkingMotionModule();
   virtual ~WalkingMotionModule();
 
   void Initialize(const int control_cycle_msec, Robot *robot);
@@ -91,14 +91,12 @@ class WalkingMotionModule : public MotionModule
                std::map<std::string, double> sensors);
   void Stop();
   bool IsRunning();
+  void OnModuleEnable();
+  void OnModuleDisable();
+
   int getCurrentPhase() { return m_Phase; }
   double getBodySwingY() { return m_Body_Swing_Y; }
   double getBodySwingZ() { return m_Body_Swing_Z; }
-  static WalkingMotionModule *GetInstance() { return unique_instance_; }
-
- protected:
-  void OnEnable();
-  void OnDisable();
 
  private:
   enum
@@ -108,8 +106,6 @@ class WalkingMotionModule : public MotionModule
     WalkingInitPose = 2,
     WalkingReady = 3
   };
-
-  WalkingMotionModule();
 
   void queueThread();
 
@@ -141,7 +137,6 @@ class WalkingMotionModule : public MotionModule
   void saveWalkingParam(std::string &path);
   void iniPoseTraGene(double mov_time);
 
-  static WalkingMotionModule *unique_instance_;
   OP3KinematicsDynamics* op3_kd_;
   int control_cycle_msec_;
   std::string param_path_;

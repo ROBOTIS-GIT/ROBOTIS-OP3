@@ -35,7 +35,7 @@ include_directories(
 
 ## Declare a C++ library
 add_library(op3_action_module
-  src/ActionModule.cpp
+  src/action_module.cpp
 )
 
 ## Add cmake target dependencies of the library

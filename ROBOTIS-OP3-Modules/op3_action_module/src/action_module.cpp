@@ -1,28 +1,47 @@
-/*
- * motion_module_tutorial.cpp
- *
- *  Created on: 2016. 2. 23.
- *      Author: zerom
- */
+/*******************************************************************************
+* Copyright (c) 2016, ROBOTIS CO., LTD.
+* All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* * Redistributions of source code must retain the above copyright notice, this
+*   list of conditions and the following disclaimer.
+*
+* * Redistributions in binary form must reproduce the above copyright notice,
+*   this list of conditions and the following disclaimer in the documentation
+*   and/or other materials provided with the distribution.
+*
+* * Neither the name of ROBOTIS nor the names of its
+*   contributors may be used to endorse or promote products derived from
+*   this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*******************************************************************************/
+
+
+/* Author: Kayman Jung */
 
 #include <stdio.h>
 #include <sstream>
-#include "op3_action_module/ActionModule.h"
-
-
-
+#include "op3_action_module/action_module.h"
 
 using namespace ROBOTIS;
-
-ActionModule *ActionModule::unique_instance_ = new ActionModule();
 
 std::string ActionModule::IntToString(int _n) {
 	std::ostringstream ostr;
 	ostr << _n;
 	return ostr.str();
 }
-
-
 
 ActionModule::ActionModule()
     : control_cycle_msec_(8)
@@ -31,64 +50,64 @@ ActionModule::ActionModule()
     module_name     = "action_module"; // set unique module name
     control_mode    = POSITION_CONTROL;
 
-
-    /* arm */
-    result["r_sho_pitch"]   = new DynamixelState();
-    result["l_sho_pitch"]   = new DynamixelState();
-    result["r_sho_roll"]    = new DynamixelState();
-    result["l_sho_roll"]    = new DynamixelState();
-    result["r_el"]          = new DynamixelState();
-    result["l_el"]          = new DynamixelState();
-
-    /* leg */
-    result["r_hip_pitch"]   = new DynamixelState();
-    result["r_hip_roll"]    = new DynamixelState();
-    result["r_hip_yaw"]     = new DynamixelState();
-    result["r_knee"]        = new DynamixelState();
-    result["r_ank_pitch"]   = new DynamixelState();
-    result["r_ank_roll"]    = new DynamixelState();
-
-    result["l_hip_pitch"]   = new DynamixelState();
-    result["l_hip_roll"]    = new DynamixelState();
-    result["l_hip_yaw"]     = new DynamixelState();
-    result["l_knee"]        = new DynamixelState();
-    result["l_ank_pitch"]   = new DynamixelState();
-    result["l_ank_roll"]    = new DynamixelState();
-
-    /* head */
-    result["head_pan"]      = new DynamixelState();
-    result["head_tilt"]     = new DynamixelState();
-
-    /* arm */
-    joint_name_to_id_["r_sho_pitch"]     = 1;
-    joint_name_to_id_["l_sho_pitch"]     = 2;
-    joint_name_to_id_["r_sho_roll"]      = 3;
-    joint_name_to_id_["l_sho_roll"]      = 4;
-    joint_name_to_id_["r_el"]            = 5;
-    joint_name_to_id_["l_el"]            = 6;
-
-    /* leg */
-    joint_name_to_id_["r_hip_yaw"]       = 7;
-    joint_name_to_id_["l_hip_yaw"]       = 8;
-    joint_name_to_id_["r_hip_roll"]      = 9;
-    joint_name_to_id_["l_hip_roll"]      = 10;
-    joint_name_to_id_["r_hip_pitch"]     = 11;
-    joint_name_to_id_["l_hip_pitch"]     = 12;
-    joint_name_to_id_["r_knee"]          = 13;
-    joint_name_to_id_["l_knee"]          = 14;
-    joint_name_to_id_["r_ank_pitch"]     = 15;
-    joint_name_to_id_["l_ank_pitch"]     = 16;
-    joint_name_to_id_["r_ank_roll"]      = 17;
-    joint_name_to_id_["l_ank_roll"]      = 18;
-
-    /* head */
-    joint_name_to_id_["head_pan"]        = 19;
-    joint_name_to_id_["head_tilt"]       = 20;
-
-    for(std::map<std::string, int>::iterator _it = joint_name_to_id_.begin(); _it != joint_name_to_id_.end(); _it++)
-    {
-    	joint_id_to_name_[_it->second] = _it->first;
-    }
+//
+//    /* arm */
+//    result["r_sho_pitch"]   = new DynamixelState();
+//    result["l_sho_pitch"]   = new DynamixelState();
+//    result["r_sho_roll"]    = new DynamixelState();
+//    result["l_sho_roll"]    = new DynamixelState();
+//    result["r_el"]          = new DynamixelState();
+//    result["l_el"]          = new DynamixelState();
+//
+//    /* leg */
+//    result["r_hip_pitch"]   = new DynamixelState();
+//    result["r_hip_roll"]    = new DynamixelState();
+//    result["r_hip_yaw"]     = new DynamixelState();
+//    result["r_knee"]        = new DynamixelState();
+//    result["r_ank_pitch"]   = new DynamixelState();
+//    result["r_ank_roll"]    = new DynamixelState();
+//
+//    result["l_hip_pitch"]   = new DynamixelState();
+//    result["l_hip_roll"]    = new DynamixelState();
+//    result["l_hip_yaw"]     = new DynamixelState();
+//    result["l_knee"]        = new DynamixelState();
+//    result["l_ank_pitch"]   = new DynamixelState();
+//    result["l_ank_roll"]    = new DynamixelState();
+//
+//    /* head */
+//    result["head_pan"]      = new DynamixelState();
+//    result["head_tilt"]     = new DynamixelState();
+//
+//    /* arm */
+//    joint_name_to_id_["r_sho_pitch"]     = 1;
+//    joint_name_to_id_["l_sho_pitch"]     = 2;
+//    joint_name_to_id_["r_sho_roll"]      = 3;
+//    joint_name_to_id_["l_sho_roll"]      = 4;
+//    joint_name_to_id_["r_el"]            = 5;
+//    joint_name_to_id_["l_el"]            = 6;
+//
+//    /* leg */
+//    joint_name_to_id_["r_hip_yaw"]       = 7;
+//    joint_name_to_id_["l_hip_yaw"]       = 8;
+//    joint_name_to_id_["r_hip_roll"]      = 9;
+//    joint_name_to_id_["l_hip_roll"]      = 10;
+//    joint_name_to_id_["r_hip_pitch"]     = 11;
+//    joint_name_to_id_["l_hip_pitch"]     = 12;
+//    joint_name_to_id_["r_knee"]          = 13;
+//    joint_name_to_id_["l_knee"]          = 14;
+//    joint_name_to_id_["r_ank_pitch"]     = 15;
+//    joint_name_to_id_["l_ank_pitch"]     = 16;
+//    joint_name_to_id_["r_ank_roll"]      = 17;
+//    joint_name_to_id_["l_ank_roll"]      = 18;
+//
+//    /* head */
+//    joint_name_to_id_["head_pan"]        = 19;
+//    joint_name_to_id_["head_tilt"]       = 20;
+//
+//    for(std::map<std::string, int>::iterator _it = joint_name_to_id_.begin(); _it != joint_name_to_id_.end(); _it++)
+//    {
+//    	joint_id_to_name_[_it->second] = _it->first;
+//    }
 
     //////////////////////////////////
 	action_file_ = 0;
@@ -119,6 +138,16 @@ void ActionModule::Initialize(const int control_cycle_msec, Robot *robot)
     control_cycle_msec_ = control_cycle_msec;
     queue_thread_       = boost::thread(boost::bind(&ActionModule::QueueThread, this));
 
+    for(std::map<std::string, Dynamixel*>::iterator it = robot->dxls.begin(); it != robot->dxls.end(); it++)
+    {
+        std::string joint_name = it->first;
+        Dynamixel*  dxl_info   = it->second;
+
+        joint_name_to_id_[joint_name]   = dxl_info->id;
+        joint_id_to_name_[dxl_info->id] = joint_name;
+        result[joint_name] = new DynamixelState();
+        result[joint_name]->goal_position = dxl_info->dxl_state->goal_position;
+    }
 
     ros::NodeHandle _ros_node;
 
@@ -956,12 +985,12 @@ void ActionModule::PublishStatusMsg(unsigned int type, std::string msg)
     status_msg_pub_.publish(_status);
 }
 
-void ActionModule::OnEnable()
+void ActionModule::OnModuleEnable()
 {
     present_enable_ = true;
 }
 
-void ActionModule::OnDisable()
+void ActionModule::OnModuleDisable()
 {
     present_enable_ = false;
 }

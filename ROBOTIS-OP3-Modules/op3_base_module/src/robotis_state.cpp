@@ -5,7 +5,7 @@
  *      Author: sch
  */
 
-#include "op3_base_module/RobotisState.h"
+#include "op3_base_module/robotis_state.h"
 
 namespace ROBOTIS_BASE
 {

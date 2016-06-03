@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  
+  <xacro:property name="pi" value="3.141592654" />
+
+  <!-- robotis_op3 head -->
+  <xacro:macro name="robotis_op3_head" params="parent">
+  
+  <!-- head yaw joint -->
+  <joint name="robotis_op3_head_y" type="revolute">
+    <axis xyz="0 0 1" />    
+    <origin xyz="0.0 0.0 0.102" rpy="0 0 0"/>
+    <parent link="${parent}"/>
+    <child  link="robotis_op3_head_y_link"/>
+    <limit velocity="6.5" effort="1000" lower="${-pi*0.5}" upper="${pi*0.5}" />
+    <dynamics damping="0.1" friction="0.0" />
+  </joint> 
+  <xacro:insert_transmission name="robotis_op3_head_y" />    
+
+  <!-- head yaw link -->
+  <link name="robotis_op3_head_y_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://robotis_op3_description/meshes/robotis_op3_head_y_link.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="grey"/>
+    </visual>
+  </link>
+
+  <!-- head pitch joint -->
+  <joint name="robotis_op3_head_p" type="revolute">
+    <axis xyz="0 1 0" />    
+    <origin xyz="0.0255 -0.019 0.03725" rpy="0 0 0"/>
+    <parent link="robotis_op3_head_y_link"/>
+    <child  link="robotis_op3_head_p_link"/>
+    <limit velocity="6.5" effort="1000" lower="${-pi*0.5}" upper="${pi*0.5}" />
+    <dynamics damping="0.1" friction="0.0" />
+  </joint> 
+  <xacro:insert_transmission name="robotis_op3_head_p" />    
+
+  <!-- head pitch link -->
+  <link name="robotis_op3_head_p_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://robotis_op3_description/meshes/robotis_op3_head_p_link.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="grey"/>
+    </visual>
+  </link>
+  
+  <!-- camera joint -->
+  <joint name="cam" type="fixed">
+    <origin xyz="0.017 0.019 0.0385" rpy="${-pi*0.5} 0 ${-pi*0.5}"/>
+    <parent link="robotis_op3_head_p_link"/>
+    <child link="cam_link"/>
+  </joint> 
+
+  <!-- camera link -->
+  <link name="cam_link">
+  </link>
+
+  
+  </xacro:macro>
+  
+</robot>

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package>
+  <name>robotis_op3_description</name>
+  <version>0.1.0</version>
+  <description>The robotis_op3_description package</description>
+
+  <!-- One maintainer tag required, multiple allowed, one person per tag --> 
+  <maintainer email="jay@todo.todo">jay</maintainer>
+
+  <license>BSD</license>
+
+  <!-- <url type="website">http://wiki.ros.org/robotis_op3_description</url> -->
+
+  <author email="hjsong@robotis.com">Jay</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <export>
+
+  </export>
+</package>

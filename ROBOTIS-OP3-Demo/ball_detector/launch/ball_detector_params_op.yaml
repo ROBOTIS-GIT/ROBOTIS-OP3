@@ -1,0 +1,11 @@
+
+gaussian_blur_size: 7
+gaussian_blur_sigma: 1
+canny_edge_th: 30
+hough_accum_resolution: 1
+min_circle_dist: 40
+hough_accum_th: 15
+min_radius: 20
+max_radius: 150
+filter_threshold: 160
+filter_debug: false

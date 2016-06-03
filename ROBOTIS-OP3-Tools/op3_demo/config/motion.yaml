@@ -1,5 +1,5 @@
 motion:
-  -2 : BREAK
+  -2 : BRAKE
   -1 : STOP
 #  0 : .
   1 : Init pose

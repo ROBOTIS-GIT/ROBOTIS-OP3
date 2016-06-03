@@ -62,7 +62,7 @@ void HeadControlModule::QueueThread()
     _ros_node.setCallbackQueue(&_callback_queue);
 
     /* subscribe topics */
-    ros::Subscriber set_head_joint_sub = _ros_node.subscribe("/robotis/head_control/set_joint_controls", 1, &HeadControlModule::SetHeadJointCallback, this);
+    ros::Subscriber set_head_joint_sub = _ros_node.subscribe("/robotis/head_control/set_joint_states", 1, &HeadControlModule::SetHeadJointCallback, this);
 
     while(_ros_node.ok())
     {

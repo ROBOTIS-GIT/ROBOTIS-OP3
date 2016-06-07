@@ -75,7 +75,7 @@ generate_messages(
 )
 
 #dynamic reconfigure cfg file
-generate_dynamic_reconfigure_options(cfg/detectorParams.cfg)
+generate_dynamic_reconfigure_options(cfg/detector_params.cfg)
 
 ###################################
 ## catkin specific configuration ##
@@ -113,8 +113,8 @@ include_directories(
 
 ## Declare a cpp executable
 add_executable(ball_detector_node
-  src/BallDetector.cpp
-  src/BallDetector_node.cpp)
+  src/ball_detector.cpp
+  src/ball_detector_node.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes

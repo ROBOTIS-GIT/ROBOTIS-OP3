@@ -1,6 +1,6 @@
 
 //ros dependencies
-#include "ball_detector/BallDetector.h"
+#include "ball_detector/ball_detector.h"
 
 //node main
 int main(int argc, char **argv)

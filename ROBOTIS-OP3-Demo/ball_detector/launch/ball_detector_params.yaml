@@ -6,5 +6,6 @@ min_circle_dist: 40
 hough_accum_th: 26.6
 min_radius: 20
 max_radius: 151
-filter_threshold: 132
+filter_range_min: 143
+filter_range_max: 217
 filter_debug: true

@@ -16,6 +16,34 @@ const unsigned int IMG_MONO = 0;
 const unsigned int IMG_RGB8 = 1;
 const int FILTER_RANGE_DEFAULT_MIN = 160;
 const int FILTER_RANGE_DEFAULT_MAX = 255;
+const int FILTER_H_MIN_DEFAULT = 0;
+const int FILTER_H_MAX_DEFAULT = 30;
+const int FILTER_S_MIN_DEFAULT = 0;
+const int FILTER_S_MAX_DEFAULT = 255;
+const int FILTER_V_MIN_DEFAULT = 0;
+const int FILTER_V_MAX_DEFAULT = 255;
+const int ELLIPSE_SIZE = 5;
+
+class HsvFilter
+{
+ public:
+  HsvFilter()
+ : h_min(FILTER_H_MIN_DEFAULT)
+ , h_max(FILTER_H_MAX_DEFAULT)
+ , s_min(FILTER_S_MIN_DEFAULT)
+ , s_max(FILTER_S_MAX_DEFAULT)
+ , v_min(FILTER_V_MIN_DEFAULT)
+ , v_max(FILTER_V_MAX_DEFAULT)
+ {}
+
+  int h_min;
+  int h_max;
+  int s_min;
+  int s_max;
+  int v_min;
+  int v_max;
+};
+
 
 class DetectorConfig
 {
@@ -28,8 +56,10 @@ class DetectorConfig
   double hough_accum_th;          // accumulator threshold to decide circle detection
   int min_radius;                 // minimum circle radius allowed
   int max_radius;                 // maximum circle radius allowed
-  int filter_range_min;           // red filter threshold 0~255
-  int filter_range_max;           // red filter threshold 0~255
+  HsvFilter filter_threshold;     // filter threshold
+  bool use_second_filter;
+  HsvFilter filter2_threshold;     // filter threshold
+  int ellipse_size;
   bool debug;                     // to debug log
 
   DetectorConfig()
@@ -39,8 +69,10 @@ class DetectorConfig
   , hough_accum_th(HOUGH_ACCUM_TH_DEFAULT)
   , min_radius(MIN_RADIUS_DEFAULT)
   , max_radius(MAX_RADIUS_DEFAULT)
-  , filter_range_min(FILTER_RANGE_DEFAULT_MIN)
-  , filter_range_max(FILTER_RANGE_DEFAULT_MAX)
+  , filter_threshold()
+  , use_second_filter(false)
+  , filter2_threshold()
+  , ellipse_size(ELLIPSE_SIZE)
   , debug(false)
   { }
 

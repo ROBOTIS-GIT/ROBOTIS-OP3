@@ -53,6 +53,7 @@ class BallDetector
   void setInputImage(const cv::Mat & inIm);
   void getOutputImage(cv::Mat & outIm);
   void filterImage();
+  void inRangeHsv(const cv::Mat &input_img, const HsvFilter &filter_value, cv::Mat &output_img);
   void houghDetection(const unsigned int imgEncoding);
   void drawOutputImage();
 

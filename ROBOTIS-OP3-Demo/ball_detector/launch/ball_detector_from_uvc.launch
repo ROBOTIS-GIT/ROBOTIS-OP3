@@ -6,12 +6,22 @@
     <!-- UVC camera -->
     <node pkg="uvc_camera" type="uvc_camera_node" name="uvc_camera_node" output="screen">
         <param name="device" type="string" value="/dev/video0" />
-        <param name="gain" value="255" />
+        <param name="width" type="int" value="800" />
+        <param name="height" type="int" value="600" />
+        <param name="fps" type="int" value="30" />
+<!--         <param name="gain" value="255" />
         <param name="auto_exposure" type="bool" value="False" />
         <param name="exposure_absolute" value="1000" />
         <param name="brightness" value="127" />
         <param name="auto_white_balance" type="bool" value="False" />
-        <param name="white_balance_temperature" value="2800" />
+        <param name="white_balance_temperature" value="2800" /> -->
+        
+        <!-- <param name="gain" value="255" /> -->
+        <!-- <param name="auto_exposure" type="bool" value="True" /> -->
+        <!-- <param name="exposure_absolute" value="1000" /> -->
+        <!-- <param name="brightness" value="127" /> -->
+        <!-- <param name="auto_white_balance" type="bool" value="False" /> -->
+        <!-- <param name="white_balance_temperature" value="2800" /> -->
     </node>
 
     <!-- ball detector -->

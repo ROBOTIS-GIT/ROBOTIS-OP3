@@ -10,66 +10,66 @@
   <xacro:macro name="robotis_op3_r_arm" params="parent">
   
   <!-- right shoulder pitch joint -->
-  <joint name="robotis_op3_r_arm_sh_p" type="revolute">
+  <joint name="r_sho_pitch" type="revolute">
     <axis xyz="0 -1 0" />    
     <origin xyz="0.0 -0.062 0.07" rpy="0 0 0"/>
     <parent link="${parent}"/>
-    <child link="robotis_op3_r_arm_sh_p_link"/>
+    <child link="r_sho_pitch_link"/>
     <limit velocity="6.5" effort="1000" lower="${-pi*0.5}" upper="${pi*0.5}" />
     <dynamics damping="0.1" friction="0.0" />
   </joint> 
-  <xacro:insert_transmission name="robotis_op3_r_arm_sh_p" />    
+  <xacro:insert_transmission name="r_sho_pitch" />    
 
   <!-- right shoulder pitch link -->
-  <link name="robotis_op3_r_arm_sh_p_link">
+  <link name="r_sho_pitch_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://robotis_op3_description/meshes/robotis_op3_r_arm_sh_p_link.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="package://robotis_op3_description/meshes/r_sho_pitch_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="grey"/>
     </visual>
   </link>  
   
   <!-- right shoulder roll joint -->
-  <joint name="robotis_op3_r_arm_sh_r" type="revolute">
+  <joint name="r_sho_roll" type="revolute">
     <axis xyz="1 0 0" />    
     <origin xyz="0.019 -0.019 -0.0465" rpy="0 0 0"/>
-    <parent link="robotis_op3_r_arm_sh_p_link"/>
-    <child link="robotis_op3_r_arm_sh_r_link"/>
+    <parent link="r_sho_pitch_link"/>
+    <child link="r_sho_roll_link"/>
     <limit velocity="6.5" effort="1000" lower="${-pi*0.5}" upper="${pi*0.5}" />
     <dynamics damping="0.1" friction="0.0" />
   </joint> 
-  <xacro:insert_transmission name="robotis_op3_r_arm_sh_r" />    
+  <xacro:insert_transmission name="r_sho_roll" />    
 
   <!-- right shoulder roll link -->
-  <link name="robotis_op3_r_arm_sh_r_link">
+  <link name="r_sho_roll_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://robotis_op3_description/meshes/robotis_op3_r_arm_sh_r_link.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="package://robotis_op3_description/meshes/r_sho_roll_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="grey"/>
     </visual>
   </link>  
   
   <!-- right elbow roll joint -->
-  <joint name="robotis_op3_r_arm_el_r" type="revolute">
+  <joint name="r_el" type="revolute">
     <axis xyz="1 0 0" />    
     <origin xyz="0.0 -0.09025 0" rpy="0 0 0"/>
-    <parent link="robotis_op3_r_arm_sh_r_link"/>
-    <child link="robotis_op3_r_arm_el_r_link"/>
+    <parent link="r_sho_roll_link"/>
+    <child link="r_el_link"/>
     <limit velocity="6.5" effort="1000" lower="${-pi*0.5}" upper="${pi*0.5}" />
     <dynamics damping="0.1" friction="0.0" />
   </joint> 
-  <xacro:insert_transmission name="robotis_op3_r_arm_el_r" />    
+  <xacro:insert_transmission name="r_el" />    
 
   <!-- right elbow roll link -->
-  <link name="robotis_op3_r_arm_el_r_link">
+  <link name="r_el_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://robotis_op3_description/meshes/robotis_op3_r_arm_el_r_link.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="package://robotis_op3_description/meshes/r_el_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="grey"/>
     </visual>
@@ -84,66 +84,66 @@
   <xacro:macro name="robotis_op3_l_arm" params="parent">
   
   <!-- left shoulder pitch joint -->
-  <joint name="robotis_op3_l_arm_sh_p" type="revolute">
+  <joint name="l_sho_pitch" type="revolute">
     <axis xyz="0 1 0" />    
     <origin xyz="0.0 0.062 0.07" rpy="0 0 0"/>
     <parent link="${parent}"/>
-    <child link="robotis_op3_l_arm_sh_p_link"/>
+    <child link="l_sho_pitch_link"/>
     <limit velocity="6.5" effort="1000" lower="${-pi*0.5}" upper="${pi*0.5}" />
     <dynamics damping="0.1" friction="0.0" />
   </joint> 
-  <xacro:insert_transmission name="robotis_op3_l_arm_sh_p" />    
+  <xacro:insert_transmission name="l_sho_pitch" />    
 
   <!-- left shoulder pitch link -->
-  <link name="robotis_op3_l_arm_sh_p_link">
+  <link name="l_sho_pitch_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://robotis_op3_description/meshes/robotis_op3_l_arm_sh_p_link.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="package://robotis_op3_description/meshes/l_sho_pitch_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="grey"/>
     </visual>
   </link>  
   
   <!-- left shoulder roll joint -->
-  <joint name="robotis_op3_l_arm_sh_r" type="revolute">
+  <joint name="l_sho_roll" type="revolute">
     <axis xyz="1 0 0" />    
     <origin xyz="0.019 0.019 -0.0465" rpy="0 0 0"/>
-    <parent link="robotis_op3_l_arm_sh_p_link"/>
-    <child link="robotis_op3_l_arm_sh_r_link"/>
+    <parent link="l_sho_pitch_link"/>
+    <child link="l_sho_roll_link"/>
     <limit velocity="6.5" effort="1000" lower="${-pi*0.5}" upper="${pi*0.5}" />
     <dynamics damping="0.1" friction="0.0" />
   </joint> 
-  <xacro:insert_transmission name="robotis_op3_l_arm_sh_r" />    
+  <xacro:insert_transmission name="l_sho_roll" />    
 
   <!-- left shoulder roll link -->
-  <link name="robotis_op3_l_arm_sh_r_link">
+  <link name="l_sho_roll_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://robotis_op3_description/meshes/robotis_op3_l_arm_sh_r_link.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="package://robotis_op3_description/meshes/l_sho_roll_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="grey"/>
     </visual>
   </link>  
   
   <!-- left elbow roll joint -->
-  <joint name="robotis_op3_l_arm_el_r" type="revolute">
+  <joint name="l_el" type="revolute">
     <axis xyz="1 0 0" />    
     <origin xyz="0.0 0.09025 0" rpy="0 0 0"/>
-    <parent link="robotis_op3_l_arm_sh_r_link"/>
-    <child link="robotis_op3_l_arm_el_r_link"/>
+    <parent link="l_sho_roll_link"/>
+    <child link="l_el_link"/>
     <limit velocity="6.5" effort="1000" lower="${-pi*0.5}" upper="${pi*0.5}" />
     <dynamics damping="0.1" friction="0.0" />
   </joint> 
-  <xacro:insert_transmission name="robotis_op3_l_arm_el_r" />    
+  <xacro:insert_transmission name="l_el" />    
 
   <!-- left elbow roll link -->
-  <link name="robotis_op3_l_arm_el_r_link">
+  <link name="l_el_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://robotis_op3_description/meshes/robotis_op3_l_arm_el_r_link.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="package://robotis_op3_description/meshes/l_el_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="grey"/>
     </visual>

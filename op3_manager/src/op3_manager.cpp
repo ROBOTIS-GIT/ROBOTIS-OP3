@@ -44,7 +44,7 @@ void PowerOnDXLMsgCallback( const std_msgs::String::ConstPtr& msg )
     ROS_INFO("Power on DXLs! [%d]", _return);
 
     // _port_h->ClosePort();
-    usleep(50 * 1000);
+    usleep(100 * 1000);
 
     PortHandler *_port_h2 = (PortHandler *)PortHandler::GetPortHandler("/dev/ttyUSB1");
     _set_port = _port_h2->SetBaudRate(3000000);
@@ -55,7 +55,7 @@ void PowerOnDXLMsgCallback( const std_msgs::String::ConstPtr& msg )
     ROS_INFO("Torque on DXLs! [%d]", _return);
 
     // _port_h2->ClosePort();
-    usleep(50 * 1000);
+    usleep(100 * 1000);
 
     _controller->InitDevice(_init_file);
 

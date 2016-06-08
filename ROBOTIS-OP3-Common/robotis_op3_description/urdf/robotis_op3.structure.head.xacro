@@ -7,44 +7,44 @@
   <xacro:macro name="robotis_op3_head" params="parent">
   
   <!-- head yaw joint -->
-  <joint name="robotis_op3_head_y" type="revolute">
+  <joint name="head_pan" type="revolute">
     <axis xyz="0 0 1" />    
     <origin xyz="0.0 0.0 0.102" rpy="0 0 0"/>
     <parent link="${parent}"/>
-    <child  link="robotis_op3_head_y_link"/>
+    <child  link="head_pan_link"/>
     <limit velocity="6.5" effort="1000" lower="${-pi*0.5}" upper="${pi*0.5}" />
     <dynamics damping="0.1" friction="0.0" />
   </joint> 
-  <xacro:insert_transmission name="robotis_op3_head_y" />    
+  <xacro:insert_transmission name="head_pan" />    
 
   <!-- head yaw link -->
-  <link name="robotis_op3_head_y_link">
+  <link name="head_pan_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://robotis_op3_description/meshes/robotis_op3_head_y_link.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="package://robotis_op3_description/meshes/head_pan_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="grey"/>
     </visual>
   </link>
 
   <!-- head pitch joint -->
-  <joint name="robotis_op3_head_p" type="revolute">
+  <joint name="head_tilt" type="revolute">
     <axis xyz="0 1 0" />    
     <origin xyz="0.0255 -0.019 0.03725" rpy="0 0 0"/>
-    <parent link="robotis_op3_head_y_link"/>
-    <child  link="robotis_op3_head_p_link"/>
+    <parent link="head_pan_link"/>
+    <child  link="head_tilt_link"/>
     <limit velocity="6.5" effort="1000" lower="${-pi*0.5}" upper="${pi*0.5}" />
     <dynamics damping="0.1" friction="0.0" />
   </joint> 
-  <xacro:insert_transmission name="robotis_op3_head_p" />    
+  <xacro:insert_transmission name="head_tilt" />    
 
   <!-- head pitch link -->
-  <link name="robotis_op3_head_p_link">
+  <link name="head_tilt_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://robotis_op3_description/meshes/robotis_op3_head_p_link.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="package://robotis_op3_description/meshes/head_tilt_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="grey"/>
     </visual>
@@ -53,7 +53,7 @@
   <!-- camera joint -->
   <joint name="cam" type="fixed">
     <origin xyz="0.017 0.019 0.0385" rpy="${-pi*0.5} 0 ${-pi*0.5}"/>
-    <parent link="robotis_op3_head_p_link"/>
+    <parent link="head_tilt_link"/>
     <child link="cam_link"/>
   </joint> 
 

@@ -38,7 +38,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://robotis_op3_description/meshes/robotis_op3_body_link.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="package://robotis_op3_description/meshes/body_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="grey"/>
     </visual>

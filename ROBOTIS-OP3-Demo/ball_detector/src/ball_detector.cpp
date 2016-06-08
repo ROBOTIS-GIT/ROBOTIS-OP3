@@ -323,28 +323,70 @@ void BallDetector::filterImage()
 
   if(params_config_.use_second_filter == true)
   {
+    // mask
+    cv::Mat imgMask;
+
+    // mophology : open and close
+    int ellipse_size = 5;
+    cv::erode(imgFiltered, imgMask, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(ellipse_size, ellipse_size)) );
+    cv::dilate(imgMask, imgMask, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(ellipse_size * 10, ellipse_size * 10)) );
+
+    // check hsv range
     cv::Mat imgFiltered2;
     inRangeHsv(imgHsv, params_config_.filter2_threshold, imgFiltered2);
 
+    cv::bitwise_and(imgFiltered2, imgMask, imgFiltered2);
+
+    // or
     cv::bitwise_or(imgFiltered, imgFiltered2, imgFiltered);
   }
 
-  int erode_ellipse_size = params_config_.ellipse_size;
-  int dilate_ellipse_size = params_config_.ellipse_size * 2;
-
-  cv::erode(imgFiltered, imgFiltered, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(erode_ellipse_size, erode_ellipse_size)) );
-  cv::dilate(imgFiltered, imgFiltered, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(dilate_ellipse_size, dilate_ellipse_size)) );
-
-  cv::dilate(imgFiltered, imgFiltered, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(dilate_ellipse_size, dilate_ellipse_size)) );
-  cv::erode(imgFiltered, imgFiltered, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(erode_ellipse_size, erode_ellipse_size)) );
+  // mophology : open and close
+  mophology(imgFiltered, imgFiltered, params_config_.ellipse_size);
 
   cv::cvtColor(imgFiltered, in_image_, cv::COLOR_GRAY2RGB);
 }
 
+void BallDetector::makeFilterMask(const cv::Mat &source_img, cv::Mat &mask_img, int range)
+{
+  // source_img.
+  mask_img = cv::Mat::zeros(source_img.rows, source_img.cols, CV_8UC1);
+
+  int source_height = source_img.rows;
+  int source_width = source_img.cols;
+
+  // channel : 1
+  if(source_img.channels() != 1)
+    return;
+
+  for(int i = 0; i < source_height; i++)
+  {
+    for(int j = 0; j < source_width; j++)
+    {
+      uint8_t pixel = source_img.at<uint8_t>(i, j);
+
+      if(pixel == 0)
+        continue;
+
+      for(int mask_i = i - range; mask_i <= i + range; mask_i++)
+      {
+        if(mask_i < 0 || mask_i >= source_height) continue;
+
+        for(int mask_j = j - range; mask_j <= j + range; mask_j++)
+        {
+          if(mask_j < 0 || mask_j >= source_width) continue;
+
+          mask_img.at<uchar>(mask_i, mask_j, 0) = 255;
+        }
+      }
+    }
+  }
+}
+
 void BallDetector::inRangeHsv(const cv::Mat &input_img, const HsvFilter &filter_value, cv::Mat &output_img)
 {
-  int scaled_hue_min = (int)(filter_value.h_min * 0.5);
-  int scaled_hue_max = (int)(filter_value.h_max * 0.5);
+  int scaled_hue_min = static_cast<int>(filter_value.h_min * 0.5);
+  int scaled_hue_max = static_cast<int>(filter_value.h_max * 0.5);
 
   if(scaled_hue_min <= scaled_hue_max)
   {
@@ -368,6 +410,15 @@ void BallDetector::inRangeHsv(const cv::Mat &input_img, const HsvFilter &filter_
 
     cv::bitwise_or(lower_hue_range, upper_hue_range, output_img);
   }
+}
+
+void BallDetector::mophology(const cv::Mat &intput_img, cv::Mat &output_img, int ellipse_size)
+{
+  cv::erode(intput_img, output_img, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(ellipse_size, ellipse_size)) );
+  cv::dilate(output_img, output_img, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(ellipse_size * 2, ellipse_size * 2)) );
+
+  cv::dilate(output_img, output_img, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(ellipse_size, ellipse_size)) );
+  cv::erode(output_img, output_img, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(ellipse_size, ellipse_size)) );
 }
 
 void BallDetector::houghDetection(const unsigned int imgEncoding)
@@ -399,7 +450,7 @@ void BallDetector::houghDetection(const unsigned int imgEncoding)
 void BallDetector::drawOutputImage()
 {
   cv::Point _center;
-  int _radius;
+  int _radius = 0;
   size_t _ii;
 
   //draws results to output Image
@@ -409,12 +460,20 @@ void BallDetector::drawOutputImage()
   {
     if ( circles_[_ii][0] != -1 )
     {
-      _center = cv::Point(cvRound(circles_[_ii][0]), cvRound(circles_[_ii][1]));
-      _radius = cvRound(circles_[_ii][2]);
-      cv::circle( out_image_, _center, 5, cv::Scalar(0,0,255), -1, 8, 0 );// circle center in green
-      cv::circle( out_image_, _center, _radius, cv::Scalar(0,0,255), 3, 8, 0 );// circle outline in red
+      //      _center = cv::Point(cvRound(circles_[_ii][0]), cvRound(circles_[_ii][1]));
+      //      _radius = cvRound(circles_[_ii][2]);
+      //      cv::circle( out_image_, _center, 5, cv::Scalar(0,0,255), -1, 8, 0 );// circle center in green
+      //      cv::circle( out_image_, _center, _radius, cv::Scalar(0,0,255), 3, 8, 0 );// circle outline in red
+      int this_radius = cvRound(circles_[_ii][2]);
+      if(this_radius > _radius)
+      {
+        _radius = this_radius;
+        _center = cv::Point(cvRound(circles_[_ii][0]), cvRound(circles_[_ii][1]));
+      }
     }
   }
+  cv::circle( out_image_, _center, 5, cv::Scalar(0,0,255), -1, 8, 0 );// circle center in blue
+  cv::circle( out_image_, _center, _radius, cv::Scalar(0,0,255), 3, 8, 0 );// circle outline in blue
 
 }
 

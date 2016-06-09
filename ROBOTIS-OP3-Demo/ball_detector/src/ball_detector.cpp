@@ -5,7 +5,11 @@
 
 namespace robotis_op {
 
-BallDetector::BallDetector() : nh_(ros::this_node::getName()) , it_(this->nh_), params_config_(), init_param_(false)
+BallDetector::BallDetector()
+: nh_(ros::this_node::getName())
+, it_(this->nh_)
+, params_config_()
+, init_param_(false)
 {
   has_path_ = nh_.getParam("yaml_path", param_path_);
 
@@ -144,8 +148,8 @@ void BallDetector::publishCircles()
   //fill circle data
   for(int idx = 0; idx < circles_.size(); idx++ )
   {
-    circles_msg_.circles[idx].x = circles_[idx][0];    // x
-    circles_msg_.circles[idx].y = circles_[idx][1];    // y
+    circles_msg_.circles[idx].x = circles_[idx][0] / in_image_.cols * 2 - 1;    // x
+    circles_msg_.circles[idx].y = circles_[idx][1] / in_image_.rows * 2 - 1;    // y
     circles_msg_.circles[idx].z = circles_[idx][2];    // radius
   }
 

@@ -31,40 +31,45 @@
 
 /* Author: Kayman Jung */
 
-#include "ball_detector/ball_detector.h"
+#ifndef ROBOTIS_OP3_ROBOTIS_OP3_DEMO_BALL_TRACKING_INCLUDE_BALL_TRACKING_BALL_TRACKING_H_
+#define ROBOTIS_OP3_ROBOTIS_OP3_DEMO_BALL_TRACKING_INCLUDE_BALL_TRACKING_BALL_TRACKING_H_
 
-//node main
-int main(int argc, char **argv)
+#include <math.h>
+
+#include <ros/ros.h>
+#include <sensor_msgs/JointState.h>
+
+#include "ball_detector/circleSetStamped.h"
+
+namespace robotis_op {
+
+class BallTracker
 {
-      //init ros
-      ros::init(argc, argv, "ball_detector_node");
+ public:
+  BallTracker();
+  ~BallTracker();
 
-      //create ros wrapper object
-      robotis_op::BallDetector detector;
+  void processTracking();
 
-      //set node loop rate
-      ros::Rate loop_rate(30);
+ protected:
+  const double FOV_WIDTH = 30 * M_PI / 180;
+  const double FOV_HEIGHT = 23 * M_PI / 180;
 
-      //node loop
-      while ( ros::ok() )
-      {
+  void ballPositionCallback(const ball_detector::circleSetStamped::ConstPtr &msg);
+  void publishHeadJoint(double pan, double tilt);
 
-            //if new image , do things
-            if ( detector.newImage() )
-            {
-                  detector.process();
-                  detector.publishImage();
-                  detector.publishCircles();
-            }
+  //ros node handle
+  ros::NodeHandle nh_;
 
-            //execute pending callbacks
-            ros::spinOnce();
+  //image publisher/subscriber
+  ros::Publisher head_joint_pub_;
+  ros::Subscriber ball_position_sub_;
 
-            //relax to fit output rate
-            loop_rate.sleep();
-      }
+  // (x, y) is the center position of the ball in image coordinates
+  // z is the ball radius
+  geometry_msgs::Point ball_position_;
 
-      //exit program
-      return 0;
+};
 }
 
+#endif /* SRC_ROBOTIS_OP3_ROBOTIS_OP3_DEMO_BALL_TRACKING_INCLUDE_BALL_TRACKING_BALL_TRACKING_H_ */

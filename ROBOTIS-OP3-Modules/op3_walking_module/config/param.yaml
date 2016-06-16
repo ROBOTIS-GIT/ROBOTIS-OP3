@@ -5,7 +5,7 @@ roll_offset: 0
 pitch_offset: 0
 yaw_offset: 0
 hip_pitch_offset: 7.000000052497138
-period_time: 500
+period_time: 600
 dsp_ratio: 0.2
 step_forward_back_ratio: 0.28
 foot_height: 0.05

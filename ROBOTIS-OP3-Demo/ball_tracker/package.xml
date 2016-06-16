@@ -44,10 +44,12 @@
   <build_depend>roscpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>ball_detector</build_depend>
+  <build_depend>op3_walking_module_msgs</build_depend>
   
   <run_depend>roscpp</run_depend>
   <run_depend>sensor_msgs</run_depend>
   <run_depend>ball_detector</run_depend>
+  <run_depend>op3_walking_module_msgs</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

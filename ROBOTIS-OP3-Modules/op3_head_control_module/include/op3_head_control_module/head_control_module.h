@@ -49,7 +49,7 @@ namespace ROBOTIS
 {
 
 class HeadControlModule : public MotionModule, public Singleton<
-    HeadControlModule>
+HeadControlModule>
 {
  public:
   HeadControlModule();
@@ -63,11 +63,25 @@ class HeadControlModule : public MotionModule, public Singleton<
   bool IsRunning();
 
  private:
+  enum
+  {
+    NoScan = 0,
+    BottomToTop = 1,
+    RightToLeft = 2,
+    TopToBottom = 3,
+    LeftToRight = 4,
+  };
+
   /* ROS Topic Callback Functions */
   void SetHeadJointCallback(const sensor_msgs::JointState::ConstPtr &msg);
+  void SetHeadJointOffsetCallback(const sensor_msgs::JointState::ConstPtr &msg);
+  void setHeadScanCallback(const std_msgs::String::ConstPtr &msg);
 
   void QueueThread();
   void JointTraGeneThread();
+  void setHeadJoint(const sensor_msgs::JointState::ConstPtr &msg, bool is_offset);
+  bool checkAngleLimit(const int joint_index, double &goal_position);
+  void generateScanTra(const int head_direction);
 
   void StartMoving();
   void FinishMoving();
@@ -91,7 +105,7 @@ class HeadControlModule : public MotionModule, public Singleton<
   bool is_direct_control_;
   int tra_count_, tra_size_;
   double moving_time_;
-  int current_state_;
+  int scan_state_;
 
   Eigen::MatrixXd target_position_;
   Eigen::MatrixXd current_position_;
@@ -103,7 +117,8 @@ class HeadControlModule : public MotionModule, public Singleton<
   Eigen::MatrixXd calc_joint_accel_tra_;
 
   std::map<std::string, int> using_joint_name_;
-
+  std::map<int, double> max_angle_;
+  std::map<int, double> min_angle_;
 };
 
 }

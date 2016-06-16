@@ -65,9 +65,9 @@ Robot* _op3_robot;
 std::map<int, std::string> _id_to_name;
 
 
-#define DOF_OF_ARM 3
-int right_arm_id_list[DOF_OF_ARM] = { 1, 3, 5};
-int left_arm_id_list[DOF_OF_ARM]  = { 2, 4, 6};
+#define HARF_DOF 9 //(20(all) - 2(head)) / 2
+int right_id_list[HARF_DOF] = { 1, 3, 5, 7,  9, 11, 13, 15, 17};
+int left_id_list[HARF_DOF]  = { 2, 4, 6, 8, 10, 12, 14, 16, 18};
 
 std::map<std::string, GroupSyncWrite *> port_to_sync_write_go_cmd;
 
@@ -1142,11 +1142,7 @@ void PlayCmd()
 		}
 	}
 
-
-
 	PrintCmd("Playing... ('s' to stop, 'b' to brake)");
-
-
 
     std_msgs::String _msg;
     _msg.data = "action_module";
@@ -1655,135 +1651,135 @@ void NameCmd()
 //	return;
 //}
 
-//void MirrorArmRight2LeftCmd(Thor::MotionManager *manager, int num_param, int *step_list)
-//{
-//	int row = 0, col = 0;
-//	int *right_arm_pos = new int[DOF_OF_ARM];
-//	int *left_arm_pos = new int[DOF_OF_ARM];
-//
-//	for(int step_list_idx = 0; step_list_idx < num_param; step_list_idx++) {
-//		if((step_list[step_list_idx] < 0) || (step_list[step_list_idx] > 6)) {
-//			PrintCmd("Invalid Parameter");
-//			return;
-//		}
-//	}
-//
-//	bEdited = true;
-//	bBeginCommandMode = false;
-//	for(int step_list_idx = 0; step_list_idx < num_param; step_list_idx++) {
-//
-//		col = STP0_COL + 5*step_list[step_list_idx];
-//
-//		for(int arm_idx = 0; arm_idx < DOF_OF_ARM; arm_idx++) {
-//			row = right_arm_id_list[arm_idx] - 1;
-//			GoToCursor(col, row);
-//			right_arm_pos[arm_idx] = GetValue();
-//			if(right_arm_pos[arm_idx] == Action::INVALID_BIT_MASK || right_arm_pos[arm_idx] == Action::TORQUE_OFF_BIT_MASK)
-//				continue;
-//
-//			left_arm_pos[arm_idx] = -1*(right_arm_pos[arm_idx] - 2048) + 2048;
-//
-//			row = left_arm_id_list[arm_idx] - 1;
-//			GoToCursor(col, row);
-//			SetValue(manager,left_arm_pos[arm_idx]);
-//		}
-//	}
-//	bBeginCommandMode = true;
-//	PrintCmd("Mirror : Right to Left");
-//}
-//
-//void MirrorArmLeft2RightCmd(Thor::MotionManager *manager, int num_param, int *step_list)
-//{
-//	int row = 0, col = 0;
-//	int *right_arm_pos = new int[DOF_OF_ARM];
-//	int *left_arm_pos = new int[DOF_OF_ARM];
-//
-//	for(int step_list_idx = 0; step_list_idx < num_param; step_list_idx++) {
-//		if((step_list[step_list_idx] < 0) || (step_list[step_list_idx] > 6)) {
-//			PrintCmd("Invalid Parameter");
-//			return;
-//		}
-//	}
-//
-//	bEdited = true;
-//	bBeginCommandMode = false;
-//	for(int step_list_idx = 0; step_list_idx < num_param; step_list_idx++) {
-//
-//		col = STP0_COL + 5*step_list[step_list_idx];
-//
-//		for(int arm_idx = 0; arm_idx < DOF_OF_ARM; arm_idx++) {
-//			row = left_arm_id_list[arm_idx] - 1;
-//			GoToCursor(col, row);
-//			left_arm_pos[arm_idx] = GetValue();
-//			if(left_arm_pos[arm_idx] == Action::INVALID_BIT_MASK || left_arm_pos[arm_idx] == Action::TORQUE_OFF_BIT_MASK)
-//				continue;
-//
-//			right_arm_pos[arm_idx] = -1*(left_arm_pos[arm_idx] - 2048) + 2048;
-//
-//			row = right_arm_id_list[arm_idx] - 1;
-//			GoToCursor(col, row);
-//			SetValue(manager, right_arm_pos[arm_idx]);
-//		}
-//	}
-//
-//	bBeginCommandMode = true;
-//	PrintCmd("Mirror : Left to Right");
-//}
-//
-//
-//void MirrorArmCmd(Thor::MotionManager *manager, int num_param, int *step_list)
-//{
-//	int row = 0, col = 0;
-//	int *new_right_arm_pos = new int[DOF_OF_ARM];
-//	int *new_left_arm_pos = new int[DOF_OF_ARM];
-//	int *old_right_arm_pos = new int[DOF_OF_ARM];
-//	int *old_left_arm_pos = new int[DOF_OF_ARM];
-//
-//	for(int step_list_idx = 0; step_list_idx < num_param; step_list_idx++) {
-//		if((step_list[step_list_idx] < 0) || (step_list[step_list_idx] > 6)) {
-//			PrintCmd("Invalid Parameter");
-//			return;
-//		}
-//	}
-//
-//	bEdited = true;
-//	bBeginCommandMode = false;
-//	for(int step_list_idx = 0; step_list_idx < num_param; step_list_idx++) {
-//
-//		col = STP0_COL + 5*step_list[step_list_idx];
-//
-//		for(int arm_idx = 0; arm_idx < DOF_OF_ARM; arm_idx++) {
-//			row = left_arm_id_list[arm_idx] - 1;
-//			GoToCursor(col, row);
-//			old_left_arm_pos[arm_idx] = GetValue();
-//
-//			row = right_arm_id_list[arm_idx] - 1;
-//			GoToCursor(col, row);
-//			old_right_arm_pos[arm_idx] = GetValue();
-//
-//			if((old_left_arm_pos[arm_idx] == Action::INVALID_BIT_MASK)
-//					|| (old_left_arm_pos[arm_idx] == Action::TORQUE_OFF_BIT_MASK)
-//					|| (old_right_arm_pos[arm_idx] == Action::INVALID_BIT_MASK)
-//					|| (old_right_arm_pos[arm_idx] == Action::TORQUE_OFF_BIT_MASK))
-//				continue;
-//
-//			new_right_arm_pos[arm_idx] = -1*(old_left_arm_pos[arm_idx]  - 2048) + 2048;
-//			new_left_arm_pos[arm_idx]  = -1*(old_right_arm_pos[arm_idx] - 2048) + 2048;
-//
-//			row = right_arm_id_list[arm_idx] - 1;
-//			GoToCursor(col, row);
-//			SetValue(manager, new_right_arm_pos[arm_idx]);
-//
-//			row = left_arm_id_list[arm_idx] - 1;
-//			GoToCursor(col, row);
-//			SetValue(manager, new_left_arm_pos[arm_idx]);
-//		}
-//	}
-//
-//	bBeginCommandMode = true;
-//	PrintCmd("Mirror : Mirror");
-//}
-//
+void MirrorRight2LeftCmd(int num_param, int *step_list)
+{
+	int row = 0, col = 0;
+	int *right_pos = new int[HARF_DOF];
+	int *left_pos  = new int[HARF_DOF];
+
+	for(int step_list_idx = 0; step_list_idx < num_param; step_list_idx++) {
+		if((step_list[step_list_idx] < 0) || (step_list[step_list_idx] > 6)) {
+			PrintCmd("Invalid Parameter");
+			return;
+		}
+	}
+
+	bEdited = true;
+	bBeginCommandMode = false;
+	for(int step_list_idx = 0; step_list_idx < num_param; step_list_idx++) {
+
+		col = STP0_COL + 5*step_list[step_list_idx];
+
+		for(int servo_idx = 0; servo_idx < HARF_DOF; servo_idx++) {
+			row = right_id_list[servo_idx] - 1;
+			GoToCursor(col, row);
+			right_pos[servo_idx] = GetValue();
+			if((right_pos[servo_idx] == ACTION_FILE::INVALID_BIT_MASK) || (right_pos[servo_idx] == ACTION_FILE::TORQUE_OFF_BIT_MASK))
+				continue;
+
+			left_pos[servo_idx] = -1*(right_pos[servo_idx] - 2048) + 2048;
+
+			row = left_id_list[servo_idx] - 1;
+			GoToCursor(col, row);
+			SetValue(left_pos[servo_idx]);
+		}
+	}
+	bBeginCommandMode = true;
+	PrintCmd("Mirror : Right to Left");
+}
+
+void MirrorLeft2RightCmd(int num_param, int *step_list)
+{
+	int row = 0, col = 0;
+	int *right_pos = new int[HARF_DOF];
+	int *left_pos = new int[HARF_DOF];
+
+	for(int step_list_idx = 0; step_list_idx < num_param; step_list_idx++) {
+		if((step_list[step_list_idx] < 0) || (step_list[step_list_idx] > 6)) {
+			PrintCmd("Invalid Parameter");
+			return;
+		}
+	}
+
+	bEdited = true;
+	bBeginCommandMode = false;
+	for(int step_list_idx = 0; step_list_idx < num_param; step_list_idx++) {
+
+		col = STP0_COL + 5*step_list[step_list_idx];
+
+		for(int servo_idx = 0; servo_idx < HARF_DOF; servo_idx++) {
+			row = left_id_list[servo_idx] - 1;
+			GoToCursor(col, row);
+			left_pos[servo_idx] = GetValue();
+			if((left_pos[servo_idx] == ACTION_FILE::INVALID_BIT_MASK) || (left_pos[servo_idx] == ACTION_FILE::TORQUE_OFF_BIT_MASK))
+				continue;
+
+			right_pos[servo_idx] = -1*(left_pos[servo_idx] - 2048) + 2048;
+
+			row = right_id_list[servo_idx] - 1;
+			GoToCursor(col, row);
+			SetValue(right_pos[servo_idx]);
+		}
+	}
+
+	bBeginCommandMode = true;
+	PrintCmd("Mirror : Left to Right");
+}
+
+
+void MirrorCmd(int num_param, int *step_list)
+{
+	int row = 0, col = 0;
+	int *new_right_pos = new int[HARF_DOF];
+	int *new_left_pos  = new int[HARF_DOF];
+	int *old_right_pos = new int[HARF_DOF];
+	int *old_left_pos  = new int[HARF_DOF];
+
+	for(int step_list_idx = 0; step_list_idx < num_param; step_list_idx++) {
+		if((step_list[step_list_idx] < 0) || (step_list[step_list_idx] > 6)) {
+			PrintCmd("Invalid Parameter");
+			return;
+		}
+	}
+
+	bEdited = true;
+	bBeginCommandMode = false;
+	for(int step_list_idx = 0; step_list_idx < num_param; step_list_idx++) {
+
+		col = STP0_COL + 5*step_list[step_list_idx];
+
+		for(int servo_idx = 0; servo_idx < HARF_DOF; servo_idx++) {
+			row = left_id_list[servo_idx] - 1;
+			GoToCursor(col, row);
+			old_left_pos[servo_idx] = GetValue();
+
+			row = right_id_list[servo_idx] - 1;
+			GoToCursor(col, row);
+			old_right_pos[servo_idx] = GetValue();
+
+			if((old_left_pos[servo_idx] == ACTION_FILE::INVALID_BIT_MASK)
+					|| (old_left_pos[servo_idx] == ACTION_FILE::TORQUE_OFF_BIT_MASK)
+					|| (old_right_pos[servo_idx] == ACTION_FILE::INVALID_BIT_MASK)
+					|| (old_right_pos[servo_idx] == ACTION_FILE::TORQUE_OFF_BIT_MASK))
+				continue;
+
+			new_right_pos[servo_idx] = -1*(old_left_pos[servo_idx]  - 2048) + 2048;
+			new_left_pos[servo_idx]  = -1*(old_right_pos[servo_idx] - 2048) + 2048;
+
+			row = right_id_list[servo_idx] - 1;
+			GoToCursor(col, row);
+			SetValue(new_right_pos[servo_idx]);
+
+			row = left_id_list[servo_idx] - 1;
+			GoToCursor(col, row);
+			SetValue(new_left_pos[servo_idx]);
+		}
+	}
+
+	bBeginCommandMode = true;
+	PrintCmd("Mirror : Mirror");
+}
+
 //void StepCopyCmd(Thor::MotionManager *manager, int step_source, int step_destination)
 //{
 //	int row = 0, col = 0;

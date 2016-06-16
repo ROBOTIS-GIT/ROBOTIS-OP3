@@ -42,21 +42,30 @@ int main(int argc, char **argv)
   //create ros wrapper object
   robotis_op::BallTracker tracker;
 
+  int wait_count = 0;
+  bool result = false;
+
   //set node loop rate
   ros::Rate loop_rate(30);
 
   //node loop
   while ( ros::ok() )
   {
+    result = result | tracker.processTracking();
 
-    //if new image , do things
-    //            if ( detector.newImage() )
-    //            {
-    //                  detector.process();
-    //                  detector.publishImage();
-    //                  detector.publishCircles();
-    //            }
-    tracker.processTracking();
+    if(result == true)
+    {
+
+      wait_count += 1;
+
+      if(wait_count > 60)
+      {
+        tracker.processActing();
+        result = false;
+      }
+    }
+    else
+      wait_count = 0;
 
     //execute pending callbacks
     ros::spinOnce();

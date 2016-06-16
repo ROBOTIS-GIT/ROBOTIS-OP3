@@ -164,9 +164,10 @@ void UnFoldRightHand();
 void FoldLeftHand();
 void UnFoldLeftHand();
 
-void MirrorArmRight2LeftCmd(int num_param, int *step_list);
-void MirrorArmLeft2RightCmd(int num_param, int *step_list);
-void MirrorArmCmd(int num_param, int *step_list);
+
+void MirrorRight2LeftCmd(int num_param, int *step_list);
+void MirrorLeft2RightCmd(int num_param, int *step_list);
+void MirrorCmd(int num_param, int *step_list);
 void StepCopyCmd(int step_source, int step_destination);
 
 //play sound

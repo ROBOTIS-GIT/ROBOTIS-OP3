@@ -266,30 +266,30 @@ int main(int argc, char **argv)
 //                        else
 //                            PrintCmd("Need parameter");
 //                    }
-//                    else if(strcmp(cmd, "mrl")==0)
-//                    {
-//                    	if(num_param >= 1) {
-//                    		MirrorArmRight2LeftCmd(manager, num_param, iparam);
-//                    	}
-//                    	else
-//                    		PrintCmd("Need parameter");
-//                    }
-//                    else if(strcmp(cmd, "mlr") == 0)
-//                    {
-//                    	if(num_param >= 1) {
-//                    		MirrorArmLeft2RightCmd(manager, num_param, iparam);
-//                    	}
-//                    	else
-//                    		PrintCmd("Need parameter");
-//                    }
-//                    else if(strcmp(cmd, "mm") == 0)
-//                    {
-//                    	if(num_param >= 1) {
-//                    		MirrorArmCmd(num_param, iparam);
-//                    	}
-//                    	else
-//                    		PrintCmd("Need parameter");
-//                    }
+                    else if(strcmp(cmd, "mrl")==0)
+                    {
+                    	if(num_param >= 1) {
+                    		MirrorRight2LeftCmd(num_param, iparam);
+                    	}
+                    	else
+                    		PrintCmd("Need parameter");
+                    }
+                    else if(strcmp(cmd, "mlr") == 0)
+                    {
+                    	if(num_param >= 1) {
+                    		MirrorLeft2RightCmd(num_param, iparam);
+                    	}
+                    	else
+                    		PrintCmd("Need parameter");
+                    }
+                    else if(strcmp(cmd, "mm") == 0)
+                    {
+                    	if(num_param >= 1) {
+                    		MirrorCmd(num_param, iparam);
+                    	}
+                    	else
+                    		PrintCmd("Need parameter");
+                    }
 //                    else if(strcmp(cmd, "cs") == 0)
 //                    {
 //                    	if(num_param >= 2) {

@@ -9,7 +9,10 @@
         <param name="width" type="int" value="800" />
         <param name="height" type="int" value="600" />
         <param name="fps" type="int" value="30" />
-        <param name="gain" value="120" />
+        <param name="auto_gain" value="false" />
+        <param name="gain" type="int" value="120" />
+        <param name="exposure" value="0" />
+    </node>
 <!--         <param name="gain" value="255" />
         <param name="auto_exposure" type="bool" value="False" />
         <param name="exposure_absolute" value="1000" />
@@ -22,7 +25,6 @@
         <!-- <param name="brightness" value="64" /> -->
         <!-- <param name="auto_white_balance" type="bool" value="False" /> -->
         <!-- <param name="white_balance_temperature" value="2800" /> -->
-    </node>
 
     <!-- ball detector -->
     <node pkg="ball_detector" type="ball_detector_node" name="ball_detector_node" args="" output="screen">

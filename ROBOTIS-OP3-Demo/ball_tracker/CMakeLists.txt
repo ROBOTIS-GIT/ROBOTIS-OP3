@@ -6,8 +6,10 @@ project(ball_tracker)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  roslib
   sensor_msgs
   ball_detector
+  op3_walking_module_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -141,6 +143,7 @@ add_dependencies(ball_tracker_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_
 ## Specify libraries to link a library or executable target against
 target_link_libraries(ball_tracker_node
   ${catkin_LIBRARIES}
+  yaml-cpp
 )
 
 #############

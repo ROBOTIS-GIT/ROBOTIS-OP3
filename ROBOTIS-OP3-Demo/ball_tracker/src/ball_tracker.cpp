@@ -51,16 +51,16 @@ BallTracker::BallTracker()
 , MIN_RL_TURN(5.0 * M_PI / 180)
 , UNIT_FB_STEP(1.0 * 0.001)
 , UNIT_RL_TURN(0.5 * M_PI / 180)
-, current_pan_(-10)
-, current_tilt_(-10)
+, current_head_pan_(-10)
+, current_head_tilt_(-10)
 , current_x_move_(0.005)
 , current_r_angle_(0)
 {
   //module_control_pub_  = nh_.advertise<std_msgs::String>("/robotis/enable_ctrl_module", 0);
-  module_control_pub_  = nh_.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_joint_ctrl_modules", 0);
+  //module_control_pub_  = nh_.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_joint_ctrl_modules", 0);
   head_joint_pub_ = nh_.advertise<sensor_msgs::JointState>("/robotis/head_control/set_joint_states_offset", 0);
   head_scan_pub_ = nh_.advertise<std_msgs::String>("/robotis/head_control/scan_command", 0);
-  motion_index_pub_ = nh_.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
+  //motion_index_pub_ = nh_.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
 
   ball_position_sub_ = nh_.subscribe("/ball_detector_node/circle_set", 1, &BallTracker::ballPositionCallback, this);
   ball_tracking_command_sub_ = nh_.subscribe("/ball_tracker/command", 1, &BallTracker::ballTrackerCommandCallback, this);
@@ -95,19 +95,39 @@ void BallTracker::ballTrackerCommandCallback(const std_msgs::String::ConstPtr &m
 {
   if(msg->data == "start")
   {
-    on_tracking_ = true;
-    ROS_INFO("Start Ball tracking");
-
-    setWalkingCommand("start");
+    startTracking();
   }
   else if(msg->data == "stop")
   {
-    on_tracking_ = false;
-    approach_ball_position_ = 0;
-    ROS_INFO("Stop Ball tracking");
-
-    setWalkingCommand("stop");
+    stopTracking();
   }
+  else if(msg->data == "toggle_start")
+  {
+    if(on_tracking_ == false)
+      startTracking();
+    else
+      stopTracking();
+  }
+}
+
+void BallTracker::startTracking()
+{
+  on_tracking_ = true;
+  ROS_INFO("Start Ball tracking");
+//  setModuleToDemo("walking_module");
+//
+//  usleep(10 * 1000);
+
+//  setWalkingCommand("start");
+}
+
+void BallTracker::stopTracking()
+{
+  on_tracking_ = false;
+  approach_ball_position_ = 0;
+  ROS_INFO("Stop Ball tracking");
+
+//  setWalkingCommand("stop");
 }
 
 void BallTracker::currentJointStatesCallback(const sensor_msgs::JointState::ConstPtr &msg)
@@ -132,31 +152,34 @@ void BallTracker::currentJointStatesCallback(const sensor_msgs::JointState::Cons
   }
 
   // check variation
-  if(current_pan_ == -10 || fabs(pan - current_pan_) < 5 * M_PI / 180 )
-    current_pan_ = pan;
-  if(current_tilt_ == -10 || fabs(tilt - current_tilt_) < 5 * M_PI / 180 )
-    current_tilt_ = tilt;
+  if(current_head_pan_ == -10 || fabs(pan - current_head_pan_) < 5 * M_PI / 180 )
+    current_head_pan_ = pan;
+  if(current_head_tilt_ == -10 || fabs(tilt - current_head_tilt_) < 5 * M_PI / 180 )
+    current_head_tilt_ = tilt;
 }
 
 bool BallTracker::processTracking()
 {
   if(on_tracking_ == false)
   {
-    if(approach_ball_position_ != 0)
-    {
-      kick_motion_index_ = (approach_ball_position_ == -1) ? 84 : 83;
-      approach_ball_position_ = 0;
-
-      // kick
-      setModuleToDemo();
-
-      return true;
-    }
+//    if(approach_ball_position_ != 0)
+//    {
+//      usleep(100 * 1000);
+//
+//
+//      kick_motion_index_ = (approach_ball_position_ == -1) ? 84 : 83;
+//      approach_ball_position_ = 0;
+//
+//      // kick
+//      setModuleToDemo("action_module");
+//
+//      return false;
+//    }
 
     ball_position_.z = 0;
     count_not_found_ = 0;
-    current_pan_ = -10;
-    current_tilt_ = -10;
+    current_head_pan_ = -10;
+    current_head_tilt_ = -10;
     return false;
   }
 
@@ -165,8 +188,8 @@ bool BallTracker::processTracking()
   {
     count_not_found_++;
 
-    if(count_not_found_ > NOT_FOUND_THRESHOLD * 0.5)
-      setWalkingParam(MIN_FB_STEP, 0, 0);
+//    if(count_not_found_ > NOT_FOUND_THRESHOLD * 0.5)
+//      setWalkingParam(MIN_FB_STEP, 0, 0);
 
     if(count_not_found_ > NOT_FOUND_THRESHOLD)
     {
@@ -189,10 +212,13 @@ bool BallTracker::processTracking()
   // move head joint
   publishHeadJoint(x_offset_rad, y_offset_rad);
 
-  // move to target position
-  approachBall(x_offset_rad, y_offset_rad);
+  current_ball_pan_ = x_offset_rad;
+  current_ball_pan_ = y_offset_rad;
 
-  return false;
+  // move to target position
+  //approachBall(x_offset_rad, y_offset_rad);
+
+  return true;
 }
 
 bool BallTracker::processActing()
@@ -246,16 +272,16 @@ void BallTracker::approachBall(double pan, double tilt)
   // check right/left
 
   // check to stop
-  if((fabs(current_tilt_ + 70 * M_PI / 180) < 5 * M_PI / 180)
-      && (fabs(current_pan_) < 3 * M_PI / 180))
+  if((fabs(current_head_tilt_ + 70 * M_PI / 180) < 5 * M_PI / 180)
+      && (fabs(current_head_pan_) < 3 * M_PI / 180))
   {
-    ROS_INFO_STREAM("tilt : " << (current_tilt_ * 180 / M_PI) << " | pan : " << (current_pan_ * 180 / M_PI));
+    ROS_INFO_STREAM("tilt : " << (current_head_tilt_ * 180 / M_PI) << " | pan : " << (current_head_pan_ * 180 / M_PI));
 
     setWalkingCommand("stop");
     on_tracking_ = false;
 
     // check direction of the ball
-    if(current_pan_ > 0)
+    if(current_head_pan_ > 0)
     {
       ROS_INFO("Ready to kick : left"); // left
       approach_ball_position_ = -1;
@@ -275,25 +301,25 @@ void BallTracker::approachBall(double pan, double tilt)
 
   // clac fb
   //double x_offset = 0.56 * (tan((17 + 70) * M_PI / 180 + current_tilt_) - tan(17 * M_PI / 180));
-  double x_offset = 0.56 * tan(M_PI * 0.5 + current_tilt_ + tilt - 3 * M_PI / 180);
+  double x_offset = 0.56 * tan(M_PI * 0.5 + current_head_tilt_ + tilt - 3 * M_PI / 180);
 
   if(x_offset < 0)
     x_offset *= (-1);
   x_offset -= 0.05;
 
-  ROS_INFO_STREAM("goal offset : " << x_offset << " | " << (current_tilt_ * 180 / M_PI) << " | tile : " << (tilt * 180 / M_PI));
+  ROS_INFO_STREAM("goal offset : " << x_offset << " | " << (current_head_tilt_ * 180 / M_PI) << " | tile : " << (tilt * 180 / M_PI));
   double fb_goal, fb_move;
 
 
-  if(x_offset < 0.2 && (fabs(current_pan_) < 3 * M_PI / 180))
+  if(x_offset < 0.2 && (fabs(current_head_pan_) < 3 * M_PI / 180))
   {
-    ROS_INFO_STREAM("offest stop - tilt : " << (current_tilt_ * 180 / M_PI) << " | pan : " << (current_pan_ * 180 / M_PI));
+    ROS_INFO_STREAM("offest stop - tilt : " << (current_head_tilt_ * 180 / M_PI) << " | pan : " << (current_head_pan_ * 180 / M_PI));
 
     setWalkingCommand("stop");
     on_tracking_ = false;
 
     // check direction of the ball
-    if(current_pan_ > 0)
+    if(current_head_pan_ > 0)
     {
       ROS_INFO("Ready to kick : left"); // left
       approach_ball_position_ = -1;
@@ -307,19 +333,32 @@ void BallTracker::approachBall(double pan, double tilt)
     return;
   }
 
-  fb_goal = fmin(x_offset * 0.2, MAX_FB_STEP);
-  fb_goal = fmax(fb_goal, MIN_FB_STEP);
-  fb_move = fmin(current_x_move_ + UNIT_FB_STEP, fb_goal);
+  // fb_goal = fmin(x_offset * 0.2, MAX_FB_STEP);
+  // fb_goal = fmax(fb_goal, MIN_FB_STEP);
+  // fb_move = fmin(current_x_move_ + UNIT_FB_STEP, fb_goal);
   // ROS_INFO_STREAM("== x  offset : " << fb_move << " | " << fb_goal);
 
+  fb_goal = fmin(x_offset * 0.2, MAX_FB_STEP);
+  if(x_offset < 0.4)
+  {
+    fb_goal = fmin(current_x_move_ - UNIT_FB_STEP, fb_goal);
+    fb_move = fmax(fb_goal, MIN_FB_STEP * 1.5);
+  }
+  else
+  {
+    fb_goal = fmin(current_x_move_ + UNIT_FB_STEP, fb_goal);
+    fb_move = fmax(fb_goal, MIN_FB_STEP * 1.5);
+  }
+
+
   // calc rl
-  double rl_offset = fabs(current_pan_) * 0.3;
+  double rl_offset = fabs(current_head_pan_) * 0.3;
   double rl_goal, rl_angle;
   rl_goal = fmin(rl_offset, MAX_RL_TURN);
   rl_goal = fmax(rl_goal, MIN_RL_TURN);
   rl_angle = fmin(fabs(current_r_angle_) + UNIT_RL_TURN, rl_goal);
 
-  if(current_pan_ > 0) rl_angle *= (-1);
+  if(current_head_pan_ > 0) rl_angle *= (-1);
 
   // ROS_INFO_STREAM("== rl  offset : " << (current_pan_ * 180 / M_PI) << " | " << (rl_angle * 180 / M_PI));
   ROS_INFO_STREAM("x_move : " << fb_move << ", rotation : " << (rl_angle * 180 / M_PI));
@@ -382,20 +421,11 @@ void BallTracker::getWalkingParam()
     ROS_ERROR("Fail to get walking parameters.");
 }
 
-void BallTracker::setModuleToDemo()
+void BallTracker::setModuleToDemo(const std::string &body_module)
 {
-  //  std::string body_module = "action_module";
-  //  std::string head_module = "head_control_module";
-  //
-  //  std_msgs::String _msg;
-  //  _msg.data = body_module;
-  //  module_control_pub_.publish(_msg);
-  //  _msg.data = head_module;
-  //  module_control_pub_.publish(_msg);
-
   robotis_controller_msgs::JointCtrlModule control_msg;
 
-  std::string body_module = "action_module";
+  //std::string body_module = "action_module";
   std::string head_module = "head_control_module";
 
   for(int ix = 1; ix <= 20; ix++)

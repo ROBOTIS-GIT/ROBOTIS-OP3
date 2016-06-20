@@ -31,8 +31,8 @@
 
 /* Author: Kayman Jung */
 
-#ifndef ROBOTIS_OP3_ROBOTIS_OP3_DEMO_BALL_TRACKING_INCLUDE_BALL_TRACKING_BALL_TRACKING_H_
-#define ROBOTIS_OP3_ROBOTIS_OP3_DEMO_BALL_TRACKING_INCLUDE_BALL_TRACKING_BALL_TRACKING_H_
+#ifndef SRC_ROBOTIS_OP3_ROBOTIS_OP3_DEMO_BALL_TRACKER_INCLUDE_BALL_TRACKER_BALL_FOLLOWER_H_
+#define SRC_ROBOTIS_OP3_ROBOTIS_OP3_DEMO_BALL_TRACKER_INCLUDE_BALL_TRACKER_BALL_FOLLOWER_H_
 
 #include <math.h>
 #include <yaml-cpp/yaml.h>
@@ -50,25 +50,30 @@
 
 namespace robotis_op {
 
-class BallTracker
+class BallFollower
 {
  public:
-  BallTracker();
-  ~BallTracker();
+  enum
+  {
+    NotFound = 0,
+    BallIsRight = 1,
+    BallIsLeft = 2,
+  };
 
-  bool processTracking();
-  bool processActing();
+  BallFollower();
+  ~BallFollower();
 
-  void startTracking();
-  void stopTracking();
+  bool processFollowing(double x_angle, double y_angle);
+  void waitFollowing();
+  void startFollowing();
+  void stopFollowing();
 
-  double getPanOfBall() { return current_ball_pan_; }
-  double getTiltOfBall() { return current_ball_tilt_; }
+  int getBallPosition() { return approach_ball_position_; }
 
  protected:
+  const int NOT_FOUND_THRESHOLD;
   const double FOV_WIDTH;
   const double FOV_HEIGHT;
-  const int NOT_FOUND_THRESHOLD;
   const double MAX_FB_STEP;
   const double MAX_RL_TURN;
   const double MIN_FB_STEP;
@@ -76,22 +81,19 @@ class BallTracker
   const double UNIT_FB_STEP;
   const double UNIT_RL_TURN;
 
-
-  void ballPositionCallback(const ball_detector::circleSetStamped::ConstPtr &msg);
-  void ballTrackerCommandCallback(const std_msgs::String::ConstPtr &msg);
   void currentJointStatesCallback(const sensor_msgs::JointState::ConstPtr &msg);
-  void publishHeadJoint(double pan, double tilt);
-  void scanBall();
-  void approachBall(double pan, double tilt);
+  void approachBall(double x_angle, double y_angle);
   void setWalkingCommand(const std::string &command);
   void setWalkingParam(double x_move, double y_move, double rotation_angle, bool balance = true);
   void getWalkingParam();
 
-  void setModuleToDemo(const std::string &body_module);
-  void parseJointNameFromYaml(const std::string &path);
-  bool getJointNameFromID(const int &id, std::string &joint_name);
-  bool getIDFromJointName(const std::string &joint_name, int &id);
-
+//  void setModuleToDemo(const std::string &body_module);
+//  void parseJointNameFromYaml(const std::string &path);
+//  bool getJointNameFromID(const int &id, std::string &joint_name);
+//  bool getIDFromJointName(const std::string &joint_name, int &id);
+//
+//  void startTracking();
+//  void stopTracking();
 
   //ros node handle
   ros::NodeHandle nh_;
@@ -109,8 +111,8 @@ class BallTracker
   ros::Subscriber ball_tracking_command_sub_;
   ros::Subscriber current_joint_states_sub_;
 
-  std::map<int, std::string> id_joint_table_;
-  std::map<std::string, int> joint_id_table_;
+//  std::map<int, std::string> id_joint_table_;
+//  std::map<std::string, int> joint_id_table_;
 
   // (x, y) is the center position of the ball in image coordinates
   // z is the ball radius
@@ -120,12 +122,11 @@ class BallTracker
   int count_not_found_;
   bool on_tracking_;
   int approach_ball_position_;
-  double current_head_pan_, current_head_tilt_;
-  double current_ball_pan_, current_ball_tilt_;
+  double current_pan_, current_tilt_;
   double current_x_move_, current_r_angle_;
   int kick_motion_index_;
 
 };
 }
 
-#endif /* SRC_ROBOTIS_OP3_ROBOTIS_OP3_DEMO_BALL_TRACKING_INCLUDE_BALL_TRACKING_BALL_TRACKING_H_ */
+#endif /* SRC_ROBOTIS_OP3_ROBOTIS_OP3_DEMO_BALL_TRACKER_INCLUDE_BALL_TRACKER_BALL_FOLLOWER_H_ */

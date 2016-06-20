@@ -146,6 +146,22 @@ target_link_libraries(ball_tracker_node
   yaml-cpp
 )
 
+add_executable(soccer_demo_node 
+  src/soccer_demo_node.cpp
+  src/ball_tracker.cpp
+  src/ball_follower.cpp
+)
+
+## Add cmake target dependencies of the executable
+## same as for the library above
+add_dependencies(soccer_demo_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+## Specify libraries to link a library or executable target against
+target_link_libraries(soccer_demo_node
+  ${catkin_LIBRARIES}
+  yaml-cpp
+)
+
 #############
 ## Install ##
 #############

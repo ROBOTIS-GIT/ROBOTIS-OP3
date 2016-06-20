@@ -17,7 +17,7 @@ filter2_h_min: 285
 filter2_h_max: 90
 filter2_s_min: 0
 filter2_s_max: 64
-filter2_v_min: 135
+filter2_v_min: 157
 filter2_v_max: 255
 ellipse_size: 1
-filter_debug: false
+filter_debug: true

@@ -1,11 +1,11 @@
 motion:
-  -2 : BRAKE
+  -2 : BREAK
   -1 : STOP
 #  0 : .
-  1 : Init pose
+  1 : Walking Init
   2 : OK
   3 : No
-  4 : Hi
+#  4 : Hi
 #  5 : .
 #  6 : .
 #  7 : .
@@ -33,10 +33,16 @@ motion:
 #  29 : .
 #  30 : .
 #  31 : .
-  50 : Test 1
-  52 : Test 2
+  80 : Init pose
+  81 : Get up(Front)
+  82 : Get up(Back)
+  83 : Right Kick
+  84 : Left Kick
+  85 : Ceremony
 motion_shortcut:
-# motion_index : button id 
+# motion_index : button id (0 ~ 9)
   -1 : 0
-  50 : 1
-  52 : 2
+  81 : 1
+  82 : 2
+  83 : 3
+  84 : 4

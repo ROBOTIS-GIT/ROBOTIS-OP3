@@ -24,10 +24,13 @@ std::string         _offset_file;
 std::string         _robot_file;
 std::string         _init_file;
 
-void PowerOnDXLMsgCallback( const std_msgs::String::ConstPtr& msg )
-{
-    if(msg->data != "mode") return;
+ros::Publisher init_pose_pub;
+ros::Publisher demo_command_pub;
 
+void buttonHandlerCallback( const std_msgs::String::ConstPtr& msg )
+{
+  if(msg->data == "mode")
+  {
     RobotisController  *_controller     = RobotisController::GetInstance();
 
     _controller->SetCtrlModule("none");
@@ -37,7 +40,11 @@ void PowerOnDXLMsgCallback( const std_msgs::String::ConstPtr& msg )
     // power on
     PortHandler *_port_h = (PortHandler *)PortHandler::GetPortHandler("/dev/ttyUSB0");
     bool _set_port = _port_h->SetBaudRate(1000000);
-    if(_set_port == false) ROS_ERROR("Error Set port");
+    if(_set_port == false)
+    {
+      ROS_ERROR("Error Set port");
+      return;
+    }
     PacketHandler *_packet_h = PacketHandler::GetPacketHandler(1.0);
 
     int _return = _packet_h->Write1ByteTxRx(_port_h, 200, 24, 1);
@@ -48,7 +55,11 @@ void PowerOnDXLMsgCallback( const std_msgs::String::ConstPtr& msg )
 
     PortHandler *_port_h2 = (PortHandler *)PortHandler::GetPortHandler("/dev/ttyUSB1");
     _set_port = _port_h2->SetBaudRate(3000000);
-    if(_set_port == false) ROS_ERROR("Error Set port");
+    if(_set_port == false)
+    {
+      ROS_ERROR("Error Set port");
+      return;
+    }
     PacketHandler *_packet_h2 = PacketHandler::GetPacketHandler(2.0);
 
     _return = _packet_h2->Write1ByteTxRx(_port_h2, 254, 64, 1);
@@ -60,81 +71,110 @@ void PowerOnDXLMsgCallback( const std_msgs::String::ConstPtr& msg )
     _controller->InitDevice(_init_file);
 
     _controller->StartTimer();
+
+    // go to init pose
+    std_msgs::String init_msg;
+    init_msg.data = "ini_pose";
+
+    init_pose_pub.publish(init_msg);
+    ROS_INFO("Go to init pose");
+  }
+//  else if (msg->data == "start")
+//  {
+//    // start ball_tracking
+//    std_msgs::String command_msg;
+//    command_msg.data = "toggle_start";
+//
+//    demo_command_pub.publish(command_msg);
+//
+//    ROS_INFO("Start Soccer Demo");
+//  }
 }
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "OP2_Manager");
-    ros::NodeHandle _nh;
+  ros::init(argc, argv, "OP2_Manager");
+  ros::NodeHandle _nh;
 
-    ROS_INFO("manager->init");
-    RobotisController  *_controller     = RobotisController::GetInstance();
+  ROS_INFO("manager->init");
+  RobotisController  *_controller     = RobotisController::GetInstance();
 
-    /* Load ROS Parameter */
+  /* Load ROS Parameter */
 
-    _nh.param<std::string>("offset_table", _offset_file, "");
-    _nh.param<std::string>("robot_file_path", _robot_file, "");
-    _nh.param<std::string>("init_file_path", _init_file, "");
+  _nh.param<std::string>("offset_table", _offset_file, "");
+  _nh.param<std::string>("robot_file_path", _robot_file, "");
+  _nh.param<std::string>("init_file_path", _init_file, "");
 
-    ros::Subscriber _power_on_sub = _nh.subscribe("/robotis/cm_740/button", 1, PowerOnDXLMsgCallback);
+  ros::Subscriber power_on_sub = _nh.subscribe("/robotis/cm_740/button", 1, buttonHandlerCallback);
+  init_pose_pub = _nh.advertise<std_msgs::String>("/robotis/base/ini_pose", 0);
+  demo_command_pub = _nh.advertise<std_msgs::String>("/ball_tracker/command", 0);
 
-    PortHandler *_port_h = (PortHandler *)PortHandler::GetPortHandler("/dev/ttyUSB0");
-    bool _set_port = _port_h->SetBaudRate(1000000);
-    if(_set_port == false) ROS_ERROR("Error Set port");
-    PacketHandler *_packet_h = PacketHandler::GetPacketHandler(1.0);
+  PortHandler *_port_h = (PortHandler *)PortHandler::GetPortHandler("/dev/ttyUSB0");
+  bool _set_port = _port_h->SetBaudRate(1000000);
+  if(_set_port == false) ROS_ERROR("Error Set port");
+  PacketHandler *_packet_h = PacketHandler::GetPacketHandler(1.0);
 
-    int _return = _packet_h->Write1ByteTxRx(_port_h, 200, 24, 1);
-    ROS_INFO("Torque on DXLs! [%d]", _return);
-    _packet_h->PrintTxRxResult(_return);
+  int _return = _packet_h->Write1ByteTxRx(_port_h, 200, 24, 1);
+  ROS_INFO("Torque on DXLs! [%d]", _return);
+  _packet_h->PrintTxRxResult(_return);
 
 
-    _port_h->ClosePort();
+  _port_h->ClosePort();
 
-    usleep(100 * 1000);
+  usleep(100 * 1000);
 
-    /* gazebo simulation */
-    _nh.param<bool>("gazebo", _controller->gazebo_mode, false);
-    if(_controller->gazebo_mode == true)
-    {
-        ROS_WARN("SET TO GAZEBO MODE!");
-        std::string         _robot_name;
-        _nh.param<std::string>("gazebo_robot_name", _robot_name, "");
-        if(_robot_name != "")
-            _controller->gazebo_robot_name  = _robot_name;
-    }
+  /* gazebo simulation */
+  _nh.param<bool>("gazebo", _controller->gazebo_mode, false);
+  if(_controller->gazebo_mode == true)
+  {
+    ROS_WARN("SET TO GAZEBO MODE!");
+    std::string         _robot_name;
+    _nh.param<std::string>("gazebo_robot_name", _robot_name, "");
+    if(_robot_name != "")
+      _controller->gazebo_robot_name  = _robot_name;
+  }
 
-    if(_robot_file == "")
-    {
-        ROS_ERROR("NO robot file path in the ROS parameters.");
-        return -1;
-    }
+  if(_robot_file == "")
+  {
+    ROS_ERROR("NO robot file path in the ROS parameters.");
+    return -1;
+  }
 
-    if(_controller->Initialize(_robot_file, _init_file) == false)
-    {
-        ROS_ERROR("ROBOTIS Controller Initialize Fail!");
-        return -1;
-    }
+  if(_controller->Initialize(_robot_file, _init_file) == false)
+  {
+    ROS_ERROR("ROBOTIS Controller Initialize Fail!");
+    return -1;
+  }
 
-    if(_offset_file != "")
-        _controller->LoadOffset(_offset_file);
+  if(_offset_file != "")
+    _controller->LoadOffset(_offset_file);
 
-    sleep(1);
+  sleep(1);
 
-    /* Add Sensor Module */
-    _controller->AddSensorModule((SensorModule*)CM740Module::GetInstance());
+  /* Add Sensor Module */
+  _controller->AddSensorModule((SensorModule*)CM740Module::GetInstance());
 
-    /* Add Motion Module */
-    _controller->AddMotionModule((MotionModule*)ActionModule::GetInstance());
-    _controller->AddMotionModule((MotionModule*)BaseModule::GetInstance());
-    _controller->AddMotionModule((MotionModule*)HeadControlModule::GetInstance());
-    _controller->AddMotionModule((MotionModule*)WalkingMotionModule::GetInstance());
+  /* Add Motion Module */
+  _controller->AddMotionModule((MotionModule*)ActionModule::GetInstance());
+  _controller->AddMotionModule((MotionModule*)BaseModule::GetInstance());
+  _controller->AddMotionModule((MotionModule*)HeadControlModule::GetInstance());
+  _controller->AddMotionModule((MotionModule*)WalkingMotionModule::GetInstance());
 
-    _controller->StartTimer();
+  _controller->StartTimer();
 
-    while(ros::ok())
-    {
-        ros::spin();
-    }
+  // go to init pose
+  std_msgs::String init_msg;
+  init_msg.data = "ini_pose";
 
-    return 0;
+  init_pose_pub.publish(init_msg);
+  ROS_INFO("Go to init pose");
+
+  while(ros::ok())
+  {
+    usleep(1 * 1000);
+
+    ros::spin();
+  }
+
+  return 0;
 }

@@ -53,4 +53,4 @@ tar_pose :
   17 : 0   	    # r_ank_roll
   18 : 0   	    # l_ank_roll
   19 : 0        # head_pan 
-  20 : 10       # head_tilt
+  20 : -10       # head_tilt

@@ -213,7 +213,7 @@ bool BallTracker::processTracking()
   publishHeadJoint(x_offset_rad, y_offset_rad);
 
   current_ball_pan_ = x_offset_rad;
-  current_ball_pan_ = y_offset_rad;
+  current_ball_tilt_ = y_offset_rad;
 
   // move to target position
   //approachBall(x_offset_rad, y_offset_rad);

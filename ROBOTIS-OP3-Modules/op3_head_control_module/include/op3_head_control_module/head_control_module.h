@@ -62,6 +62,9 @@ HeadControlModule>
   void Stop();
   bool IsRunning();
 
+  void OnModuleEnable();
+  void OnModuleDisable();
+
  private:
   enum
   {

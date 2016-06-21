@@ -221,8 +221,6 @@ void WalkingMotionModule::walkingCommandCallback(const std_msgs::String::ConstPt
 void WalkingMotionModule::walkingParameterCallback(const op3_walking_module_msgs::WalkingParam::ConstPtr &msg)
 {
   walking_param_ = *msg;
-
-  std::cout << "Set param - x move : " << walking_param_.x_move_amplitude << std::endl;
 }
 
 bool WalkingMotionModule::getWalkigParameterCallback(op3_walking_module_msgs::GetWalkingParam::Request &req, op3_walking_module_msgs::GetWalkingParam::Response &res)
@@ -389,8 +387,6 @@ void WalkingMotionModule::updateMovementParam()
     else
       m_A_Move_Amplitude_Shift = m_A_Move_Amplitude;
   }
-
-  std::cout << "current footstep length : " << m_X_Move_Amplitude << std::endl;
 }
 
 void WalkingMotionModule::updatePoseParam()
@@ -475,8 +471,8 @@ void WalkingMotionModule::Process(std::map<std::string, Dynamixel *> dxls, std::
 
     computeArmAngle(&angle[12]);
 
-    double rlGyroErr = sensors["gyro_x"] * deg2rad;
-    double fbGyroErr = sensors["gyro_y"] * deg2rad;
+    double rlGyroErr = sensors["gyro_x"];
+    double fbGyroErr = sensors["gyro_y"];
 
     sensoryFeedback(rlGyroErr, fbGyroErr, balance_angle);
 

@@ -5,12 +5,16 @@ project(cm_740_module)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  cmake_modules
   dynamixel_sdk
   robotis_device
   robotis_controller_msgs
   robotis_framework_common
+  robotis_math
   roscpp
 )
+
+find_package(Eigen REQUIRED)
 
 ## The catkin_package macro generates cmake config files for your package
 catkin_package(
@@ -26,6 +30,7 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${Eigen_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library

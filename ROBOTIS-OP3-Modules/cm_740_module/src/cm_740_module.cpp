@@ -1,9 +1,35 @@
-/*
- * sensor_module_tutorial.cpp
- *
- *  Created on: 2016. 4. 20.
- *      Author: zerom
- */
+/*******************************************************************************
+* Copyright (c) 2016, ROBOTIS CO., LTD.
+* All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* * Redistributions of source code must retain the above copyright notice, this
+*   list of conditions and the following disclaimer.
+*
+* * Redistributions in binary form must reproduce the above copyright notice,
+*   this list of conditions and the following disclaimer in the documentation
+*   and/or other materials provided with the distribution.
+*
+* * Neither the name of ROBOTIS nor the names of its
+*   contributors may be used to endorse or promote products derived from
+*   this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*******************************************************************************/
+
+
+/* Author: Kayman Jung */
 
 #include <stdio.h>
 #include "cm_740_module/cm_740_module.h"
@@ -105,11 +131,13 @@ void CM740Module::Process(std::map<std::string, Dynamixel *> dxls, std::map<std:
   handleVoltage(result["present_voltage"]);
 }
 
+// -500 ~ 500dps, dps -> rps
 double CM740Module::getGyroValue(int dxl_value)
 {
-  return (dxl_value - 512) * 500.0 * 2.0 / 1023;
+  return (dxl_value - 512) * 500.0 * 2.0 / 1023 * deg2rad;
 }
 
+// -4.0 ~ 4.0g, 1g = 9.8 m/s^2
 double CM740Module::getAccValue(int dxl_value)
 {
   return (dxl_value - 512) * 4.0 * 2.0 / 1023;
@@ -117,12 +145,41 @@ double CM740Module::getAccValue(int dxl_value)
 
 void CM740Module::fusionIMU()
 {
-  sensor_msgs::Imu _imu_msg;
-
   // fusion imu data
+  imu_msg_.header.stamp = ros::Time::now();
+  imu_msg_.header.frame_id = "body_link";
 
+  double filter_alpha = 0.4;
 
-  imu_pub_.publish(_imu_msg);
+  //in rad/s
+  long int _value = 0;
+  int _arrd_length = 2;
+  imu_msg_.angular_velocity.x = lowPassFilter(filter_alpha, result["gyro_x"], imu_msg_.angular_velocity.x);
+  imu_msg_.angular_velocity.y = lowPassFilter(filter_alpha, result["gyro_y"], imu_msg_.angular_velocity.y);
+  imu_msg_.angular_velocity.z = lowPassFilter(filter_alpha, result["gyro_z"], imu_msg_.angular_velocity.z);
+  // ROS_INFO("angular velocity : %f, %f, %f", imu_angular_velocity[0], imu_angular_velocity[1], imu_angular_velocity[2]);
+
+  //in m/s^2
+  double _const = 1;
+  imu_msg_.linear_acceleration.x = lowPassFilter(filter_alpha, result["acc_x"] * G_ACC, imu_msg_.linear_acceleration.x);
+  imu_msg_.linear_acceleration.y = lowPassFilter(filter_alpha, result["acc_y"] * G_ACC, imu_msg_.linear_acceleration.y);
+  imu_msg_.linear_acceleration.z = lowPassFilter(filter_alpha, result["acc_z"] * G_ACC, imu_msg_.linear_acceleration.z);
+  // ROS_INFO("linear_acceleration : %f, %f, %f", imu_linear_acceleration[0], imu_linear_acceleration[1], imu_linear_acceleration[2]);
+
+  //Estimation of roll and pitch based on accelometer data, see http://theccontinuum.com/2012/09/24/arduino-imu-pitch-roll-from-accelerometer/
+  double sign = copysignf(1.0,  result["acc_z"]);
+  double roll = atan2( result["acc_y"], sign * sqrt( result["acc_x"] * result["acc_x"] + result["acc_z"] * result["acc_z"]));
+  double pitch = -atan2( result["acc_x"], sqrt( imu_msg_.linear_acceleration.y/G_ACC* imu_msg_.linear_acceleration.y/G_ACC +  imu_msg_.linear_acceleration.z/G_ACC* imu_msg_.linear_acceleration.z/G_ACC));
+  double yaw = 0.0;
+
+  Eigen::Quaterniond orientation = rpy2quaternion(roll, pitch, yaw);
+
+  imu_msg_.orientation.x = orientation.x();
+  imu_msg_.orientation.y = orientation.y();
+  imu_msg_.orientation.z = orientation.z();
+  imu_msg_.orientation.w = orientation.w();
+
+  imu_pub_.publish(imu_msg_);
 }
 
 void CM740Module::buttonMode(bool pushed)
@@ -182,3 +239,7 @@ void CM740Module::publishStatusMsg(unsigned int type, std::string msg)
   status_msg_pub_.publish(_status);
 }
 
+double CM740Module::lowPassFilter(double alpha, double x_new, double x_old)
+{
+  return alpha*x_new + (1.0-alpha)*x_old;
+}

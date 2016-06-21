@@ -72,6 +72,8 @@ void buttonHandlerCallback( const std_msgs::String::ConstPtr& msg )
 
     _controller->StartTimer();
 
+    usleep(100 * 1000);
+
     // go to init pose
     std_msgs::String init_msg;
     init_msg.data = "ini_pose";

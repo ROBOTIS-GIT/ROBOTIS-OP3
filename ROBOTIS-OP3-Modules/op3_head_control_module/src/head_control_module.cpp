@@ -18,6 +18,7 @@ HeadControlModule::HeadControlModule()
   tra_count_(0),
   tra_size_(0),
   moving_time_(3.0),
+  scan_state_(NoScan),
   DEBUG(false)
 {
   enable = false;
@@ -141,9 +142,8 @@ void HeadControlModule::setHeadJoint(
       target_position_.coeffRef(0, joint_index) = target_position;
 
       // set time
-      int _calc_moving_time = fabs(
-          goal_position_.coeff(0, joint_index)
-          - target_position_.coeff(0, joint_index)) / 0.45;
+      double angle_unit = is_offset ? 40 * M_PI / 180 : 25 * M_PI / 180;
+      int _calc_moving_time = fabs(goal_position_.coeff(0, joint_index) - target_position_.coeff(0, joint_index)) / angle_unit;
       if (_calc_moving_time > moving_time_)
         moving_time_ = _calc_moving_time;
 
@@ -177,6 +177,14 @@ void HeadControlModule::setHeadJoint(
 
 void HeadControlModule::setHeadScanCallback(const std_msgs::String::ConstPtr &msg)
 {
+  if(enable == false)
+  {
+    ROS_ERROR("Head control module is not enabled, scan command is canceled.");
+    return;
+  }
+  else
+    ROS_INFO("Scan command is accepted. [%d]", scan_state_);
+
   if(msg->data == "scan" && scan_state_ == NoScan)
   {
     scan_state_ = BottomToTop;
@@ -291,6 +299,16 @@ void HeadControlModule::Stop()
 bool HeadControlModule::IsRunning()
 {
   return is_moving_;
+}
+
+void HeadControlModule::OnModuleEnable()
+{
+  scan_state_ = NoScan;
+}
+
+void HeadControlModule::OnModuleDisable()
+{
+
 }
 
 void HeadControlModule::StartMoving()

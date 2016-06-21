@@ -42,6 +42,7 @@ void parseJointNameFromYaml(const std::string &path);
 bool getJointNameFromID(const int &id, std::string &joint_name);
 bool getIDFromJointName(const std::string &joint_name, int &id);
 void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg);
+void demoCommandCallback(const std_msgs::String::ConstPtr& msg);
 
 void startSoccerMode();
 void stopSoccerMode();
@@ -51,6 +52,7 @@ void playMotion(int motion_index);
 ros::Publisher module_control_pub_;
 ros::Publisher motion_index_pub_;
 ros::Subscriber buttuon_sub_;
+ros::Subscriber demo_command_sub_;
 std::map<int, std::string> id_joint_table_;
 std::map<std::string, int> joint_id_table_;
 
@@ -86,6 +88,7 @@ int main(int argc, char **argv)
   module_control_pub_  = nh.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_joint_ctrl_modules", 0);
   motion_index_pub_ = nh.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
   buttuon_sub_ = nh.subscribe("/robotis/cm_740/button", 1, buttonHandlerCallback);
+  demo_command_sub_ = nh.subscribe("/ball_tracker/command", 1, demoCommandCallback);
 
   int wait_count = 0;
   bool result = false;
@@ -104,77 +107,69 @@ int main(int argc, char **argv)
 
     if(start_following == true)
     {
+      tracker.startTracking();
       follower.startFollowing();
       start_following = false;
+
+      wait_count = 1 * 30;
     }
 
     if(stop_following == true)
     {
       follower.stopFollowing();
       stop_following = false;
+
+      wait_count = 0;
     }
 
-    // ball following
-    if(on_following_ball == true)
+    if(wait_count <= 0)
     {
-      if(is_tracked)
-        follower.processFollowing(tracker.getPanOfBall(), tracker.getTiltOfBall());
-      else
-        follower.waitFollowing();
-    }
-
-    // check states
-    int ball_position = follower.getBallPosition();
-
-
-    // kick or getup motion
-    if(ball_position != robotis_op::BallFollower::NotFound)
-    {
-      usleep(500 * 1000);
-
-      setModuleToDemo("action_module");
-
-      usleep(500 * 1000);
-
-      switch(ball_position)
+      // ball following
+      if(on_following_ball == true)
       {
-        case robotis_op::BallFollower::BallIsRight:
-          std::cout << "Kick Motion [R]: " << ball_position << std::endl;
-          playMotion(RightKick);
-          break;
-
-        case robotis_op::BallFollower::BallIsLeft:
-          std::cout << "Kick Motion [L]: " << ball_position << std::endl;
-          playMotion(LeftKick);
-          break;
-
-        default:
-          break;
+        if(is_tracked)
+          follower.processFollowing(tracker.getPanOfBall(), tracker.getTiltOfBall());
+        else
+          follower.waitFollowing();
       }
 
-      follower.stopFollowing();
-      on_following_ball = false;
+      // check states
+      int ball_position = follower.getBallPosition();
+
+
+      // kick or getup motion
+      if(ball_position != robotis_op::BallFollower::NotFound)
+      {
+        usleep(500 * 1000);
+
+        setModuleToDemo("action_module");
+
+        usleep(1000 * 1000);
+
+        switch(ball_position)
+        {
+          case robotis_op::BallFollower::BallIsRight:
+            std::cout << "Kick Motion [R]: " << ball_position << std::endl;
+            playMotion(RightKick);
+            break;
+
+          case robotis_op::BallFollower::BallIsLeft:
+            std::cout << "Kick Motion [L]: " << ball_position << std::endl;
+            playMotion(LeftKick);
+            break;
+
+          default:
+            break;
+        }
+
+        follower.stopFollowing();
+        on_following_ball = false;
+      }
     }
-
-
-
-
-
-    //    result = result | tracker.processTracking();
-    //
-    //    if(result == true)
-    //    {
-    //
-    //      wait_count += 1;
-    //
-    //      if(wait_count > 60)
-    //      {
-    //        tracker.processActing();
-    //        result = false;
-    //      }
-    //    }
-    //    else
-    //      wait_count = 0;
+    else
+    {
+      wait_count -= 1;
+    }
 
     //execute pending callbacks
     ros::spinOnce();
@@ -277,6 +272,21 @@ void buttonHandlerCallback( const std_msgs::String::ConstPtr& msg )
       stopSoccerMode();
     else
       startSoccerMode();
+  }
+}
+
+void demoCommandCallback(const std_msgs::String::ConstPtr &msg)
+{
+  if(msg->data == "start")
+  {
+    if(on_following_ball == true)
+      stopSoccerMode();
+    else
+      startSoccerMode();
+  }
+  else if(msg->data == "stop")
+  {
+    stopSoccerMode();
   }
 }
 

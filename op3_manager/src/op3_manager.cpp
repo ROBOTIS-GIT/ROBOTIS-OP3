@@ -47,28 +47,39 @@ void buttonHandlerCallback( const std_msgs::String::ConstPtr& msg )
     }
     PacketHandler *_packet_h = PacketHandler::GetPacketHandler(1.0);
 
-    int _return = _packet_h->Write1ByteTxRx(_port_h, 200, 24, 1);
-    ROS_INFO("Power on DXLs! [%d]", _return);
+    // check dxls torque.
+    UINT8_T torque = 0;
+    _packet_h->Read1ByteTxRx(_port_h, 200, 24, &torque);
 
-    // _port_h->ClosePort();
-    usleep(100 * 1000);
-
-    PortHandler *_port_h2 = (PortHandler *)PortHandler::GetPortHandler("/dev/ttyUSB1");
-    _set_port = _port_h2->SetBaudRate(3000000);
-    if(_set_port == false)
+    if(torque != 1)
     {
-      ROS_ERROR("Error Set port");
-      return;
+      int _return = _packet_h->Write1ByteTxRx(_port_h, 200, 24, 1);
+      ROS_INFO("Power on DXLs! [%d]", _return);
+
+      // _port_h->ClosePort();
+      usleep(100 * 1000);
+
+      PortHandler *_port_h2 = (PortHandler *)PortHandler::GetPortHandler("/dev/ttyUSB1");
+      _set_port = _port_h2->SetBaudRate(3000000);
+      if(_set_port == false)
+      {
+        ROS_ERROR("Error Set port");
+        return;
+      }
+      PacketHandler *_packet_h2 = PacketHandler::GetPacketHandler(2.0);
+
+      _return = _packet_h2->Write1ByteTxRx(_port_h2, 254, 64, 1);
+      ROS_INFO("Torque on DXLs! [%d]", _return);
+
+      // _port_h2->ClosePort();
+      usleep(100 * 1000);
+
+      _controller->InitDevice(_init_file);
     }
-    PacketHandler *_packet_h2 = PacketHandler::GetPacketHandler(2.0);
-
-    _return = _packet_h2->Write1ByteTxRx(_port_h2, 254, 64, 1);
-    ROS_INFO("Torque on DXLs! [%d]", _return);
-
-    // _port_h2->ClosePort();
-    usleep(100 * 1000);
-
-    _controller->InitDevice(_init_file);
+    else
+    {
+      ROS_INFO("Torque is already on!!");
+    }
 
     _controller->StartTimer();
 
@@ -81,16 +92,6 @@ void buttonHandlerCallback( const std_msgs::String::ConstPtr& msg )
     init_pose_pub.publish(init_msg);
     ROS_INFO("Go to init pose");
   }
-//  else if (msg->data == "start")
-//  {
-//    // start ball_tracking
-//    std_msgs::String command_msg;
-//    command_msg.data = "toggle_start";
-//
-//    demo_command_pub.publish(command_msg);
-//
-//    ROS_INFO("Start Soccer Demo");
-//  }
 }
 
 int main(int argc, char **argv)

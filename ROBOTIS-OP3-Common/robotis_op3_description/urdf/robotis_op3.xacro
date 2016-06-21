@@ -29,12 +29,12 @@
   <joint name="base_fixed" type="fixed">
     <origin xyz="0 0 0.3" rpy="0 0 0"/>
     <parent link="base"/>
-    <child link="robotis_op3_body"/>
+    <child link="body_link"/>
   </joint>
           
 
   <!-- link 1 -->
-  <link name="robotis_op3_body">
+  <link name="body_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
@@ -44,10 +44,10 @@
     </visual>
   </link>
 
-  <xacro:robotis_op3_head  parent="robotis_op3_body" />
-  <xacro:robotis_op3_r_arm parent="robotis_op3_body" />
-  <xacro:robotis_op3_l_arm parent="robotis_op3_body" />
-  <xacro:robotis_op3_r_leg parent="robotis_op3_body" />
-  <xacro:robotis_op3_l_leg parent="robotis_op3_body" />
+  <xacro:robotis_op3_head  parent="body_link" />
+  <xacro:robotis_op3_r_arm parent="body_link" />
+  <xacro:robotis_op3_l_arm parent="body_link" />
+  <xacro:robotis_op3_r_leg parent="body_link" />
+  <xacro:robotis_op3_l_leg parent="body_link" />
    
 </robot>

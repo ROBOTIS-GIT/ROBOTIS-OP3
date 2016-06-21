@@ -10,10 +10,12 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   ball_detector
   op3_walking_module_msgs
+  cmake_modules
+  robotis_math
 )
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Eigen REQUIRED)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -118,6 +120,7 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${Eigen_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library

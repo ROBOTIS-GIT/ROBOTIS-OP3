@@ -33,9 +33,11 @@
 
 #include <ros/ros.h>
 #include <std_msgs/String.h>
+#include <sensor_msgs/Imu.h>
 
 #include "ball_tracker/ball_tracker.h"
 #include "ball_tracker/ball_follower.h"
+#include "robotis_math/RobotisLinearAlgebra.h"
 
 void setModuleToDemo(const std::string &body_module);
 void parseJointNameFromYaml(const std::string &path);
@@ -43,6 +45,7 @@ bool getJointNameFromID(const int &id, std::string &joint_name);
 bool getIDFromJointName(const std::string &joint_name, int &id);
 void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg);
 void demoCommandCallback(const std_msgs::String::ConstPtr& msg);
+void imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg);
 
 void startSoccerMode();
 void stopSoccerMode();
@@ -53,6 +56,7 @@ ros::Publisher module_control_pub_;
 ros::Publisher motion_index_pub_;
 ros::Subscriber buttuon_sub_;
 ros::Subscriber demo_command_sub_;
+ros::Subscriber imu_data_sub_;
 std::map<int, std::string> id_joint_table_;
 std::map<std::string, int> joint_id_table_;
 
@@ -66,6 +70,7 @@ enum Motion_Index
   GetUpBack = 82,
   RightKick = 83,
   LeftKick = 84,
+  Ceremony = 85,
 };
 
 //node main
@@ -111,7 +116,7 @@ int main(int argc, char **argv)
       follower.startFollowing();
       start_following = false;
 
-      wait_count = 1 * 30;
+      wait_count = 1 * 30;  // wait 1 sec
     }
 
     if(stop_following == true)
@@ -164,6 +169,10 @@ int main(int argc, char **argv)
 
         follower.stopFollowing();
         on_following_ball = false;
+
+        usleep(2000 * 1000);
+
+        playMotion(Ceremony);
       }
     }
     else
@@ -288,6 +297,11 @@ void demoCommandCallback(const std_msgs::String::ConstPtr &msg)
   {
     stopSoccerMode();
   }
+}
+
+void imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg)
+{
+
 }
 
 void startSoccerMode()

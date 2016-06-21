@@ -114,9 +114,10 @@ void CM740Module::Process(std::map<std::string, Dynamixel *> dxls, std::map<std:
 
   if(DEBUG) ROS_INFO("Gyro : %f, %f, %f", result["gyro_x"], result["gyro_y"], result["gyro_z"]);
 
-  result["acc_x"] = getAccValue(acc_x);
-  result["acc_y"] = getAccValue(acc_y);
-  result["acc_z"] = getAccValue(acc_z);
+  // align axis of Accelerometer to robot
+  result["acc_x"] = - getAccValue(acc_y);
+  result["acc_y"] = getAccValue(acc_x);
+  result["acc_z"] = - getAccValue(acc_z);
 
   if(DEBUG) ROS_INFO("Acc : %f, %f, %f", result["acc_x"], result["acc_y"], result["acc_z"]);
 
@@ -129,6 +130,8 @@ void CM740Module::Process(std::map<std::string, Dynamixel *> dxls, std::map<std:
 
   result["present_voltage"] = present_volt * 0.1;
   handleVoltage(result["present_voltage"]);
+
+  fusionIMU();
 }
 
 // -500 ~ 500dps, dps -> rps
@@ -167,9 +170,8 @@ void CM740Module::fusionIMU()
   // ROS_INFO("linear_acceleration : %f, %f, %f", imu_linear_acceleration[0], imu_linear_acceleration[1], imu_linear_acceleration[2]);
 
   //Estimation of roll and pitch based on accelometer data, see http://theccontinuum.com/2012/09/24/arduino-imu-pitch-roll-from-accelerometer/
-  double sign = copysignf(1.0,  result["acc_z"]);
-  double roll = atan2( result["acc_y"], sign * sqrt( result["acc_x"] * result["acc_x"] + result["acc_z"] * result["acc_z"]));
-  double pitch = -atan2( result["acc_x"], sqrt( imu_msg_.linear_acceleration.y/G_ACC* imu_msg_.linear_acceleration.y/G_ACC +  imu_msg_.linear_acceleration.z/G_ACC* imu_msg_.linear_acceleration.z/G_ACC));
+  double roll = atan2(- result["acc_x"], result["acc_z"]);
+  double pitch = atan2( result["acc_y"], sqrt( result["acc_x"] * result["acc_x"] + result["acc_z"] * result["acc_z"]));
   double yaw = 0.0;
 
   Eigen::Quaterniond orientation = rpy2quaternion(roll, pitch, yaw);

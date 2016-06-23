@@ -260,7 +260,7 @@ void BallTracker::scanBall()
   _scan_msg.data = "scan";
 
   head_scan_pub_.publish(_scan_msg);
-  ROS_INFO("Scan the ball");
+  // ROS_INFO("Scan the ball");
 }
 
 void BallTracker::approachBall(double pan, double tilt)

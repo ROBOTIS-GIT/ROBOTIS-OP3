@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!-- Launches an UVC camera, the ball detector and its visualization  -->
+<launch>
+    <arg  name="config_path" default="$(find ball_detector)/launch/ball_detector_params.yaml"/>
+    
+    <!-- UVC camera -->
+    <node pkg="usb_cam" type="usb_cam_node" name="usb_cam_node" output="screen">
+        <param name="video_device" type="string" value="/dev/video0" />
+        <param name="image_width" type="int" value="800" />
+        <param name="image_height" type="int" value="600" />
+        <param name="framerate " type="int" value="30" />
+        <param name="camera_name" type="string" value="camera" />
+    </node>
+<!--         <param name="gain" value="255" />
+        <param name="auto_exposure" type="bool" value="False" />
+        <param name="exposure_absolute" value="1000" />
+        <param name="brightness" value="127" />
+        <param name="auto_white_balance" type="bool" value="False" />
+        <param name="white_balance_temperature" value="2800" /> -->
+        
+        <!-- <param name="auto_exposure" type="bool" value="False" /> -->
+        <!-- <param name="exposure_absolute" value="1000" /> -->
+        <!-- <param name="brightness" value="64" /> -->
+        <!-- <param name="auto_white_balance" type="bool" value="False" /> -->
+        <!-- <param name="white_balance_temperature" value="2800" /> -->
+
+    <!-- ball detector -->
+    <node pkg="ball_detector" type="ball_detector_node" name="ball_detector_node" args="" output="screen">
+        <rosparam command="load" file="$(arg config_path)"/>  
+        <param name="yaml_path" type="string" value="$(arg config_path)"/>
+        <remap from="/ball_detector_node/image_in" to="/usb_cam_node/image_raw" />
+        <remap from="/ball_detector_node/cameraInfo_in" to="/usb_cam_node/camera_info" />
+    </node>
+
+    <!-- rviz -->
+    <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find ball_detector)/launch/ball_detector.rviz"/>    -->
+
+</launch>
+

@@ -13,11 +13,11 @@ filter_s_max: 255
 filter_v_min: 86
 filter_v_max: 255
 use_second_filter: true
-filter2_h_min: 56
-filter2_h_max: 323
+filter2_h_min: 29
+filter2_h_max: 359
 filter2_s_min: 0
-filter2_s_max: 35
-filter2_v_min: 100
+filter2_s_max: 40
+filter2_v_min: 200
 filter2_v_max: 255
-ellipse_size: 2
+ellipse_size: 1
 filter_debug: false

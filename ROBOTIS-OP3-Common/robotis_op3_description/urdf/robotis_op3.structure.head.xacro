@@ -30,7 +30,7 @@
 
   <!-- head pitch joint -->
   <joint name="head_tilt" type="revolute">
-    <axis xyz="0 1 0" />    
+    <axis xyz="0 -1 0" />    
     <origin xyz="0.0255 -0.019 0.03725" rpy="0 0 0"/>
     <parent link="head_pan_link"/>
     <child  link="head_tilt_link"/>
@@ -52,7 +52,7 @@
   
   <!-- camera joint -->
   <joint name="cam" type="fixed">
-    <origin xyz="0.017 0.019 0.0385" rpy="${-pi*0.5} 0 ${-pi*0.5}"/>
+    <origin xyz="0.025 0.019 0.038" rpy="${-pi*0.5} 0 ${-pi*0.5}"/>
     <parent link="head_tilt_link"/>
     <child link="cam_link"/>
   </joint> 

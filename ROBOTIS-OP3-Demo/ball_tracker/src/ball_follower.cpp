@@ -81,37 +81,6 @@ BallFollower::~BallFollower()
 
 }
 
-//void BallFollower::ballPositionCallback(const ball_detector::circleSetStamped::ConstPtr &msg)
-//{
-//  for(int idx = 0; idx < msg->circles.size(); idx++ )
-//  {
-//    if(ball_position_.z >= msg->circles[idx].z)
-//      continue;
-//
-//    ball_position_ = msg->circles[idx];
-//  }
-//}
-
-//void BallFollower::ballTrackerCommandCallback(const std_msgs::String::ConstPtr &msg)
-//{
-//  if(msg->data == "start")
-//  {
-//    startTracking();
-//  }
-//  else if(msg->data == "stop")
-//  {
-//    stopTracking();
-//  }
-//  else if(msg->data == "toggle_start")
-//  {
-//    if(on_tracking_ == false)
-//      startTracking();
-//    else
-//      stopTracking();
-//  }
-//}
-
-
 void BallFollower::startFollowing()
 {
   on_tracking_ = true;
@@ -159,116 +128,8 @@ void BallFollower::currentJointStatesCallback(const sensor_msgs::JointState::Con
 
 bool BallFollower::processFollowing(double x_angle, double y_angle)
 {
-  //  if(on_tracking_ == false)
-  //  {
-  //    if(approach_ball_position_ != 0)
-  //    {
-  //      usleep(100 * 1000);
-  //
-  //
-  //      kick_motion_index_ = (approach_ball_position_ == -1) ? 84 : 83;
-  //      approach_ball_position_ = 0;
-  //
-  //      // kick
-  //      setModuleToDemo("action_module");
-  //
-  //      return true;
-  //    }
-  //
-  //    ball_position_.z = 0;
-  //    count_not_found_ = 0;
-  //    current_pan_ = -10;
-  //    current_tilt_ = -10;
-  //    return false;
-  //  }
-  //
-  //  // check ball position
-  //  if(ball_position_.z <= 0)
-  //  {
-  //    count_not_found_++;
-  //
-  //    if(count_not_found_ > NOT_FOUND_THRESHOLD * 0.5)
-  //      setWalkingParam(MIN_FB_STEP, 0, 0);
-  //
-  //    if(count_not_found_ > NOT_FOUND_THRESHOLD)
-  //    {
-  //      scanBall();
-  //      count_not_found_ = 0;
-  //    }
-  //
-  //    return false;
-  //  }
-
-  // if ball is found
-  //  double x_offset_rad = - atan(ball_position_.x * tan(FOV_WIDTH));
-  //  double y_offset_rad = - atan(ball_position_.y * tan(FOV_HEIGHT));
-  //
-  //  ball_position_.z = 0;
   count_not_found_ = 0;
-  //
-  //  // std::cout << "Target angle : " << x_offset_rad << " | " << y_offset_rad << std::endl;
-  //
-  //  // move head joint
-  //  publishHeadJoint(x_offset_rad, y_offset_rad);
 
-  // move to target position
-  approachBall(x_angle, y_angle);
-
-  return false;
-}
-
-void BallFollower::waitFollowing()
-{
-  count_not_found_++;
-
-  if(count_not_found_ > NOT_FOUND_THRESHOLD * 0.5)
-    setWalkingParam(MIN_FB_STEP, 0, 0);
-}
-
-//bool BallFollower::processActing()
-//{
-//  std_msgs::Int32 motion_msg;
-//  motion_msg.data = kick_motion_index_;
-//
-//  motion_index_pub_.publish(motion_msg);
-//
-//  std::cout << "Kick Motion : " << kick_motion_index_ << std::endl;
-//
-//  return true;
-//}
-
-//void BallFollower::publishHeadJoint(double pan, double tilt)
-//{
-//  double min_angle = 1 * M_PI / 180;
-//  if(fabs(pan) < min_angle && fabs(tilt) < min_angle)
-//    return;
-//
-//  sensor_msgs::JointState _head_angle_msg;
-//
-//  _head_angle_msg.name.push_back("head_pan");
-//  _head_angle_msg.name.push_back("head_tilt");
-//
-//  _head_angle_msg.position.push_back(pan);
-//  _head_angle_msg.position.push_back(tilt);
-//
-//  head_joint_pub_.publish(_head_angle_msg);
-//}
-//
-//void BallFollower::scanBall()
-//{
-//  // check head control module enabled
-//  // ...
-//
-//  // send message to head control module
-//  std_msgs::String _scan_msg;
-//  _scan_msg.data = "scan";
-//
-//  head_scan_pub_.publish(_scan_msg);
-//  ROS_INFO("Scan the ball");
-//}
-
-void BallFollower::approachBall(double x_angle, double y_angle)
-{
   if(current_tilt_ == -10 && current_pan_ == -10)
   {
     ROS_ERROR("Failed to get current angle of head joints.");
@@ -276,7 +137,7 @@ void BallFollower::approachBall(double x_angle, double y_angle)
 
     on_tracking_ = false;
     approach_ball_position_ = NotFound;
-    return;
+    return false;
   }
 
   ROS_INFO("   ==============================================   ");
@@ -290,31 +151,30 @@ void BallFollower::approachBall(double x_angle, double y_angle)
   // check right/left
 
   // check to stop
-  if((fabs(current_tilt_ + 70 * M_PI / 180) < 5 * M_PI / 180)
-      && (fabs(current_pan_) < 3 * M_PI / 180))
-  {
-    ROS_INFO_STREAM("tilt : " << (current_tilt_ * 180 / M_PI) << " | pan : " << (current_pan_ * 180 / M_PI));
-
-    setWalkingCommand("stop");
-    on_tracking_ = false;
-
-    // check direction of the ball
-    if(current_pan_ > 0)
-    {
-      ROS_INFO("Ready to kick : left"); // left
-      approach_ball_position_ = BallIsLeft;
-    }
-    else
-    {
-      ROS_INFO("Ready to kick : right");  // right
-      approach_ball_position_ = BallIsRight;
-    }
-
-    return;
-  }
+//  if((fabs(current_tilt_ + 70 * M_PI / 180) < 5 * M_PI / 180)
+//      && (fabs(current_pan_) < 3 * M_PI / 180))
+//  {
+//    ROS_INFO_STREAM("tilt : " << (current_tilt_ * 180 / M_PI) << " | pan : " << (current_pan_ * 180 / M_PI));
+//
+//    setWalkingCommand("stop");
+//    on_tracking_ = false;
+//
+//    // check direction of the ball
+//    if(current_pan_ > 0)
+//    {
+//      ROS_INFO("Ready to kick : left"); // left
+//      approach_ball_position_ = BallIsLeft;
+//    }
+//    else
+//    {
+//      ROS_INFO("Ready to kick : right");  // right
+//      approach_ball_position_ = BallIsRight;
+//    }
+//
+//    return true;
+//  }
 
   approach_ball_position_ = NotFound;
-
 
   // clac fb
   //double x_offset = 0.56 * (tan((17 + 70) * M_PI / 180 + current_tilt_) - tan(17 * M_PI / 180));
@@ -348,7 +208,7 @@ void BallFollower::approachBall(double x_angle, double y_angle)
       approach_ball_position_ = BallIsRight;
     }
 
-    return;
+    return true;
   }
 
   fb_goal = fmin(x_offset * 0.1, MAX_FB_STEP);
@@ -363,17 +223,6 @@ void BallFollower::approachBall(double x_angle, double y_angle)
     fb_move = fmax(fb_goal, MIN_FB_STEP * 1.5);
   }
 
-//  double tilt_ratio = (current_tilt_ * 180 / M_PI + 70.0) / 70.0;
-//
-//  fb_goal = fmin(x_offset * 0.2, MAX_FB_STEP);
-//  if(fb_goal < current_x_move_)
-//    fb_goal = fmin(current_x_move_ - UNIT_FB_STEP, fb_goal);
-//  else
-//    fb_goal = fmin(current_x_move_ + UNIT_FB_STEP, fb_goal);
-//
-//  fb_move = fmax(fb_goal, MIN_FB_STEP * 1.5);
-
-
   // calc rl
   double rl_offset = fabs(current_pan_) * 0.3;
   double rl_goal, rl_angle;
@@ -386,17 +235,18 @@ void BallFollower::approachBall(double x_angle, double y_angle)
   ROS_INFO_STREAM("goal offset : " << x_offset << " | x goal : " << fb_goal << " | x move : " << fb_move);
   ROS_INFO_STREAM("rl offset : " << (rl_offset * 180 / M_PI) << ", rotation : " << (rl_angle * 180 / M_PI));
 
-  // check to stop
-  //  if((fabs(fb_move) < (MIN_FB_STEP * 1.5)) && (fabs(rl_angle) < (MIN_RL_TURN * 1.2)))
-  //  {
-  //    ROS_INFO("Approached the ball");
-  //    setWalkingCommand("stop");
-  //
-  //    return;
-  //  }
-
   // send message
   setWalkingParam(fb_move, 0, rl_angle);
+
+  return false;
+}
+
+void BallFollower::waitFollowing()
+{
+  count_not_found_++;
+
+  if(count_not_found_ > NOT_FOUND_THRESHOLD * 0.5)
+    setWalkingParam(MIN_FB_STEP, 0, 0);
 }
 
 void BallFollower::setWalkingCommand(const std::string &command)
@@ -443,97 +293,6 @@ void BallFollower::getWalkingParam()
   else
     ROS_ERROR("Fail to get walking parameters.");
 }
-
-//void BallFollower::setModuleToDemo(const std::string &body_module)
-//{
-//  //  std::string body_module = "action_module";
-//  //  std::string head_module = "head_control_module";
-//  //
-//  //  std_msgs::String _msg;
-//  //  _msg.data = body_module;
-//  //  module_control_pub_.publish(_msg);
-//  //  _msg.data = head_module;
-//  //  module_control_pub_.publish(_msg);
-//
-//  robotis_controller_msgs::JointCtrlModule control_msg;
-//
-//  //std::string body_module = "action_module";
-//  std::string head_module = "head_control_module";
-//
-//  for(int ix = 1; ix <= 20; ix++)
-//  {
-//    std::string joint_name;
-//
-//    if(getJointNameFromID(ix, joint_name) ==false)
-//      continue;
-//
-//    control_msg.joint_name.push_back(joint_name);
-//    if(ix <= 18)
-//      control_msg.module_name.push_back(body_module);
-//    else
-//      control_msg.module_name.push_back(head_module);
-//
-//  }
-//
-//  // no control
-//  if(control_msg.joint_name.size() == 0) return;
-//
-//  module_control_pub_.publish(control_msg);
-//  std::cout << "enable module" << std::endl;
-//}
-//
-//void BallFollower::parseJointNameFromYaml(const std::string &path)
-//{
-//  YAML::Node doc;
-//  try
-//  {
-//    // load yaml
-//    doc = YAML::LoadFile(path.c_str());
-//  }
-//  catch(const std::exception& e)
-//  {
-//    ROS_ERROR("Fail to load id_joint table yaml.");
-//    return;
-//  }
-//
-//  // parse id_joint table
-//  YAML::Node _id_sub_node = doc["id_joint"];
-//  for(YAML::iterator _it = _id_sub_node.begin() ; _it != _id_sub_node.end() ; ++_it)
-//  {
-//    int _id;
-//    std::string _joint_name;
-//
-//    _id = _it->first.as<int>();
-//    _joint_name = _it->second.as<std::string>();
-//
-//    id_joint_table_[_id] = _joint_name;
-//    joint_id_table_[_joint_name] = _id;
-//  }
-//}
-//
-//// joint id -> joint name
-//bool BallFollower::getJointNameFromID(const int &id, std::string &joint_name)
-//{
-//  std::map<int, std::string>::iterator _iter;
-//
-//  _iter = id_joint_table_.find(id);
-//  if(_iter == id_joint_table_.end()) return false;
-//
-//  joint_name = _iter->second;
-//  return true;
-//}
-//
-//// joint name -> joint id
-//bool BallFollower::getIDFromJointName(const std::string &joint_name, int &id)
-//{
-//  std::map<std::string, int>::iterator _iter;
-//
-//  _iter = joint_id_table_.find(joint_name);
-//  if(_iter == joint_id_table_.end()) return false;
-//
-//  id = _iter->second;
-//  return true;
-//}
 
 }
 

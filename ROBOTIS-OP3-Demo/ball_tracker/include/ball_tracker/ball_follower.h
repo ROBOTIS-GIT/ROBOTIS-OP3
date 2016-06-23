@@ -82,18 +82,9 @@ class BallFollower
   const double UNIT_RL_TURN;
 
   void currentJointStatesCallback(const sensor_msgs::JointState::ConstPtr &msg);
-  void approachBall(double x_angle, double y_angle);
   void setWalkingCommand(const std::string &command);
   void setWalkingParam(double x_move, double y_move, double rotation_angle, bool balance = true);
   void getWalkingParam();
-
-//  void setModuleToDemo(const std::string &body_module);
-//  void parseJointNameFromYaml(const std::string &path);
-//  bool getJointNameFromID(const int &id, std::string &joint_name);
-//  bool getIDFromJointName(const std::string &joint_name, int &id);
-//
-//  void startTracking();
-//  void stopTracking();
 
   //ros node handle
   ros::NodeHandle nh_;
@@ -110,9 +101,6 @@ class BallFollower
   ros::Subscriber ball_position_sub_;
   ros::Subscriber ball_tracking_command_sub_;
   ros::Subscriber current_joint_states_sub_;
-
-//  std::map<int, std::string> id_joint_table_;
-//  std::map<std::string, int> joint_id_table_;
 
   // (x, y) is the center position of the ball in image coordinates
   // z is the ball radius

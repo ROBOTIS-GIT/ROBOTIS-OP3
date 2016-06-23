@@ -34,12 +34,45 @@
 #include <ros/ros.h>
 #include <std_msgs/String.h>
 #include <sensor_msgs/Imu.h>
+#include <boost/thread.hpp>
 
 #include "ball_tracker/ball_tracker.h"
 #include "ball_tracker/ball_follower.h"
 #include "robotis_math/RobotisLinearAlgebra.h"
 
-void setModuleToDemo(const std::string &body_module);
+enum Motion_Index
+{
+  GetUpFront = 81,
+  GetUpBack = 82,
+  RightKick = 83,
+  LeftKick = 84,
+  Ceremony = 85,
+};
+
+enum Stand_Status
+{
+  Stand = 0,
+  Fallen_Forward = 1,
+  Fallen_Behind = 2,
+};
+
+enum Robot_Status
+{
+  Waited = 0,
+  TrackingAndFollowing = 1,
+  ReadyToKick = 2,
+  ReadyToCeremony = 3,
+  ReadyToGetup = 4,
+};
+
+const double FALLEN_FORWARD_LIMIT = -60;
+const double FALLEN_BEHIND_LIMIT = 60;
+const int SPIN_RATE = 30;
+
+void callbackThread();
+
+void setBodyModuleToDemo(const std::string &body_module);
+void setModuleToDemo(const std::string &module_name);
 void parseJointNameFromYaml(const std::string &path);
 bool getJointNameFromID(const int &id, std::string &joint_name);
 bool getIDFromJointName(const std::string &joint_name, int &id);
@@ -49,6 +82,9 @@ void imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg);
 
 void startSoccerMode();
 void stopSoccerMode();
+
+void handleKick(int ball_position);
+bool handleFallen(int fallen_status);
 
 void playMotion(int motion_index);
 
@@ -60,18 +96,15 @@ ros::Subscriber imu_data_sub_;
 std::map<int, std::string> id_joint_table_;
 std::map<std::string, int> joint_id_table_;
 
+int wait_count = 0;
 bool on_following_ball = false;
 bool start_following = false;
 bool stop_following = false;
+bool stop_fallen_check = false;
+int robot_status = Waited;
+int stand_state = Stand;
 
-enum Motion_Index
-{
-  GetUpFront = 81,
-  GetUpBack = 82,
-  RightKick = 83,
-  LeftKick = 84,
-  Ceremony = 85,
-};
+bool debug_code = false;
 
 //node main
 int main(int argc, char **argv)
@@ -89,17 +122,13 @@ int main(int argc, char **argv)
   std::string _path = nh.param<std::string>("demo_config", _default_path);
   parseJointNameFromYaml(_path);
 
-  // subscriber & publisher
-  module_control_pub_  = nh.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_joint_ctrl_modules", 0);
-  motion_index_pub_ = nh.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
-  buttuon_sub_ = nh.subscribe("/robotis/cm_740/button", 1, buttonHandlerCallback);
-  demo_command_sub_ = nh.subscribe("/ball_tracker/command", 1, demoCommandCallback);
 
-  int wait_count = 0;
+  boost::thread queue_thread = boost::thread(boost::bind(&callbackThread));
+
   bool result = false;
 
   //set node loop rate
-  ros::Rate loop_rate(30);
+  ros::Rate loop_rate(SPIN_RATE);
 
   tracker.startTracking();
 
@@ -116,7 +145,7 @@ int main(int argc, char **argv)
       follower.startFollowing();
       start_following = false;
 
-      wait_count = 1 * 30;  // wait 1 sec
+      wait_count = 1 * SPIN_RATE;  // wait 1 sec
     }
 
     if(stop_following == true)
@@ -138,41 +167,28 @@ int main(int argc, char **argv)
           follower.waitFollowing();
       }
 
-      // check states
-      int ball_position = follower.getBallPosition();
-
-
-      // kick or getup motion
-      if(ball_position != robotis_op::BallFollower::NotFound)
+      // check fallen states
+      switch(stand_state)
       {
-        usleep(500 * 1000);
-
-        setModuleToDemo("action_module");
-
-        usleep(1000 * 1000);
-
-        switch(ball_position)
+        case Stand:
         {
-          case robotis_op::BallFollower::BallIsRight:
-            std::cout << "Kick Motion [R]: " << ball_position << std::endl;
-            playMotion(RightKick);
-            break;
-
-          case robotis_op::BallFollower::BallIsLeft:
-            std::cout << "Kick Motion [L]: " << ball_position << std::endl;
-            playMotion(LeftKick);
-            break;
-
-          default:
-            break;
+          // check states for kick
+          int ball_position = follower.getBallPosition();
+          if(ball_position != robotis_op::BallFollower::NotFound)
+          {
+            follower.stopFollowing();
+            handleKick(ball_position);
+          }
+          break;
         }
 
-        follower.stopFollowing();
-        on_following_ball = false;
-
-        usleep(2000 * 1000);
-
-        playMotion(Ceremony);
+        // fallen state : Fallen_Forward, Fallen_Behind
+        default:
+        {
+          follower.stopFollowing();
+          handleFallen(stand_state);
+          break;
+        }
       }
     }
     else
@@ -191,13 +207,33 @@ int main(int argc, char **argv)
   return 0;
 }
 
-void setModuleToDemo(const std::string &body_module)
+void callbackThread()
+{
+  ros::NodeHandle nh(ros::this_node::getName());
+
+  // subscriber & publisher
+  module_control_pub_  = nh.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_joint_ctrl_modules", 0);
+  motion_index_pub_ = nh.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
+  buttuon_sub_ = nh.subscribe("/robotis/cm_740/button", 1, buttonHandlerCallback);
+  demo_command_sub_ = nh.subscribe("/ball_tracker/command", 1, demoCommandCallback);
+  imu_data_sub_ = nh.subscribe("/robotis/cm_740/imu", 1, imuDataCallback);
+
+  while(nh.ok())
+  {
+    ros::spinOnce();
+
+    usleep(1000);
+  }
+}
+
+void setBodyModuleToDemo(const std::string &body_module)
 {
   robotis_controller_msgs::JointCtrlModule control_msg;
 
   //std::string body_module = "action_module";
   std::string head_module = "head_control_module";
 
+  // todo : remove hard coding
   for(int ix = 1; ix <= 20; ix++)
   {
     std::string joint_name;
@@ -217,7 +253,30 @@ void setModuleToDemo(const std::string &body_module)
   if(control_msg.joint_name.size() == 0) return;
 
   module_control_pub_.publish(control_msg);
-  std::cout << "enable module" << std::endl;
+  std::cout << "enable module of body : " << body_module << std::endl;
+}
+
+void setModuleToDemo(const std::string &module_name)
+{
+  robotis_controller_msgs::JointCtrlModule control_msg;
+
+  // todo : remove hard coding
+  for(int ix = 1; ix <= 20; ix++)
+  {
+    std::string joint_name;
+
+    if(getJointNameFromID(ix, joint_name) ==false)
+      continue;
+
+    control_msg.joint_name.push_back(joint_name);
+    control_msg.module_name.push_back(module_name);
+  }
+
+  // no control
+  if(control_msg.joint_name.size() == 0) return;
+
+  module_control_pub_.publish(control_msg);
+  std::cout << "enable module : " << module_name << std::endl;
 }
 
 void parseJointNameFromYaml(const std::string &path)
@@ -299,14 +358,30 @@ void demoCommandCallback(const std_msgs::String::ConstPtr &msg)
   }
 }
 
+// check fallen states
 void imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg)
 {
+  if(stop_fallen_check == true) return;
 
+  Eigen::Quaterniond orientation(msg->orientation.w, msg->orientation.x, msg->orientation.y, msg->orientation.z);
+  Eigen::MatrixXd rpy_orientation = ROBOTIS::quaternion2rpy(orientation);
+  rpy_orientation *= (180 / M_PI);
+
+  // ROS_INFO("Roll : %3.2f, Pitch : %2.2f", rpy_orientation.coeff(0, 0), rpy_orientation.coeff(1, 0));
+
+  double pitch = rpy_orientation.coeff(1, 0);
+
+  if(pitch < FALLEN_FORWARD_LIMIT)
+    stand_state = Fallen_Forward;
+  else if(pitch > FALLEN_BEHIND_LIMIT)
+    stand_state = Fallen_Behind;
+  else
+    stand_state = Stand;
 }
 
 void startSoccerMode()
 {
-  setModuleToDemo("walking_module");
+  setBodyModuleToDemo("walking_module");
 
   usleep(10 * 1000);
 
@@ -320,6 +395,87 @@ void stopSoccerMode()
   ROS_INFO("Stop Soccer Demo");
   on_following_ball = false;
   stop_following = true;
+}
+
+void handleKick(int ball_position)
+{
+  usleep(500 * 1000);
+
+  // change to motion module
+  // setBodyModuleToDemo("action_module");
+  setModuleToDemo("action_module");
+
+  usleep(1000 * 1000);
+
+  if(handleFallen(stand_state) == true)
+    return;
+
+  // kick motion
+  switch(ball_position)
+  {
+    case robotis_op::BallFollower::BallIsRight:
+      std::cout << "Kick Motion [R]: " << ball_position << std::endl;
+      playMotion(RightKick);
+      break;
+
+    case robotis_op::BallFollower::BallIsLeft:
+      std::cout << "Kick Motion [L]: " << ball_position << std::endl;
+      playMotion(LeftKick);
+      break;
+
+    default:
+      break;
+  }
+
+  on_following_ball = false;
+
+  usleep(2000 * 1000);
+
+  if(handleFallen(stand_state) == true)
+    return;
+
+  // ceremony
+  std::cout <<"Go Ceremony!!!" << std::endl;
+  playMotion(Ceremony);
+}
+
+bool handleFallen(int fallen_status)
+{
+  if(fallen_status == Stand)
+  {
+    return false;
+  }
+
+
+  // change to motion module
+  setModuleToDemo("action_module");
+
+  usleep(600 * 1000);
+
+  // getup motion
+  switch(fallen_status)
+  {
+    case Fallen_Forward:
+      std::cout << "Getup Motion [F]: " << std::endl;
+      playMotion(GetUpFront);
+      break;
+
+    case Fallen_Behind:
+      std::cout << "Getup Motion [B]: " << std::endl;
+      playMotion(GetUpBack);
+      break;
+
+    default:
+      break;
+  }
+
+  on_following_ball = false;
+
+  // reset state
+  stand_state = Stand;
+  // start_following = true;
+
+  return true;
 }
 
 void playMotion(int motion_index)

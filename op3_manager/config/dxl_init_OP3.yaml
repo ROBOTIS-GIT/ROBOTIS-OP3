@@ -1,5 +1,5 @@
 r_sho_pitch :   # XM-430
-   return_delay_time    : 1    # item name : value
+   return_delay_time        : 1    # item name : value
 #   operating_mode        :  3
 #   shutdown              :  58
 #   homing_offset         :  0

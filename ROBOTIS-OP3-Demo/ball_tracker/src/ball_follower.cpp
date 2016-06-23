@@ -121,9 +121,9 @@ void BallFollower::currentJointStatesCallback(const sensor_msgs::JointState::Con
 
   // check variation
   // if(current_pan_ == -10 || fabs(pan - current_pan_) < 5 * M_PI / 180 )
-    current_pan_ = pan;
+  current_pan_ = pan;
   // if(current_tilt_ == -10 || fabs(tilt - current_tilt_) < 5 * M_PI / 180 )
-    current_tilt_ = tilt;
+  current_tilt_ = tilt;
 }
 
 bool BallFollower::processFollowing(double x_angle, double y_angle)
@@ -140,7 +140,7 @@ bool BallFollower::processFollowing(double x_angle, double y_angle)
     return false;
   }
 
-  ROS_INFO("   ==============================================   ");
+  ROS_INFO("   ============== Head | Ball ==============   ");
   ROS_INFO_STREAM("== Head Pan : " << (current_pan_ * 180 / M_PI) << " | " << (x_angle * 180 / M_PI));
   ROS_INFO_STREAM("== Head Tilt : " << (current_tilt_ * 180 / M_PI) << " | " << (y_angle * 180 / M_PI));
 
@@ -151,34 +151,34 @@ bool BallFollower::processFollowing(double x_angle, double y_angle)
   // check right/left
 
   // check to stop
-//  if((fabs(current_tilt_ + 70 * M_PI / 180) < 5 * M_PI / 180)
-//      && (fabs(current_pan_) < 3 * M_PI / 180))
-//  {
-//    ROS_INFO_STREAM("tilt : " << (current_tilt_ * 180 / M_PI) << " | pan : " << (current_pan_ * 180 / M_PI));
-//
-//    setWalkingCommand("stop");
-//    on_tracking_ = false;
-//
-//    // check direction of the ball
-//    if(current_pan_ > 0)
-//    {
-//      ROS_INFO("Ready to kick : left"); // left
-//      approach_ball_position_ = BallIsLeft;
-//    }
-//    else
-//    {
-//      ROS_INFO("Ready to kick : right");  // right
-//      approach_ball_position_ = BallIsRight;
-//    }
-//
-//    return true;
-//  }
+  //  if((fabs(current_tilt_ + 70 * M_PI / 180) < 5 * M_PI / 180)
+  //      && (fabs(current_pan_) < 3 * M_PI / 180))
+  //  {
+  //    ROS_INFO_STREAM("tilt : " << (current_tilt_ * 180 / M_PI) << " | pan : " << (current_pan_ * 180 / M_PI));
+  //
+  //    setWalkingCommand("stop");
+  //    on_tracking_ = false;
+  //
+  //    // check direction of the ball
+  //    if(current_pan_ > 0)
+  //    {
+  //      ROS_INFO("Ready to kick : left"); // left
+  //      approach_ball_position_ = BallIsLeft;
+  //    }
+  //    else
+  //    {
+  //      ROS_INFO("Ready to kick : right");  // right
+  //      approach_ball_position_ = BallIsRight;
+  //    }
+  //
+  //    return true;
+  //  }
 
   approach_ball_position_ = NotFound;
 
   // clac fb
   //double x_offset = 0.56 * (tan((17 + 70) * M_PI / 180 + current_tilt_) - tan(17 * M_PI / 180));
-  double x_offset = 0.56 * tan(M_PI * 0.5 + current_tilt_ + y_angle - 3 * M_PI / 180);
+  double x_offset = 0.56 * tan(M_PI * 0.5 + current_tilt_ + y_angle - 7 * M_PI / 180);
 
   if(x_offset < 0)
     x_offset *= (-1);
@@ -188,27 +188,34 @@ bool BallFollower::processFollowing(double x_angle, double y_angle)
   // ROS_INFO_STREAM("goal offset : " << x_offset << " | " << (current_tilt_ * 180 / M_PI) << " | tile : " << (y_angle * 180 / M_PI));
   double fb_goal, fb_move;
 
+  ROS_INFO_STREAM("head pan : " << (current_pan_ * 180 / M_PI) << " | ball pan : " << (x_angle * 180 / M_PI));
 
   if(x_offset < 0.3 && (fabs(current_pan_) < 3 * M_PI / 180))
   {
-    ROS_INFO_STREAM("offest stop - tilt : " << (current_tilt_ * 180 / M_PI) << " | pan : " << (current_pan_ * 180 / M_PI) << " | offset : " << x_offset);
-
-    setWalkingCommand("stop");
-    on_tracking_ = false;
-
-    // check direction of the ball
-    if(current_pan_ > 0)
+    if(fabs(x_angle) < 7 * M_PI / 180)
     {
-      ROS_INFO("Ready to kick : left"); // left
-      approach_ball_position_ = BallIsLeft;
-    }
-    else
-    {
-      ROS_INFO("Ready to kick : right");  // right
-      approach_ball_position_ = BallIsRight;
-    }
+      ROS_INFO_STREAM("offest stop - tilt : " << (current_tilt_ * 180 / M_PI) << " | pan : " << (current_pan_ * 180 / M_PI) << " | offset : " << x_offset);
+      ROS_INFO_STREAM("       ball - tilt : " << (y_angle * 180 / M_PI) << " | pan : " << (x_angle * 180 / M_PI));
+      setWalkingCommand("stop");
+      on_tracking_ = false;
 
-    return true;
+      double ball_y_offset = current_pan_ - x_angle;
+
+      // check direction of the ball
+      // if(current_pan_ > 0)
+      if(ball_y_offset < 0)
+      {
+        ROS_INFO("Ready to kick : left"); // left
+        approach_ball_position_ = BallIsLeft;
+      }
+      else
+      {
+        ROS_INFO("Ready to kick : right");  // right
+        approach_ball_position_ = BallIsRight;
+      }
+
+      return true;
+    }
   }
 
   fb_goal = fmin(x_offset * 0.1, MAX_FB_STEP);

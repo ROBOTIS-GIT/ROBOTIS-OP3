@@ -103,6 +103,7 @@ bool stop_following = false;
 bool stop_fallen_check = false;
 int robot_status = Waited;
 int stand_state = Stand;
+double present_pitch = 0;
 
 bool debug_code = false;
 
@@ -371,9 +372,14 @@ void imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg)
 
   double pitch = rpy_orientation.coeff(1, 0);
 
-  if(pitch < FALLEN_FORWARD_LIMIT)
+  if(present_pitch == 0)
+    present_pitch = pitch;
+  else
+    present_pitch = present_pitch * 0.5 + pitch * 0.5;
+
+  if(present_pitch < FALLEN_FORWARD_LIMIT)
     stand_state = Fallen_Forward;
-  else if(pitch > FALLEN_BEHIND_LIMIT)
+  else if(present_pitch > FALLEN_BEHIND_LIMIT)
     stand_state = Fallen_Behind;
   else
     stand_state = Stand;

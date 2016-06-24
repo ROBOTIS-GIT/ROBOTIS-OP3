@@ -98,6 +98,7 @@ std::map<std::string, int> joint_id_table_;
 
 int wait_count = 0;
 bool on_following_ball = false;
+bool restart_soccer = false;
 bool start_following = false;
 bool stop_following = false;
 bool stop_fallen_check = false;
@@ -173,6 +174,14 @@ int main(int argc, char **argv)
       {
         case Stand:
         {
+          // check restart soccer
+          if(restart_soccer == true)
+          {
+            restart_soccer = false;
+            startSoccerMode();
+            break;
+          }
+
           // check states for kick
           int ball_position = follower.getBallPosition();
           if(ball_position != robotis_op::BallFollower::NotFound)
@@ -475,11 +484,15 @@ bool handleFallen(int fallen_status)
       break;
   }
 
-  on_following_ball = false;
+  usleep(500 * 1000);
+
+  if(on_following_ball == true)
+    restart_soccer = true;
+
 
   // reset state
-  stand_state = Stand;
-  // start_following = true;
+  //stand_state = Stand;
+  on_following_ball = false;
 
   return true;
 }

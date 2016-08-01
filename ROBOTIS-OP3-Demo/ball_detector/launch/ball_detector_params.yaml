@@ -13,7 +13,7 @@ filter_s_max: 255
 filter_v_min: 86
 filter_v_max: 255
 use_second_filter: true
-filter2_h_min: 29
+filter2_h_min: 30
 filter2_h_max: 359
 filter2_s_min: 0
 filter2_s_max: 40

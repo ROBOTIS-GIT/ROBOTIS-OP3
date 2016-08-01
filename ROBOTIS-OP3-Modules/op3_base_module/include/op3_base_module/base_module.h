@@ -46,11 +46,11 @@
 #include <std_msgs/String.h>
 #include <geometry_msgs/Pose.h>
 
-#include "robotis_framework_common/MotionModule.h"
+#include "robotis_framework_common/motion_module.h"
 #include "robotis_controller_msgs/JointCtrlModule.h"
 #include "robotis_controller_msgs/StatusMsg.h"
-#include "robotis_math/RobotisMath.h"
-#include "op3_kinematics_dynamics/OP3KinematicsDynamics.h"
+#include "robotis_math/robotis_math.h"
+#include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
 
 #include "robotis_state.h"
 

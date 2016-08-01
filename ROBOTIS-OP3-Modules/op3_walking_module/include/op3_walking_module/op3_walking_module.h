@@ -49,10 +49,10 @@
 #include <sensor_msgs/Imu.h>
 #include <eigen_conversions/eigen_msg.h>
 
-#include "robotis_framework_common/MotionModule.h"
-#include "robotis_math/RobotisMath.h"
-#include "robotis_math/RobotisTrajectoryCalculator.h"
-#include "op3_kinematics_dynamics/OP3KinematicsDynamics.h"
+#include "robotis_framework_common/motion_module.h"
+#include "robotis_math/robotis_math.h"
+#include "robotis_math/robotis_trajectory_calculator.h"
+#include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
 #include "robotis_controller_msgs/StatusMsg.h"
 #include "op3_walking_module_msgs/WalkingParam.h"
 #include "op3_walking_module_msgs/GetWalkingParam.h"
@@ -87,16 +87,24 @@ class WalkingMotionModule : public MotionModule, public Singleton<WalkingMotionM
   virtual ~WalkingMotionModule();
 
   void Initialize(const int control_cycle_msec, Robot *robot);
-  void Process(std::map<std::string, Dynamixel *> dxls,
-               std::map<std::string, double> sensors);
+  void Process(std::map<std::string, Dynamixel *> dxls, std::map<std::string, double> sensors);
   void Stop();
   bool IsRunning();
   void OnModuleEnable();
   void OnModuleDisable();
 
-  int getCurrentPhase() { return m_Phase; }
-  double getBodySwingY() { return m_Body_Swing_Y; }
-  double getBodySwingZ() { return m_Body_Swing_Z; }
+  int getCurrentPhase()
+  {
+    return m_Phase;
+  }
+  double getBodySwingY()
+  {
+    return m_Body_Swing_Y;
+  }
+  double getBodySwingZ()
+  {
+    return m_Body_Swing_Z;
+  }
 
  private:
   enum
@@ -111,24 +119,19 @@ class WalkingMotionModule : public MotionModule, public Singleton<WalkingMotionM
 
   /* ROS Topic Callback Functions */
   void walkingCommandCallback(const std_msgs::String::ConstPtr &msg);
-  void walkingParameterCallback(
-      const op3_walking_module_msgs::WalkingParam::ConstPtr &msg);
-  bool getWalkigParameterCallback(
-      op3_walking_module_msgs::GetWalkingParam::Request &req,
-      op3_walking_module_msgs::GetWalkingParam::Response &res);
+  void walkingParameterCallback(const op3_walking_module_msgs::WalkingParam::ConstPtr &msg);
+  bool getWalkigParameterCallback(op3_walking_module_msgs::GetWalkingParam::Request &req,
+                                  op3_walking_module_msgs::GetWalkingParam::Response &res);
 
   /* ROS Service Callback Functions */
   void processPhase(const double &time_unit);
   bool computeLegAngle(double *leg_angle);
   void computeArmAngle(double *arm_angle);
-  void sensoryFeedback(const double &rlGyroErr, const double &fbGyroErr,
-                       double *balance_angle);
+  void sensoryFeedback(const double &rlGyroErr, const double &fbGyroErr, double *balance_angle);
 
   void publishStatusMsg(unsigned int type, std::string msg);
-  double wSin(double time, double period, double period_shift, double mag,
-              double mag_shift);
-  bool computeIK(double *out, double x, double y, double z, double a, double b,
-                 double c);
+  double wSin(double time, double period, double period_shift, double mag, double mag_shift);
+  bool computeIK(double *out, double x, double y, double z, double a, double b, double c);
   void updateTimeParam();
   void updateMovementParam();
   void updatePoseParam();

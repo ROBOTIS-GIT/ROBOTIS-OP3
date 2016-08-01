@@ -43,8 +43,8 @@ include_directories(
 
 ## Declare a C++ library
 add_library(op3_kinematics_dynamics
-  src/LinkData.cpp
-  src/OP3KinematicsDynamics.cpp
+  src/link_data.cpp
+  src/op3_kinematics_dynamics.cpp
 )
 
 ## Add cmake target dependencies of the library

@@ -45,7 +45,7 @@
 #include <std_msgs/Int32.h>
 #include <boost/thread.hpp>
 
-#include "robotis_framework_common/MotionModule.h"
+#include "robotis_framework_common/motion_module.h"
 #include "robotis_controller_msgs/StatusMsg.h"
 #include "action_file_define.h"
 

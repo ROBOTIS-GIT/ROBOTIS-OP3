@@ -40,9 +40,9 @@
 #include <std_msgs/String.h>
 #include <boost/thread.hpp>
 
-#include "robotis_math/RobotisMathBase.h"
-#include "robotis_math/RobotisLinearAlgebra.h"
-#include "robotis_framework_common/SensorModule.h"
+#include "robotis_math/robotis_math_base.h"
+#include "robotis_math/robotis_linear_algebra.h"
+#include "robotis_framework_common/sensor_module.h"
 #include "robotis_controller_msgs/StatusMsg.h"
 
 namespace ROBOTIS

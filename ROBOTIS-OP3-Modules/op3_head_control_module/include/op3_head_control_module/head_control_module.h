@@ -41,23 +41,21 @@
 #include <std_msgs/String.h>
 #include <sensor_msgs/JointState.h>
 
-#include "robotis_framework_common/MotionModule.h"
-#include "robotis_math/RobotisMath.h"
+#include "robotis_framework_common/motion_module.h"
+#include "robotis_math/robotis_math.h"
 #include "robotis_controller_msgs/StatusMsg.h"
 
 namespace ROBOTIS
 {
 
-class HeadControlModule : public MotionModule, public Singleton<
-HeadControlModule>
+class HeadControlModule : public MotionModule, public Singleton<HeadControlModule>
 {
  public:
   HeadControlModule();
   virtual ~HeadControlModule();
 
   void Initialize(const int control_cycle_msec, Robot *robot);
-  void Process(std::map<std::string, Dynamixel *> dxls,
-               std::map<std::string, double> sensors);
+  void Process(std::map<std::string, Dynamixel *> dxls, std::map<std::string, double> sensors);
 
   void Stop();
   bool IsRunning();
@@ -92,10 +90,8 @@ HeadControlModule>
 
   void PublishStatusMsg(unsigned int type, std::string msg);
 
-  Eigen::MatrixXd MinimumJerkTraPVA(double pos_start, double vel_start,
-                                    double accel_start, double pos_end,
-                                    double vel_end, double accel_end,
-                                    double smp_time, double mov_time);
+  Eigen::MatrixXd MinimumJerkTraPVA(double pos_start, double vel_start, double accel_start, double pos_end,
+                                    double vel_end, double accel_end, double smp_time, double mov_time);
 
   int control_cycle_msec_;
   boost::thread queue_thread_;

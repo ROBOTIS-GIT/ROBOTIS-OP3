@@ -5,7 +5,7 @@
  *      Author: sch
  */
 
-#include "op3_kinematics_dynamics/LinkData.h"
+#include "op3_kinematics_dynamics/link_data.h"
 
 
 namespace ROBOTIS

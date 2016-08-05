@@ -28,7 +28,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-
 /* Author: Kayman Jung */
 
 #include <ros/ros.h>
@@ -38,7 +37,7 @@
 
 #include "ball_tracker/ball_tracker.h"
 #include "ball_tracker/ball_follower.h"
-#include "robotis_math/RobotisLinearAlgebra.h"
+#include "robotis_math/robotis_linear_algebra.h"
 
 enum Motion_Index
 {
@@ -120,10 +119,9 @@ int main(int argc, char **argv)
 
   ros::NodeHandle nh(ros::this_node::getName());
 
-  std::string _default_path = ros::package::getPath("op3_demo") +"/config/demo_config.yaml";
+  std::string _default_path = ros::package::getPath("op3_demo") + "/config/demo_config.yaml";
   std::string _path = nh.param<std::string>("demo_config", _default_path);
   parseJointNameFromYaml(_path);
-
 
   boost::thread queue_thread = boost::thread(boost::bind(&callbackThread));
 
@@ -135,13 +133,13 @@ int main(int argc, char **argv)
   tracker.startTracking();
 
   //node loop
-  while ( ros::ok() )
+  while (ros::ok())
   {
     // ball tracking
     bool is_tracked;
     is_tracked = tracker.processTracking();
 
-    if(start_following == true)
+    if (start_following == true)
     {
       tracker.startTracking();
       follower.startFollowing();
@@ -150,7 +148,7 @@ int main(int argc, char **argv)
       wait_count = 1 * SPIN_RATE;  // wait 1 sec
     }
 
-    if(stop_following == true)
+    if (stop_following == true)
     {
       follower.stopFollowing();
       stop_following = false;
@@ -158,24 +156,24 @@ int main(int argc, char **argv)
       wait_count = 0;
     }
 
-    if(wait_count <= 0)
+    if (wait_count <= 0)
     {
       // ball following
-      if(on_following_ball == true)
+      if (on_following_ball == true)
       {
-        if(is_tracked)
+        if (is_tracked)
           follower.processFollowing(tracker.getPanOfBall(), tracker.getTiltOfBall());
         else
           follower.waitFollowing();
       }
 
       // check fallen states
-      switch(stand_state)
+      switch (stand_state)
       {
         case Stand:
         {
           // check restart soccer
-          if(restart_soccer == true)
+          if (restart_soccer == true)
           {
             restart_soccer = false;
             startSoccerMode();
@@ -184,7 +182,7 @@ int main(int argc, char **argv)
 
           // check states for kick
           int ball_position = follower.getBallPosition();
-          if(ball_position != robotis_op::BallFollower::NotFound)
+          if (ball_position != robotis_op::BallFollower::NotFound)
           {
             follower.stopFollowing();
             handleKick(ball_position);
@@ -192,7 +190,7 @@ int main(int argc, char **argv)
           break;
         }
 
-        // fallen state : Fallen_Forward, Fallen_Behind
+          // fallen state : Fallen_Forward, Fallen_Behind
         default:
         {
           follower.stopFollowing();
@@ -222,13 +220,13 @@ void callbackThread()
   ros::NodeHandle nh(ros::this_node::getName());
 
   // subscriber & publisher
-  module_control_pub_  = nh.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_joint_ctrl_modules", 0);
+  module_control_pub_ = nh.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_joint_ctrl_modules", 0);
   motion_index_pub_ = nh.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
   buttuon_sub_ = nh.subscribe("/robotis/cm_740/button", 1, buttonHandlerCallback);
   demo_command_sub_ = nh.subscribe("/ball_tracker/command", 1, demoCommandCallback);
   imu_data_sub_ = nh.subscribe("/robotis/cm_740/imu", 1, imuDataCallback);
 
-  while(nh.ok())
+  while (nh.ok())
   {
     ros::spinOnce();
 
@@ -244,15 +242,15 @@ void setBodyModuleToDemo(const std::string &body_module)
   std::string head_module = "head_control_module";
 
   // todo : remove hard coding
-  for(int ix = 1; ix <= 20; ix++)
+  for (int ix = 1; ix <= 20; ix++)
   {
     std::string joint_name;
 
-    if(getJointNameFromID(ix, joint_name) ==false)
+    if (getJointNameFromID(ix, joint_name) == false)
       continue;
 
     control_msg.joint_name.push_back(joint_name);
-    if(ix <= 18)
+    if (ix <= 18)
       control_msg.module_name.push_back(body_module);
     else
       control_msg.module_name.push_back(head_module);
@@ -260,7 +258,8 @@ void setBodyModuleToDemo(const std::string &body_module)
   }
 
   // no control
-  if(control_msg.joint_name.size() == 0) return;
+  if (control_msg.joint_name.size() == 0)
+    return;
 
   module_control_pub_.publish(control_msg);
   std::cout << "enable module of body : " << body_module << std::endl;
@@ -271,11 +270,11 @@ void setModuleToDemo(const std::string &module_name)
   robotis_controller_msgs::JointCtrlModule control_msg;
 
   // todo : remove hard coding
-  for(int ix = 1; ix <= 20; ix++)
+  for (int ix = 1; ix <= 20; ix++)
   {
     std::string joint_name;
 
-    if(getJointNameFromID(ix, joint_name) ==false)
+    if (getJointNameFromID(ix, joint_name) == false)
       continue;
 
     control_msg.joint_name.push_back(joint_name);
@@ -283,7 +282,8 @@ void setModuleToDemo(const std::string &module_name)
   }
 
   // no control
-  if(control_msg.joint_name.size() == 0) return;
+  if (control_msg.joint_name.size() == 0)
+    return;
 
   module_control_pub_.publish(control_msg);
   std::cout << "enable module : " << module_name << std::endl;
@@ -296,8 +296,7 @@ void parseJointNameFromYaml(const std::string &path)
   {
     // load yaml
     doc = YAML::LoadFile(path.c_str());
-  }
-  catch(const std::exception& e)
+  } catch (const std::exception& e)
   {
     ROS_ERROR("Fail to load id_joint table yaml.");
     return;
@@ -305,7 +304,7 @@ void parseJointNameFromYaml(const std::string &path)
 
   // parse id_joint table
   YAML::Node _id_sub_node = doc["id_joint"];
-  for(YAML::iterator _it = _id_sub_node.begin() ; _it != _id_sub_node.end() ; ++_it)
+  for (YAML::iterator _it = _id_sub_node.begin(); _it != _id_sub_node.end(); ++_it)
   {
     int _id;
     std::string _joint_name;
@@ -324,7 +323,8 @@ bool getJointNameFromID(const int &id, std::string &joint_name)
   std::map<int, std::string>::iterator _iter;
 
   _iter = id_joint_table_.find(id);
-  if(_iter == id_joint_table_.end()) return false;
+  if (_iter == id_joint_table_.end())
+    return false;
 
   joint_name = _iter->second;
   return true;
@@ -336,17 +336,18 @@ bool getIDFromJointName(const std::string &joint_name, int &id)
   std::map<std::string, int>::iterator _iter;
 
   _iter = joint_id_table_.find(joint_name);
-  if(_iter == joint_id_table_.end()) return false;
+  if (_iter == joint_id_table_.end())
+    return false;
 
   id = _iter->second;
   return true;
 }
 
-void buttonHandlerCallback( const std_msgs::String::ConstPtr& msg )
+void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
 {
   if (msg->data == "start")
   {
-    if(on_following_ball == true)
+    if (on_following_ball == true)
       stopSoccerMode();
     else
       startSoccerMode();
@@ -355,14 +356,14 @@ void buttonHandlerCallback( const std_msgs::String::ConstPtr& msg )
 
 void demoCommandCallback(const std_msgs::String::ConstPtr &msg)
 {
-  if(msg->data == "start")
+  if (msg->data == "start")
   {
-    if(on_following_ball == true)
+    if (on_following_ball == true)
       stopSoccerMode();
     else
       startSoccerMode();
   }
-  else if(msg->data == "stop")
+  else if (msg->data == "stop")
   {
     stopSoccerMode();
   }
@@ -371,24 +372,25 @@ void demoCommandCallback(const std_msgs::String::ConstPtr &msg)
 // check fallen states
 void imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  if(stop_fallen_check == true) return;
+  if (stop_fallen_check == true)
+    return;
 
   Eigen::Quaterniond orientation(msg->orientation.w, msg->orientation.x, msg->orientation.y, msg->orientation.z);
-  Eigen::MatrixXd rpy_orientation = ROBOTIS::quaternion2rpy(orientation);
+  Eigen::MatrixXd rpy_orientation = robotis_framework::convertQuaternionToRPY(orientation);
   rpy_orientation *= (180 / M_PI);
 
   // ROS_INFO("Roll : %3.2f, Pitch : %2.2f", rpy_orientation.coeff(0, 0), rpy_orientation.coeff(1, 0));
 
   double pitch = rpy_orientation.coeff(1, 0);
 
-  if(present_pitch == 0)
+  if (present_pitch == 0)
     present_pitch = pitch;
   else
     present_pitch = present_pitch * 0.5 + pitch * 0.5;
 
-  if(present_pitch < FALLEN_FORWARD_LIMIT)
+  if (present_pitch < FALLEN_FORWARD_LIMIT)
     stand_state = Fallen_Forward;
-  else if(present_pitch > FALLEN_BEHIND_LIMIT)
+  else if (present_pitch > FALLEN_BEHIND_LIMIT)
     stand_state = Fallen_Behind;
   else
     stand_state = Stand;
@@ -422,11 +424,11 @@ void handleKick(int ball_position)
 
   usleep(1000 * 1000);
 
-  if(handleFallen(stand_state) == true)
+  if (handleFallen(stand_state) == true)
     return;
 
   // kick motion
-  switch(ball_position)
+  switch (ball_position)
   {
     case robotis_op::BallFollower::BallIsRight:
       std::cout << "Kick Motion [R]: " << ball_position << std::endl;
@@ -446,21 +448,20 @@ void handleKick(int ball_position)
 
   usleep(2000 * 1000);
 
-  if(handleFallen(stand_state) == true)
+  if (handleFallen(stand_state) == true)
     return;
 
   // ceremony
-  std::cout <<"Go Ceremony!!!" << std::endl;
+  std::cout << "Go Ceremony!!!" << std::endl;
   playMotion(Ceremony);
 }
 
 bool handleFallen(int fallen_status)
 {
-  if(fallen_status == Stand)
+  if (fallen_status == Stand)
   {
     return false;
   }
-
 
   // change to motion module
   setModuleToDemo("action_module");
@@ -468,7 +469,7 @@ bool handleFallen(int fallen_status)
   usleep(600 * 1000);
 
   // getup motion
-  switch(fallen_status)
+  switch (fallen_status)
   {
     case Fallen_Forward:
       std::cout << "Getup Motion [F]: " << std::endl;
@@ -486,9 +487,8 @@ bool handleFallen(int fallen_status)
 
   usleep(500 * 1000);
 
-  if(on_following_ball == true)
+  if (on_following_ball == true)
     restart_soccer = true;
-
 
   // reset state
   //stand_state = Stand;

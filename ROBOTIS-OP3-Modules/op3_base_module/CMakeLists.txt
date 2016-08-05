@@ -12,7 +12,6 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   cmake_modules
   op3_kinematics_dynamics
-  #message_generation
 )
 
 find_package(Eigen REQUIRED)
@@ -20,18 +19,9 @@ find_package(Eigen REQUIRED)
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
-#generate_messages(
-#  DEPENDENCIES
-#  std_msgs
-#  sensor_msgs
-#  geometry_msgs
-#)
-
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES op3_base_module
-#  CATKIN_DEPENDS robotis_device roscpp std_msgs
-#  DEPENDS system_lib
 )
 
 include_directories(
@@ -43,7 +33,7 @@ include_directories(
 ## Declare a C++ library
 add_library(op3_base_module
   src/base_module.cpp
-  src/robotis_state.cpp
+  src/base_module_state.cpp
 )
 
 add_dependencies(op3_base_module ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

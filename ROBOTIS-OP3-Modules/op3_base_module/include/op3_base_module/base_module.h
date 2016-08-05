@@ -28,8 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-
-/* Author: Kayman Jung */
+/* Author: sch, Kayman Jung */
 
 #ifndef BASEMODULE_H_
 #define BASEMODULE_H_
@@ -52,22 +51,21 @@
 #include "robotis_math/robotis_math.h"
 #include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
 
-#include "robotis_state.h"
+#include "base_module_state.h"
 
-namespace ROBOTIS
+namespace robotis_op
 {
 
 class BaseJointData
 {
-
  public:
-  double position;
-  double velocity;
-  double effort;
+  double position_;
+  double velocity_;
+  double effort_;
 
-  int p_gain;
-  int i_gain;
-  int d_gain;
+  int p_gain_;
+  int i_gain_;
+  int d_gain_;
 
 };
 
@@ -75,45 +73,45 @@ class BaseJointState
 {
 
  public:
-  BaseJointData curr_joint_state[ MAX_JOINT_ID + 1 ];
-  BaseJointData goal_joint_state[ MAX_JOINT_ID + 1 ];
-  BaseJointData fake_joint_state[ MAX_JOINT_ID + 1 ];
+  BaseJointData curr_joint_state_[ MAX_JOINT_ID + 1];
+  BaseJointData goal_joint_state_[ MAX_JOINT_ID + 1];
+  BaseJointData fake_joint_state_[ MAX_JOINT_ID + 1];
 
 };
 
-class BaseModule : public MotionModule, public Singleton<BaseModule>
-{    
+class BaseModule : public robotis_framework::MotionModule, public robotis_framework::Singleton<BaseModule>
+{
  public:
   BaseModule();
   virtual ~BaseModule();
 
   /* ROS Framework Functions */
-  void Initialize(const int control_cycle_msec, Robot *robot);
-  void Process(std::map<std::string, Dynamixel *> dxls, std::map<std::string, double> sensors);
+  void initialize(const int control_cycle_msec, robotis_framework::Robot *robot);
+  void process(std::map<std::string, robotis_framework::Dynamixel *> dxls, std::map<std::string, double> sensors);
 
-  void Stop();
-  bool IsRunning();
+  void stop();
+  bool isRunning();
 
-  void OnModuleEnable();
-  void OnModuleDisable();
+  void onModuleEnable();
+  void onModuleDisable();
 
   /* ROS Topic Callback Functions */
-  void iniPoseMsgCallback( const std_msgs::String::ConstPtr& msg );
+  void initPoseMsgCallback(const std_msgs::String::ConstPtr& msg);
 
   /* ROS Calculation Functions */
-  void iniposeTraGeneProc();
+  void initPoseTrajGenerateProc();
 
-  void poseGenProc(Eigen::MatrixXd _joint_angle_pose);
-  void poseGenProc(std::map<std::string, double>& joint_angle_pose);
+  void poseGenerateProc(Eigen::MatrixXd joint_angle_pose);
+  void poseGenerateProc(std::map<std::string, double>& joint_angle_pose);
 
   /* Parameter */
-  ROBOTIS_BASE::RobotisState *Robotis;
-  BaseJointState *JointState;
+  BaseModuleState *base_module_state_;
+  BaseJointState *joint_state_;
 
  private:
   void queueThread();
   void setCtrlModule(std::string module);
-  void parseIniPoseData(const std::string &path);
+  void parseInitPoseData(const std::string &path);
   void publishStatusMsg(unsigned int type, std::string msg);
 
   int control_cycle_msec_;
@@ -130,6 +128,5 @@ class BaseModule : public MotionModule, public Singleton<BaseModule>
 };
 
 }
-
 
 #endif /* BASEMODULE_H_ */

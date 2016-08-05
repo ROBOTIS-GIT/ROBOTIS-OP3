@@ -28,7 +28,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-
 /* Author: Kayman Jung */
 
 #include "ball_tracker/ball_tracker.h"
@@ -49,16 +48,16 @@ int main(int argc, char **argv)
   ros::Rate loop_rate(30);
 
   //node loop
-  while ( ros::ok() )
+  while (ros::ok())
   {
     result = result | tracker.processTracking();
 
-    if(result == true)
+    if (result == true)
     {
 
       wait_count += 1;
 
-      if(wait_count > 60)
+      if (wait_count > 60)
       {
         tracker.processActing();
         result = false;
@@ -77,5 +76,4 @@ int main(int argc, char **argv)
   //exit program
   return 0;
 }
-
 

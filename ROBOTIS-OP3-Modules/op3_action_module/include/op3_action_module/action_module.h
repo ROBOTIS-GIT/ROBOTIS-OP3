@@ -28,8 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-
-/* Author: Kayman Jung */
+/* Author: Kayman Jung, Jay Song */
 
 #ifndef ACTION_MOTION_MODULE_H_
 #define ACTION_MOTION_MODULE_H_
@@ -49,88 +48,89 @@
 #include "robotis_controller_msgs/StatusMsg.h"
 #include "action_file_define.h"
 
-namespace ROBOTIS
+namespace robotis_op
 {
 
-class ActionModule : public MotionModule, public Singleton<ActionModule>
+class ActionModule : public robotis_framework::MotionModule, public robotis_framework::Singleton<ActionModule>
 {
+ public:
+  ActionModule();
+  virtual ~ActionModule();
+
+  void initialize(const int control_cycle_msec, robotis_framework::Robot *robot);
+  void process(std::map<std::string, robotis_framework::Dynamixel *> dxls, std::map<std::string, double> sensors);
+
+  void stop();
+  bool isRunning();
+
+  void onModuleEnable();
+  void onModuleDisable();
+
+  void pageNumberCallback(const std_msgs::Int32::ConstPtr& msg);
+
+  bool loadFile(char* file_name);
+  bool createFile(char* file_name);
+
+  bool startAction(int page_number);
+  bool startAction(char* page_name);
+  bool startAction(int page_number, action_file_define::PAGE *page);
+
+  void brakeAction();
+  bool isRunning(int* playing_page_num, int* playing_step_num);
+  bool loadPage(int page_number, action_file_define::PAGE* page);
+  bool savePage(int page_number, action_file_define::PAGE* page);
+  void resetPage(action_file_define::PAGE* page);
+
+  void actionPlayProcess(std::map<std::string, robotis_framework::Dynamixel *> dxls);
+
  private:
-  int             control_cycle_msec_;
-  boost::thread   queue_thread_;
+  const int PRE_SECTION;
+  const int MAIN_SECTION;
+  const int POST_SECTION;
+  const int PAUSE_SECTION;
+  const int ZERO_FINISH;
+  const int NONE_ZERO_FINISH;
+
+  void queueThread();
+  bool verifyChecksum(action_file_define::PAGE* page);
+  void setChecksum(action_file_define::PAGE* page);
+
+  int radTow4095(double rad);
+  double w4095ToRad(int w4095);
+
+  void publishStatusMsg(unsigned int type, std::string msg);
+
+  std::string convertIntToString(int n);
+
+  int control_cycle_msec_;
+  boost::thread queue_thread_;
 
   /* sample subscriber & publisher */
   ros::Subscriber action_page_sub_;
-  ros::Publisher  status_msg_pub_;
-
-  void QueueThread();
-
+  ros::Publisher status_msg_pub_;
 
   /////////////////////////////////////////////////////////////////////////
   std::map<std::string, int> joint_name_to_id_;
   std::map<int, std::string> joint_id_to_name_;
   FILE* action_file_;
-  ACTION_FILE::PAGE play_page_;
-  ACTION_FILE::PAGE next_play_page_;
-  ACTION_FILE::STEP current_step_;
+  action_file_define::PAGE play_page_;
+  action_file_define::PAGE next_play_page_;
+  action_file_define::STEP current_step_;
 
-  int  play_page_idx_;
+  int play_page_idx_;
   bool first_driving_start_;
-  int  page_step_count_;
+  int page_step_count_;
 
   bool playing_;
   bool stop_playing_;
   bool playing_finished;
 
-  bool VerifyChecksum( ACTION_FILE::PAGE* _page );
-  void SetChecksum( ACTION_FILE::PAGE* _page );
-
-  int  RadTow4095(double _rad);
-  double w4095ToRad(int _w4095);
-
-  void PublishStatusMsg(unsigned int type, std::string msg);
-
-  std::string IntToString(int _n);
-
   bool previous_enable_;
   bool present_enable_;
   bool previous_running_;
   bool present_running_;
-
-  //////////////////////////////////////////////////////////////
- public:
-  ActionModule();
-  virtual ~ActionModule();
-
-  void Initialize(const int control_cycle_msec, Robot *robot);
-  void Process(std::map<std::string, Dynamixel *> dxls, std::map<std::string, double> sensors);
-
-  void Stop();
-  bool IsRunning();
-
-  void OnModuleEnable();
-  void OnModuleDisable();
-
-  ////////////////////////////////////////////////////////////////
-  void PageNumberCallback(const std_msgs::Int32::ConstPtr& _msg);
-
-  bool LoadFile(char* _file_name);
-  bool CreateFile(char* _file_name);
-
-  bool Start(int _page_number);
-  bool Start(char* _page_name);
-  bool Start(int _page_number, ACTION_FILE::PAGE *_page);
-
-  void Brake();
-  bool IsRunning(int* _playing_page_num, int* _playing_step_num);
-  bool LoadPage(int _page_number, ACTION_FILE::PAGE* _page);
-  bool SavePage(int _page_number, ACTION_FILE::PAGE* _page);
-  void ResetPage(ACTION_FILE::PAGE* _page);
-
-  void ActionPlayProcess(std::map<std::string, Dynamixel *> dxls);
 };
 
 }
-
-
 
 #endif /* OP3_ACTION_MOTION_MODULE_H_ */

@@ -1,22 +1,22 @@
 offset:
   head_pan: 0
   head_tilt: 0
-  l_ank_pitch: 0.01308996938995748
+  l_ank_pitch: 0
   l_ank_roll: 0
   l_el: 0
-  l_hip_pitch: 0.02356194490192346
-  l_hip_roll: -0.0174532925199433
-  l_hip_yaw: 0.01570796326794896
+  l_hip_pitch: 0
+  l_hip_roll: 0
+  l_hip_yaw: 0
   l_knee: 0
   l_sho_pitch: 0
   l_sho_roll: 0
-  r_ank_pitch: 0.006108652381980153
+  r_ank_pitch: 0
   r_ank_roll: 0
   r_el: 0
-  r_hip_pitch: -0.0645771823237901
-  r_hip_roll: 0.0174532925199433
+  r_hip_pitch: 0
+  r_hip_roll: 0
   r_hip_yaw: 0
-  r_knee: 0.007853981633974482
+  r_knee: 0
   r_sho_pitch: 0
   r_sho_roll: 0
 init_pose_for_offset_tuner:

@@ -31,9 +31,6 @@ include_directories(
 # exporting anything. 
 catkin_package(
  INCLUDE_DIRS include
-#  LIBRARIES thomamg3_foot_step_generator
-#  CATKIN_DEPENDS roscpp thormang3_base_module_msgs thormang3_walking_module_msgs thormang3_manipulation_module_msgs robotis_controller_msgs 
-#  DEPENDS system_lib
 )
 
 ##############################################################################

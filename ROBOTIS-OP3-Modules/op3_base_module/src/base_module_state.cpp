@@ -30,33 +30,37 @@
 
 /* Author: sch */
 
-#ifndef OP3_KINEMATICS_DYNAMICS_DEFINE_H_
-#define OP3_KINEMATICS_DYNAMICS_DEFINE_H_
+#include "op3_base_module/base_module_state.h"
 
 namespace robotis_op
 {
-#define MAX_JOINT_ID    (20)
-#define ALL_JOINT_ID    (31)
 
-#define MAX_ARM_ID      (3)
-#define MAX_LEG_ID      (6)
-#define MAX_ITER        (5)
+BaseModuleState::BaseModuleState()
+{
+  is_moving_ = false;
 
-#define ID_HEAD_END     (20)
-#define ID_COB          (29)
-#define ID_TORSO        (29)
+  cnt_ = 0;
 
-#define ID_R_ARM_START  (1)
-#define ID_L_ARM_START  (2)
-#define ID_R_ARM_END    (21)
-#define ID_L_ARM_END    (22)
+  mov_time_ = 1.0;
+  smp_time_ = 0.008;
+  all_time_steps_ = int(mov_time_ / smp_time_) + 1;
 
-#define ID_R_LEG_START  (7)
-#define ID_L_LEG_START  (8)
-#define ID_R_LEG_END    (31)
-#define ID_L_LEG_END    (30)
+  calc_joint_tra_ = Eigen::MatrixXd::Zero(all_time_steps_, MAX_JOINT_ID + 1);
 
-#define GRAVITY_ACCELERATION (9.8)
+  joint_ini_pose_ = Eigen::MatrixXd::Zero( MAX_JOINT_ID + 1, 1);
+  joint_pose_ = Eigen::MatrixXd::Zero( MAX_JOINT_ID + 1, 1);
+
+  via_num_ = 1;
+
+  joint_via_pose_ = Eigen::MatrixXd::Zero(via_num_, MAX_JOINT_ID + 1);
+  joint_via_dpose_ = Eigen::MatrixXd::Zero(via_num_, MAX_JOINT_ID + 1);
+  joint_via_ddpose_ = Eigen::MatrixXd::Zero(via_num_, MAX_JOINT_ID + 1);
+
+  via_time_ = Eigen::MatrixXd::Zero(via_num_, 1);
 }
 
-#endif /* OP3_KINEMATICS_DYNAMICS_DEFINE_H_ */
+BaseModuleState::~BaseModuleState()
+{
+}
+
+}

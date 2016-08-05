@@ -30,8 +30,8 @@
 
 /* Author: Kayman Jung */
 
-#ifndef OP3_WALKING_MODULE_INCLUDE_OP3_WALKING_MODULE_OP3_WALKING_MODULE_H_
-#define OP3_WALKING_MODULE_INCLUDE_OP3_WALKING_MODULE_OP3_WALKING_MODULE_H_
+#ifndef OP3_WALKING_MODULE_H_
+#define OP3_WALKING_MODULE_H_
 
 #include "op3_walking_parameter.h"
 
@@ -58,7 +58,7 @@
 #include "op3_walking_module_msgs/GetWalkingParam.h"
 #include "op3_walking_module_msgs/SetWalkingParam.h"
 
-namespace ROBOTIS
+namespace robotis_op
 {
 
 typedef struct
@@ -71,7 +71,7 @@ typedef struct
   double x, y, z, roll, pitch, yaw;
 } Pose3D;
 
-class WalkingMotionModule : public MotionModule, public Singleton<WalkingMotionModule>
+class WalkingModule : public robotis_framework::MotionModule, public robotis_framework::Singleton<WalkingModule>
 {
 
  public:
@@ -83,27 +83,27 @@ class WalkingMotionModule : public MotionModule, public Singleton<WalkingMotionM
     PHASE3 = 3
   };
 
-  WalkingMotionModule();
-  virtual ~WalkingMotionModule();
+  WalkingModule();
+  virtual ~WalkingModule();
 
-  void Initialize(const int control_cycle_msec, Robot *robot);
-  void Process(std::map<std::string, Dynamixel *> dxls, std::map<std::string, double> sensors);
-  void Stop();
-  bool IsRunning();
-  void OnModuleEnable();
-  void OnModuleDisable();
+  void initialize(const int control_cycle_msec, robotis_framework::Robot *robot);
+  void process(std::map<std::string, robotis_framework::Dynamixel *> dxls, std::map<std::string, double> sensors);
+  void stop();
+  bool isRunning();
+  void onModuleEnable();
+  void onModuleDisable();
 
   int getCurrentPhase()
   {
-    return m_Phase;
+    return phase_;
   }
   double getBodySwingY()
   {
-    return m_Body_Swing_Y;
+    return body_swing_y;
   }
   double getBodySwingZ()
   {
-    return m_Body_Swing_Z;
+    return body_swing_z;
   }
 
  private:
@@ -158,74 +158,74 @@ class WalkingMotionModule : public MotionModule, public Singleton<WalkingMotionM
   Eigen::MatrixXi joint_axis_direction_;
   std::map<std::string, int> joint_table_;
   int walking_state_;
-  bool DEBUG_;
-  int init_count_;
+  bool debug_print_;
+  int init_pose_count_;
   op3_walking_module_msgs::WalkingParam walking_param_;
-  double previous_X_Move_Amplitude;
+  double previous_x_move_amplitude_;
 
   // variable for walking
-  double m_PeriodTime;
-  double m_DSP_Ratio;
-  double m_SSP_Ratio;
-  double m_X_Swap_PeriodTime;
-  double m_X_Move_PeriodTime;
-  double m_Y_Swap_PeriodTime;
-  double m_Y_Move_PeriodTime;
-  double m_Z_Swap_PeriodTime;
-  double m_Z_Move_PeriodTime;
-  double m_A_Move_PeriodTime;
-  double m_SSP_Time;
-  double m_SSP_Time_Start_L;
-  double m_SSP_Time_End_L;
-  double m_SSP_Time_Start_R;
-  double m_SSP_Time_End_R;
-  double m_Phase_Time1;
-  double m_Phase_Time2;
-  double m_Phase_Time3;
+  double period_time_;
+  double dsp_ratio_;
+  double ssp_ratio_;
+  double x_swap_period_time_;
+  double x_move_period_time_;
+  double y_swap_period_time_;
+  double y_move_period_time_;
+  double z_swap_period_time_;
+  double z_move_period_time_;
+  double a_move_period_time_;
+  double ssp_time_;
+  double l_ssp_start_time_;
+  double l_ssp_end_time_;
+  double r_ssp_start_time_;
+  double r_ssp_end_time_;
+  double phase1_time_;
+  double phase2_time_;
+  double phase3_time_;
 
-  double m_X_Offset;
-  double m_Y_Offset;
-  double m_Z_Offset;
-  double m_R_Offset;
-  double m_P_Offset;
-  double m_A_Offset;
+  double x_offset_;
+  double y_offset_;
+  double z_offset_;
+  double r_offset_;
+  double p_offset_;
+  double a_offset_;
 
-  double m_X_Swap_Phase_Shift;
-  double m_X_Swap_Amplitude;
-  double m_X_Swap_Amplitude_Shift;
-  double m_X_Move_Phase_Shift;
-  double m_X_Move_Amplitude;
-  double m_X_Move_Amplitude_Shift;
-  double m_Y_Swap_Phase_Shift;
-  double m_Y_Swap_Amplitude;
-  double m_Y_Swap_Amplitude_Shift;
-  double m_Y_Move_Phase_Shift;
-  double m_Y_Move_Amplitude;
-  double m_Y_Move_Amplitude_Shift;
-  double m_Z_Swap_Phase_Shift;
-  double m_Z_Swap_Amplitude;
-  double m_Z_Swap_Amplitude_Shift;
-  double m_Z_Move_Phase_Shift;
-  double m_Z_Move_Amplitude;
-  double m_Z_Move_Amplitude_Shift;
-  double m_A_Move_Phase_Shift;
-  double m_A_Move_Amplitude;
-  double m_A_Move_Amplitude_Shift;
+  double x_swap_phase_shift_;
+  double x_swap_amplitude_;
+  double x_swap_amplitude_shift_;
+  double x_move_phase_shift_;
+  double x_move_amplitude_;
+  double x_move_amplitude_shift_;
+  double y_swap_phase_shift_;
+  double y_swap_amplitude_;
+  double y_swap_amplitude_shift_;
+  double y_move_phase_shift_;
+  double y_move_amplitude_;
+  double y_move_amplitude_shift_;
+  double z_swap_phase_shift_;
+  double z_swap_amplitude_;
+  double z_swap_amplitude_shift_;
+  double z_move_phase_shift_;
+  double z_move_amplitude_;
+  double z_move_amplitude_shift_;
+  double a_move_phase_shift_;
+  double a_move_amplitude_;
+  double a_move_amplitude_shift_;
 
-  double m_Pelvis_Offset;
-  double m_Pelvis_Swing;
-  double m_Hip_Pitch_Offset;
-  double m_Arm_Swing_Gain;
+  double pelvis_offset_;
+  double pelvis_swing_;
+  double hit_pitch_offset_;
+  double arm_swing_gain_;
 
-  bool m_Ctrl_Running;
-  bool m_Real_Running;
-  double m_Time;
+  bool ctrl_running_;
+  bool real_running_;
+  double time_;
 
-  int m_Phase;
-  double m_Body_Swing_Y;
-  double m_Body_Swing_Z;
+  int phase_;
+  double body_swing_y;
+  double body_swing_z;
 };
 
 }
 
-#endif /* OP3_WALKING_MODULE_INCLUDE_OP3_WALKING_MODULE_OP3_WALKING_MODULE_H_ */
+#endif /* OP3_WALKING_MODULE_H_ */

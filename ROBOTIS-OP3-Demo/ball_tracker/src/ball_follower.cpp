@@ -71,9 +71,9 @@ BallFollower::BallFollower()
   get_walking_param_client_ = nh_.serviceClient<op3_walking_module_msgs::GetWalkingParam>(
       "/robotis/walking/get_params");
 
-  std::string _default_path = ros::package::getPath("op3_demo") + "/config/demo_config.yaml";
-  std::string _path = nh_.param<std::string>("demo_config", _default_path);
-  //parseJointNameFromYaml(_path);
+  //std::string default_path = ros::package::getPath("op3_demo") + "/config/demo_config.yaml";
+  //std::string config_path = nh_.param<std::string>("demo_config", default_path);
+  //parseJointNameFromYaml(config_path);
 }
 
 BallFollower::~BallFollower()
@@ -101,29 +101,29 @@ void BallFollower::stopFollowing()
 void BallFollower::currentJointStatesCallback(const sensor_msgs::JointState::ConstPtr &msg)
 {
   double pan, tilt;
-  int _get = 0;
+  int get_count = 0;
 
   for (int ix = 0; ix < msg->name.size(); ix++)
   {
     if (msg->name[ix] == "head_pan")
     {
       pan = -msg->position[ix];
-      _get += 1;
+      get_count += 1;
     }
     else if (msg->name[ix] == "head_tilt")
     {
       tilt = msg->position[ix];
-      _get += 1;
+      get_count += 1;
     }
 
-    if (_get == 2)
+    if (get_count == 2)
       break;
   }
 
   // check variation
   // if(current_pan_ == -10 || fabs(pan - current_pan_) < 5 * M_PI / 180 )
-  current_pan_ = pan;
   // if(current_tilt_ == -10 || fabs(tilt - current_tilt_) < 5 * M_PI / 180 )
+  current_pan_ = pan;
   current_tilt_ = tilt;
 }
 
@@ -144,36 +144,6 @@ bool BallFollower::processFollowing(double x_angle, double y_angle)
   ROS_INFO("   ============== Head | Ball ==============   ");
   ROS_INFO_STREAM("== Head Pan : " << (current_pan_ * 180 / M_PI) << " | " << (x_angle * 180 / M_PI));
   ROS_INFO_STREAM("== Head Tilt : " << (current_tilt_ * 180 / M_PI) << " | " << (y_angle * 180 / M_PI));
-
-  // check walking module enabled
-  // ...
-
-  // generate navigation
-  // check right/left
-
-  // check to stop
-  //  if((fabs(current_tilt_ + 70 * M_PI / 180) < 5 * M_PI / 180)
-  //      && (fabs(current_pan_) < 3 * M_PI / 180))
-  //  {
-  //    ROS_INFO_STREAM("tilt : " << (current_tilt_ * 180 / M_PI) << " | pan : " << (current_pan_ * 180 / M_PI));
-  //
-  //    setWalkingCommand("stop");
-  //    on_tracking_ = false;
-  //
-  //    // check direction of the ball
-  //    if(current_pan_ > 0)
-  //    {
-  //      ROS_INFO("Ready to kick : left"); // left
-  //      approach_ball_position_ = BallIsLeft;
-  //    }
-  //    else
-  //    {
-  //      ROS_INFO("Ready to kick : right");  // right
-  //      approach_ball_position_ = BallIsRight;
-  //    }
-  //
-  //    return true;
-  //  }
 
   approach_ball_position_ = NotFound;
 

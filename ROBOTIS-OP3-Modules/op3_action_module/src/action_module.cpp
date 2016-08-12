@@ -133,12 +133,22 @@ void ActionModule::queueThread()
   /* publisher */
   status_msg_pub_ = node_handle.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 0);
 
+  ros::ServiceServer is_running_server = node_handle.advertiseService("/robotis/action/is_running",
+                                                                      &ActionModule::isRunningServiceCallback, this);
+
   while (node_handle.ok())
   {
     callback_queue.callAvailable();
 
     usleep(100);
   }
+}
+
+bool ActionModule::isRunningServiceCallback(op3_action_module_msgs::IsRunning::Request &req,
+                                            op3_action_module_msgs::IsRunning::Response &res)
+{
+  res.is_running = isRunning();
+  return true;
 }
 
 void ActionModule::pageNumberCallback(const std_msgs::Int32::ConstPtr& msg)

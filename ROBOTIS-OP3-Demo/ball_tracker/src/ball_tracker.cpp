@@ -72,9 +72,9 @@ BallTracker::BallTracker()
   get_walking_param_client_ = nh_.serviceClient<op3_walking_module_msgs::GetWalkingParam>(
       "/robotis/walking/get_params");
 
-  std::string _default_path = ros::package::getPath("op3_demo") + "/config/demo_config.yaml";
-  std::string _path = nh_.param<std::string>("demo_config", _default_path);
-  parseJointNameFromYaml(_path);
+  std::string default_path = ros::package::getPath("op3_demo") + "/config/demo_config.yaml";
+  std::string config_path = nh_.param<std::string>("demo_config", default_path);
+  parseJointNameFromYaml(config_path);
 }
 
 BallTracker::~BallTracker()
@@ -116,11 +116,6 @@ void BallTracker::startTracking()
 {
   on_tracking_ = true;
   ROS_INFO("Start Ball tracking");
-//  setModuleToDemo("walking_module");
-//
-//  usleep(10 * 1000);
-
-//  setWalkingCommand("start");
 }
 
 void BallTracker::stopTracking()
@@ -128,29 +123,27 @@ void BallTracker::stopTracking()
   on_tracking_ = false;
   approach_ball_position_ = 0;
   ROS_INFO("Stop Ball tracking");
-
-//  setWalkingCommand("stop");
 }
 
 void BallTracker::currentJointStatesCallback(const sensor_msgs::JointState::ConstPtr &msg)
 {
   double pan, tilt;
-  int _get = 0;
+  int get_count = 0;
 
   for (int ix = 0; ix < msg->name.size(); ix++)
   {
     if (msg->name[ix] == "head_pan")
     {
       pan = -msg->position[ix];
-      _get += 1;
+      get_count += 1;
     }
     else if (msg->name[ix] == "head_tilt")
     {
       tilt = msg->position[ix];
-      _get += 1;
+      get_count += 1;
     }
 
-    if (_get == 2)
+    if (get_count == 2)
       break;
   }
 
@@ -242,15 +235,15 @@ void BallTracker::publishHeadJoint(double pan, double tilt)
   if (fabs(pan) < min_angle && fabs(tilt) < min_angle)
     return;
 
-  sensor_msgs::JointState _head_angle_msg;
+  sensor_msgs::JointState head_angle_msg;
 
-  _head_angle_msg.name.push_back("head_pan");
-  _head_angle_msg.name.push_back("head_tilt");
+  head_angle_msg.name.push_back("head_pan");
+  head_angle_msg.name.push_back("head_tilt");
 
-  _head_angle_msg.position.push_back(pan);
-  _head_angle_msg.position.push_back(tilt);
+  head_angle_msg.position.push_back(pan);
+  head_angle_msg.position.push_back(tilt);
 
-  head_joint_pub_.publish(_head_angle_msg);
+  head_joint_pub_.publish(head_angle_msg);
 }
 
 void BallTracker::scanBall()
@@ -259,10 +252,10 @@ void BallTracker::scanBall()
   // ...
 
   // send message to head control module
-  std_msgs::String _scan_msg;
-  _scan_msg.data = "scan";
+  std_msgs::String scan_msg;
+  scan_msg.data = "scan";
 
-  head_scan_pub_.publish(_scan_msg);
+  head_scan_pub_.publish(scan_msg);
   // ROS_INFO("Scan the ball");
 }
 
@@ -388,9 +381,9 @@ void BallTracker::setWalkingCommand(const std::string &command)
     setWalkingParam(0.005, 0, 0, true);
   }
 
-  std_msgs::String _command_msg;
-  _command_msg.data = command;
-  set_walking_command_pub_.publish(_command_msg);
+  std_msgs::String walking_command_msg;
+  walking_command_msg.data = command;
+  set_walking_command_pub_.publish(walking_command_msg);
 
   ROS_INFO_STREAM("Send Walking command : " << command);
 }
@@ -468,43 +461,43 @@ void BallTracker::parseJointNameFromYaml(const std::string &path)
   }
 
   // parse id_joint table
-  YAML::Node _id_sub_node = doc["id_joint"];
-  for (YAML::iterator _it = _id_sub_node.begin(); _it != _id_sub_node.end(); ++_it)
+  YAML::Node id_sub_node = doc["id_joint"];
+  for (YAML::iterator _it = id_sub_node.begin(); _it != id_sub_node.end(); ++_it)
   {
-    int _id;
-    std::string _joint_name;
+    int id;
+    std::string joint_name;
 
-    _id = _it->first.as<int>();
-    _joint_name = _it->second.as<std::string>();
+    id = _it->first.as<int>();
+    joint_name = _it->second.as<std::string>();
 
-    id_joint_table_[_id] = _joint_name;
-    joint_id_table_[_joint_name] = _id;
+    id_joint_table_[id] = joint_name;
+    joint_id_table_[joint_name] = id;
   }
 }
 
 // joint id -> joint name
 bool BallTracker::getJointNameFromID(const int &id, std::string &joint_name)
 {
-  std::map<int, std::string>::iterator _iter;
+  std::map<int, std::string>::iterator map_it;
 
-  _iter = id_joint_table_.find(id);
-  if (_iter == id_joint_table_.end())
+  map_it = id_joint_table_.find(id);
+  if (map_it == id_joint_table_.end())
     return false;
 
-  joint_name = _iter->second;
+  joint_name = map_it->second;
   return true;
 }
 
 // joint name -> joint id
 bool BallTracker::getIDFromJointName(const std::string &joint_name, int &id)
 {
-  std::map<std::string, int>::iterator _iter;
+  std::map<std::string, int>::iterator map_it;
 
-  _iter = joint_id_table_.find(joint_name);
-  if (_iter == joint_id_table_.end())
+  map_it = joint_id_table_.find(joint_name);
+  if (map_it == joint_id_table_.end())
     return false;
 
-  id = _iter->second;
+  id = map_it->second;
   return true;
 }
 

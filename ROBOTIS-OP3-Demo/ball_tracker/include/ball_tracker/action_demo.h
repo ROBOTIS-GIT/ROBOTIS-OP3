@@ -30,96 +30,103 @@
 
 /* Author: Kayman Jung */
 
-#ifndef BALL_FOLLOWER_H_
-#define BALL_FOLLOWER_H_
+#ifndef ACTION_DEMO_H_
+#define ACTION_DEMO_H_
 
-#include <math.h>
+#include <boost/thread.hpp>
 #include <yaml-cpp/yaml.h>
 
 #include <ros/ros.h>
 #include <ros/package.h>
-#include <std_msgs/String.h>
 #include <std_msgs/Int32.h>
-#include <sensor_msgs/JointState.h>
+#include <std_msgs/String.h>
 
+#include "ball_tracker/op_demo.h"
 #include "robotis_controller_msgs/JointCtrlModule.h"
-#include "ball_detector/circleSetStamped.h"
-#include "op3_walking_module_msgs/WalkingParam.h"
-#include "op3_walking_module_msgs/GetWalkingParam.h"
+#include "op3_action_module_msgs/IsRunning.h"
 
 namespace robotis_op
 {
 
-// following the ball using walking
-class BallFollower
+class ActionDemo : public OPDemo
 {
  public:
-  enum
-  {
-    NotFound = 0,
-    BallIsRight = 1,
-    BallIsLeft = 2,
-  };
+  ActionDemo();
+  ~ActionDemo();
 
-  BallFollower();
-  ~BallFollower();
-
-  bool processFollowing(double x_angle, double y_angle);
-  void waitFollowing();
-  void startFollowing();
-  void stopFollowing();
-
-  int getBallPosition()
-  {
-    return approach_ball_position_;
-  }
+  void setDemoEnable();
+  void setDemoDisable();
 
  protected:
-  const int NOT_FOUND_THRESHOLD;
-  const double FOV_WIDTH;
-  const double FOV_HEIGHT;
-  const double MAX_FB_STEP;
-  const double MAX_RL_TURN;
-  const double MIN_FB_STEP;
-  const double MIN_RL_TURN;
-  const double UNIT_FB_STEP;
-  const double UNIT_RL_TURN;
+  enum ActionCommandIndex
+  {
+    BrakeActionCommand = -2,
+    StopActionCommand = -1,
+  };
 
-  void currentJointStatesCallback(const sensor_msgs::JointState::ConstPtr &msg);
-  void setWalkingCommand(const std::string &command);
-  void setWalkingParam(double x_move, double y_move, double rotation_angle, bool balance = true);
-  void getWalkingParam();
+  enum ActionStatus
+  {
+    PlayAction = 1,
+    PauseAction = 2,
+    StopAction = 3,
+  };
 
-  //ros node handle
-  ros::NodeHandle nh_;
+  const int SPIN_RATE;
+  const int DEMO_INIT_POSE;
 
-  //image publisher/subscriber
+  void processThread();
+  void callbackThread();
+
+  void process();
+  void startProcess(const std::string &set_name = "default");
+  void resumeProcess();
+  void pauseProcess();
+  void stopProcess();
+
+  void handleStatus();
+
+  void parseActionScript(const std::string &path);
+  bool parseActoinScriptSetName(const std::string &path, const std::string &set_name);
+
+  bool playActionWithSound(int motion_index);
+
+  void playMP3(std::string &path);
+  void stopMP3();
+
+  void playAction(int motion_index);
+  void stopAction();
+  void brakeAction();
+  bool isActionRunning();
+
+  void setModuleToDemo(const std::string &module_name);
+
+  void actionIndexCallback(const std_msgs::Int32::ConstPtr& msg);
+  void actionSetNameCallback(const std_msgs::String::ConstPtr& msg);
+  void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg);
+
   ros::Publisher module_control_pub_;
-  ros::Publisher head_joint_pub_;
-  ros::Publisher head_scan_pub_;
-  ros::Publisher set_walking_command_pub_;
-  ros::Publisher set_walking_param_pub_;
-  ;
   ros::Publisher motion_index_pub_;
-  ros::ServiceClient get_walking_param_client_;
+  ros::Publisher play_sound_pub_;
 
-  ros::Subscriber ball_position_sub_;
-  ros::Subscriber ball_tracking_command_sub_;
-  ros::Subscriber current_joint_states_sub_;
+  ros::Subscriber buttuon_sub_;
+  ros::Subscriber demo_command_sub_;
+  ros::Subscriber action_script_index_sub_;
 
-  // (x, y) is the center position of the ball in image coordinates
-  // z is the ball radius
-  geometry_msgs::Point ball_position_;
-  op3_walking_module_msgs::WalkingParam current_walking_param_;
+  ros::ServiceClient is_running_client_;
 
-  int count_not_found_;
-  bool on_tracking_;
-  int approach_ball_position_;
-  double current_pan_, current_tilt_;
-  double current_x_move_, current_r_angle_;
-  int kick_motion_index_;
+  std::map<int, std::string> action_sound_table_;
+  std::vector<int> play_list_;
 
+  std::string script_path_;
+  int play_index_;
+
+  bool start_play_;
+  bool stop_play_;
+  bool pause_play_;
+
+  int play_status_;
 };
-}
 
-#endif /* BALL_FOLLOWER_H_ */
+} /* namespace robotis_op */
+
+#endif /* ACTION_DEMO_H_ */

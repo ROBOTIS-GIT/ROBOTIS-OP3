@@ -56,7 +56,8 @@ ros::Publisher g_demo_command_pub;
 
 void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
 {
-  if (msg->data == "mode")
+  //if (msg->data == "mode")
+  if (msg->data == "start_long")
   {
     RobotisController *controller = RobotisController::getInstance();
 

@@ -41,6 +41,7 @@
 
 //ros dependencies
 #include <ros/ros.h>
+#include <std_msgs/Bool.h>
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/CameraInfo.h>
@@ -80,6 +81,7 @@ class BallDetector
   void cameraInfoCallback(const sensor_msgs::CameraInfo & msg);
 
   void dynParamCallback(ball_detector::detectorParamsConfig &config, uint32_t level);
+  void enableCallback(const std_msgs::Bool::ConstPtr &msg);
 
   void printConfig();
   void saveConfig();
@@ -95,6 +97,8 @@ class BallDetector
   //ros node handle
   ros::NodeHandle nh_;
 
+  ros::Subscriber enable_sub_;
+
   //image publisher/subscriber
   image_transport::ImageTransport it_;
   image_transport::Publisher image_pub_;
@@ -102,6 +106,7 @@ class BallDetector
   image_transport::Subscriber image_sub_;
   cv_bridge::CvImagePtr cv_img_ptr_sub_;
 
+  bool enable_;
   bool init_param_;
 
   //circle set publisher
@@ -136,7 +141,7 @@ class BallDetector
    *    radius_i: circles[i][2]
    *
    **/
-  cv::vector<cv::Vec3f> circles_;
+  std::vector<cv::Vec3f> circles_;
   cv::Mat in_image_;
   cv::Mat out_image_;
 
@@ -144,5 +149,5 @@ class BallDetector
   dynamic_reconfigure::Server<ball_detector::detectorParamsConfig>::CallbackType callback_fnc_;
 };
 
-}       // namespace
+}       // namespace robotis_op
 #endif  // _BALL_DETECTOR_H_

@@ -50,6 +50,7 @@
 namespace robotis_op
 {
 
+// head tracking for looking the ball
 class BallTracker
 {
  public:

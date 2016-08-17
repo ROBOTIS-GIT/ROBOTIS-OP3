@@ -30,17 +30,17 @@
 
 /* Author: Kayman Jung */
 
-#include "ball_tracker/face_tracker.h"
+#include "op3_demo/ball_tracker.h"
 
 namespace robotis_op
 {
 
-FaceTracker::FaceTracker()
+BallTracker::BallTracker()
     : nh_(ros::this_node::getName()),
       FOV_WIDTH(30 * M_PI / 180),
       FOV_HEIGHT(23 * M_PI / 180),
       NOT_FOUND_THRESHOLD(50),
-      use_head_scan_(false),
+      use_head_scan_(true),
       count_not_found_(0),
       on_tracking_(false),
       current_head_pan_(-10),
@@ -49,28 +49,31 @@ FaceTracker::FaceTracker()
   head_joint_pub_ = nh_.advertise<sensor_msgs::JointState>("/robotis/head_control/set_joint_states_offset", 0);
   head_scan_pub_ = nh_.advertise<std_msgs::String>("/robotis/head_control/scan_command", 0);
 
-  face_position_sub_ = nh_.subscribe("/face_position", 1, &FaceTracker::facePositionCallback, this);
-  face_tracking_command_sub_ = nh_.subscribe("/face_tracker/command", 1, &FaceTracker::faceTrackerCommandCallback,
+  ball_position_sub_ = nh_.subscribe("/ball_detector_node/circle_set", 1, &BallTracker::ballPositionCallback, this);
+  ball_tracking_command_sub_ = nh_.subscribe("/ball_tracker/command", 1, &BallTracker::ballTrackerCommandCallback,
                                              this);
-  current_joint_states_sub_ = nh_.subscribe("/robotis/goal_joint_states", 10, &FaceTracker::currentJointStatesCallback,
+  current_joint_states_sub_ = nh_.subscribe("/robotis/goal_joint_states", 10, &BallTracker::currentJointStatesCallback,
                                             this);
 
 }
 
-FaceTracker::~FaceTracker()
+BallTracker::~BallTracker()
 {
 
 }
 
-void FaceTracker::facePositionCallback(const geometry_msgs::Point::ConstPtr &msg)
+void BallTracker::ballPositionCallback(const ball_detector::circleSetStamped::ConstPtr &msg)
 {
-  if (msg->z < 0)
-    return;
+  for (int idx = 0; idx < msg->circles.size(); idx++)
+  {
+    if (ball_position_.z >= msg->circles[idx].z)
+      continue;
 
-  face_position_ = *msg;
+    ball_position_ = msg->circles[idx];
+  }
 }
 
-void FaceTracker::faceTrackerCommandCallback(const std_msgs::String::ConstPtr &msg)
+void BallTracker::ballTrackerCommandCallback(const std_msgs::String::ConstPtr &msg)
 {
   if (msg->data == "start")
   {
@@ -89,32 +92,24 @@ void FaceTracker::faceTrackerCommandCallback(const std_msgs::String::ConstPtr &m
   }
 }
 
-void FaceTracker::startTracking()
+void BallTracker::startTracking()
 {
   on_tracking_ = true;
-  ROS_INFO("Start Face tracking");
+  ROS_INFO("Start Ball tracking");
 }
 
-void FaceTracker::stopTracking()
+void BallTracker::stopTracking()
 {
   on_tracking_ = false;
-  ROS_INFO("Stop Face tracking");
+  ROS_INFO("Stop Ball tracking");
 }
 
-void FaceTracker::setUsingHeadScan(bool use_scan)
+void BallTracker::setUsingHeadScan(bool use_scan)
 {
-  use_head_scan_ = use_scan;
+    use_head_scan_ = use_scan;
 }
 
-void FaceTracker::setFacePosition(geometry_msgs::Point &face_position)
-{
-  if (face_position.z > 0)
-  {
-    face_position_ = face_position;
-  }
-}
-
-void FaceTracker::currentJointStatesCallback(const sensor_msgs::JointState::ConstPtr &msg)
+void BallTracker::currentJointStatesCallback(const sensor_msgs::JointState::ConstPtr &msg)
 {
   double pan, tilt;
   int get_count = 0;
@@ -143,11 +138,11 @@ void FaceTracker::currentJointStatesCallback(const sensor_msgs::JointState::Cons
     current_head_tilt_ = tilt;
 }
 
-bool FaceTracker::processTracking()
+bool BallTracker::processTracking()
 {
   if (on_tracking_ == false)
   {
-    face_position_.z = 0;
+    ball_position_.z = 0;
     count_not_found_ = 0;
     current_head_pan_ = -10;
     current_head_tilt_ = -10;
@@ -155,38 +150,38 @@ bool FaceTracker::processTracking()
   }
 
   // check ball position
-  if (face_position_.z <= 0)
+  if (ball_position_.z <= 0)
   {
     count_not_found_++;
 
     if (count_not_found_ > NOT_FOUND_THRESHOLD)
     {
-      scanFace();
+      scanBall();
       count_not_found_ = 0;
     }
 
     return false;
   }
 
-  // if face is detected
-  double x_offset_rad = -atan(face_position_.x * tan(FOV_WIDTH));
-  double y_offset_rad = -atan(face_position_.y * tan(FOV_HEIGHT));
+  // if ball is found
+  double x_offset_rad = -atan(ball_position_.x * tan(FOV_WIDTH));
+  double y_offset_rad = -atan(ball_position_.y * tan(FOV_HEIGHT));
 
-  face_position_.z = 0;
+  ball_position_.z = 0;
   count_not_found_ = 0;
 
-  std::cout << "Target angle : " << x_offset_rad << " | " << y_offset_rad << std::endl;
+  // std::cout << "Target angle : " << x_offset_rad << " | " << y_offset_rad << std::endl;
 
   // move head joint
   publishHeadJoint(x_offset_rad, y_offset_rad);
 
-  current_face_pan_ = x_offset_rad;
-  current_face_tilt_ = y_offset_rad;
+  current_ball_pan_ = x_offset_rad;
+  current_ball_tilt_ = y_offset_rad;
 
   return true;
 }
 
-void FaceTracker::publishHeadJoint(double pan, double tilt)
+void BallTracker::publishHeadJoint(double pan, double tilt)
 {
   double min_angle = 1 * M_PI / 180;
   if (fabs(pan) < min_angle && fabs(tilt) < min_angle)
@@ -203,9 +198,9 @@ void FaceTracker::publishHeadJoint(double pan, double tilt)
   head_joint_pub_.publish(head_angle_msg);
 }
 
-void FaceTracker::scanFace()
+void BallTracker::scanBall()
 {
-  if (use_head_scan_ == false)
+  if(use_head_scan_ == false)
     return;
 
   // check head control module enabled

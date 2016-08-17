@@ -30,7 +30,7 @@
 
 /* Author: Kayman Jung */
 
-#include "ball_tracker/ball_tracker.h"
+#include "op3_demo/ball_tracker.h"
 
 //node main
 int main(int argc, char **argv)

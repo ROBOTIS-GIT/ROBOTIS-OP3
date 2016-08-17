@@ -3,8 +3,12 @@
 <launch>    
     <!-- Camera and Ball detector -->
     <include file="$(find ball_detector)/launch/ball_detector_from_usb_cam.launch"/> 
+    
+    <!-- face tracking -->
+    <!-- <include file="$(find face_detection)/launch/face_tracking.launch"/>  -->
 
     <!-- <node pkg="ball_tracker" type="ball_tracker_node" name="ball_tracker" output="screen"/> -->
-    <node pkg="ball_tracker" type="soccer_demo_node" name="ball_tracker" output="screen"/>
+    <node pkg="sound_play" type="sound_play" name="sound_play" output="screen"/>
+    <node pkg="op3_demo" type="op_demo_node" name="op3_demo" output="screen"/>
 </launch>
 

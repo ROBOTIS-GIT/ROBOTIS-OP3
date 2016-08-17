@@ -30,178 +30,201 @@
 
 /* Author: Kayman Jung */
 
-#include "ball_tracker/soccer_demo.h"
+#include <ros/ros.h>
+#include <std_msgs/String.h>
+#include <sensor_msgs/Imu.h>
+#include <boost/thread.hpp>
 
-namespace robotis_op
+#include "op3_demo/ball_tracker.h"
+#include "op3_demo/ball_follower.h"
+#include "robotis_math/robotis_linear_algebra.h"
+
+enum Motion_Index
 {
+  GetUpFront = 81,
+  GetUpBack = 82,
+  RightKick = 83,
+  LeftKick = 84,
+  Ceremony = 85,
+};
 
-SoccerDemo::SoccerDemo()
-    : FALLEN_FORWARD_LIMIT(-60),
-      FALLEN_BEHIND_LIMIT(60),
-      SPIN_RATE(30),
-      debug_code_(false),
-      //enable_(false),
-      wait_count_(0),
-      on_following_ball_(false),
-      restart_soccer_(false),
-      start_following_(false),
-      stop_following_(false),
-      stop_fallen_check_(false),
-      robot_status_(Waited),
-      stand_state_(Stand),
-      present_pitch_(0)
+enum Stand_Status
+{
+  Stand = 0,
+  Fallen_Forward = 1,
+  Fallen_Behind = 2,
+};
+
+enum Robot_Status
+{
+  Waited = 0,
+  TrackingAndFollowing = 1,
+  ReadyToKick = 2,
+  ReadyToCeremony = 3,
+  ReadyToGetup = 4,
+};
+
+const double FALLEN_FORWARD_LIMIT = -60;
+const double FALLEN_BEHIND_LIMIT = 60;
+const int SPIN_RATE = 30;
+
+void callbackThread();
+
+void setBodyModuleToDemo(const std::string &body_module);
+void setModuleToDemo(const std::string &module_name);
+void parseJointNameFromYaml(const std::string &path);
+bool getJointNameFromID(const int &id, std::string &joint_name);
+bool getIDFromJointName(const std::string &joint_name, int &id);
+void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg);
+void demoCommandCallback(const std_msgs::String::ConstPtr& msg);
+void imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg);
+
+void startSoccerMode();
+void stopSoccerMode();
+
+void handleKick(int ball_position);
+bool handleFallen(int fallen_status);
+
+void playMotion(int motion_index);
+
+ros::Publisher module_control_pub;
+ros::Publisher motion_index_pub;
+ros::Subscriber buttuon_sub;
+ros::Subscriber demo_command_sub;
+ros::Subscriber imu_data_sub;
+std::map<int, std::string> id_joint_table;
+std::map<std::string, int> joint_id_table;
+
+int wait_count = 0;
+bool on_following_ball = false;
+bool restart_soccer = false;
+bool start_following = false;
+bool stop_following = false;
+bool stop_fallen_check = false;
+int robot_status = Waited;
+int stand_state = Stand;
+double present_pitch = 0;
+
+bool debug_code = false;
+
+//node main
+int main(int argc, char **argv)
 {
   //init ros
-  //ros::init(argc, argv, "soccer_demo_node");
-  enable_ = false;
+  ros::init(argc, argv, "soccer_demo_node");
+
+  //create ros wrapper object
+  robotis_op::BallTracker tracker;
+  robotis_op::BallFollower follower;
 
   ros::NodeHandle nh(ros::this_node::getName());
 
-  std::string default_path = ros::package::getPath("op3_demo") + "/config/demo_config.yaml";
-  std::string path = nh.param<std::string>("demo_config", default_path);
-  parseJointNameFromYaml(path);
+  std::string _default_path = ros::package::getPath("op3_gui_demo") + "/config/demo_config.yaml";
+  std::string _path = nh.param<std::string>("demo_config", _default_path);
+  parseJointNameFromYaml(_path);
 
-  boost::thread queue_thread = boost::thread(boost::bind(&SoccerDemo::callbackThread, this));
-  boost::thread process_thread = boost::thread(boost::bind(&SoccerDemo::processThread, this));
-}
+  boost::thread queue_thread = boost::thread(boost::bind(&callbackThread));
 
-SoccerDemo::~SoccerDemo()
-{
-
-}
-
-void SoccerDemo::setDemoEnable()
-{
-  enable_ = true;
-
-  startSoccerMode();
-
-  // handle enable procedure
-//  ball_tracker_.startTracking();
-//  ball_follower_.startFollowing();
-
-//  wait_count_ = 1 * SPIN_RATE;
-}
-
-void SoccerDemo::setDemoDisable()
-{
-  setModuleToDemo("base_module");
-
-  // handle disable procedure
-  ball_tracker_.stopTracking();
-  ball_follower_.stopFollowing();
-
-  enable_ = false;
-  wait_count_ = 0;
-  on_following_ball_ = false;
-  restart_soccer_ = false;
-  start_following_ = false;
-  stop_following_ = false;
-  stop_fallen_check_ = false;
-}
-
-void SoccerDemo::process()
-{
-  // ball tracking
-  bool is_tracked;
-
-  is_tracked = ball_tracker_.processTracking();
-
-  if (start_following_ == true)
-  {
-    ball_tracker_.startTracking();
-    ball_follower_.startFollowing();
-    start_following_ = false;
-
-    wait_count_ = 1 * SPIN_RATE;  // wait 1 sec
-  }
-
-  if (stop_following_ == true)
-  {
-    ball_follower_.stopFollowing();
-    stop_following_ = false;
-
-    wait_count_ = 0;
-  }
-
-  if (wait_count_ <= 0)
-  {
-    // ball following
-    if (on_following_ball_ == true)
-    {
-      if (is_tracked)
-        ball_follower_.processFollowing(ball_tracker_.getPanOfBall(), ball_tracker_.getTiltOfBall());
-      else
-        ball_follower_.waitFollowing();
-    }
-
-    // check fallen states
-    switch (stand_state_)
-    {
-      case Stand:
-      {
-        // check restart soccer
-        if (restart_soccer_ == true)
-        {
-          restart_soccer_ = false;
-          startSoccerMode();
-          break;
-        }
-        // check states for kick
-        int ball_position = ball_follower_.getBallPosition();
-        if (ball_position != robotis_op::BallFollower::NotFound)
-        {
-          ball_follower_.stopFollowing();
-          handleKick(ball_position);
-        }
-        break;
-      }
-        // fallen state : Fallen_Forward, Fallen_Behind
-      default:
-      {
-        ball_follower_.stopFollowing();
-        handleFallen(stand_state_);
-        break;
-      }
-    }
-  }
-  else
-  {
-    wait_count_ -= 1;
-  }
-
-}
-
-void SoccerDemo::processThread()
-{
   bool result = false;
 
   //set node loop rate
   ros::Rate loop_rate(SPIN_RATE);
 
-  ball_tracker_.startTracking();
+  tracker.startTracking();
 
   //node loop
   while (ros::ok())
   {
-    if (enable_ == true)
-      process();
+    // ball tracking
+    bool is_tracked;
+    is_tracked = tracker.processTracking();
+
+    if (start_following == true)
+    {
+      tracker.startTracking();
+      follower.startFollowing();
+      start_following = false;
+
+      wait_count = 1 * SPIN_RATE;  // wait 1 sec
+    }
+
+    if (stop_following == true)
+    {
+      follower.stopFollowing();
+      stop_following = false;
+
+      wait_count = 0;
+    }
+
+    if (wait_count <= 0)
+    {
+      // ball following
+      if (on_following_ball == true)
+      {
+        if (is_tracked)
+          follower.processFollowing(tracker.getPanOfBall(), tracker.getTiltOfBall());
+        else
+          follower.waitFollowing();
+      }
+
+      // check fallen states
+      switch (stand_state)
+      {
+        case Stand:
+        {
+          // check restart soccer
+          if (restart_soccer == true)
+          {
+            restart_soccer = false;
+            startSoccerMode();
+            break;
+          }
+
+          // check states for kick
+          int ball_position = follower.getBallPosition();
+          if (ball_position != robotis_op::BallFollower::NotFound)
+          {
+            follower.stopFollowing();
+            handleKick(ball_position);
+          }
+          break;
+        }
+
+          // fallen state : Fallen_Forward, Fallen_Behind
+        default:
+        {
+          follower.stopFollowing();
+          handleFallen(stand_state);
+          break;
+        }
+      }
+    }
+    else
+    {
+      wait_count -= 1;
+    }
+
+    //execute pending callbacks
+    ros::spinOnce();
 
     //relax to fit output rate
     loop_rate.sleep();
   }
+
+  //exit program
+  return 0;
 }
 
-void SoccerDemo::callbackThread()
+void callbackThread()
 {
   ros::NodeHandle nh(ros::this_node::getName());
 
   // subscriber & publisher
-  module_control_pub_ = nh.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_joint_ctrl_modules", 0);
-  motion_index_pub_ = nh.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
-  buttuon_sub_ = nh.subscribe("/robotis/cm_740/button", 1, &SoccerDemo::buttonHandlerCallback, this);
-  demo_command_sub_ = nh.subscribe("/ball_tracker/command", 1, &SoccerDemo::demoCommandCallback, this);
-  imu_data_sub_ = nh.subscribe("/robotis/cm_740/imu", 1, &SoccerDemo::imuDataCallback, this);
+  module_control_pub = nh.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_joint_ctrl_modules", 0);
+  motion_index_pub = nh.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
+  buttuon_sub = nh.subscribe("/robotis/cm_740/button", 1, buttonHandlerCallback);
+  demo_command_sub = nh.subscribe("/ball_tracker/command", 1, demoCommandCallback);
+  imu_data_sub = nh.subscribe("/robotis/cm_740/imu", 1, imuDataCallback);
 
   while (nh.ok())
   {
@@ -211,7 +234,7 @@ void SoccerDemo::callbackThread()
   }
 }
 
-void SoccerDemo::setBodyModuleToDemo(const std::string &body_module)
+void setBodyModuleToDemo(const std::string &body_module)
 {
   robotis_controller_msgs::JointCtrlModule control_msg;
 
@@ -238,11 +261,11 @@ void SoccerDemo::setBodyModuleToDemo(const std::string &body_module)
   if (control_msg.joint_name.size() == 0)
     return;
 
-  module_control_pub_.publish(control_msg);
+  module_control_pub.publish(control_msg);
   std::cout << "enable module of body : " << body_module << std::endl;
 }
 
-void SoccerDemo::setModuleToDemo(const std::string &module_name)
+void setModuleToDemo(const std::string &module_name)
 {
   robotis_controller_msgs::JointCtrlModule control_msg;
 
@@ -262,11 +285,11 @@ void SoccerDemo::setModuleToDemo(const std::string &module_name)
   if (control_msg.joint_name.size() == 0)
     return;
 
-  module_control_pub_.publish(control_msg);
+  module_control_pub.publish(control_msg);
   std::cout << "enable module : " << module_name << std::endl;
 }
 
-void SoccerDemo::parseJointNameFromYaml(const std::string &path)
+void parseJointNameFromYaml(const std::string &path)
 {
   YAML::Node doc;
   try
@@ -289,18 +312,18 @@ void SoccerDemo::parseJointNameFromYaml(const std::string &path)
     _id = _it->first.as<int>();
     _joint_name = _it->second.as<std::string>();
 
-    id_joint_table_[_id] = _joint_name;
-    joint_id_table_[_joint_name] = _id;
+    id_joint_table[_id] = _joint_name;
+    joint_id_table[_joint_name] = _id;
   }
 }
 
 // joint id -> joint name
-bool SoccerDemo::getJointNameFromID(const int &id, std::string &joint_name)
+bool getJointNameFromID(const int &id, std::string &joint_name)
 {
   std::map<int, std::string>::iterator _iter;
 
-  _iter = id_joint_table_.find(id);
-  if (_iter == id_joint_table_.end())
+  _iter = id_joint_table.find(id);
+  if (_iter == id_joint_table.end())
     return false;
 
   joint_name = _iter->second;
@@ -308,40 +331,34 @@ bool SoccerDemo::getJointNameFromID(const int &id, std::string &joint_name)
 }
 
 // joint name -> joint id
-bool SoccerDemo::getIDFromJointName(const std::string &joint_name, int &id)
+bool getIDFromJointName(const std::string &joint_name, int &id)
 {
   std::map<std::string, int>::iterator _iter;
 
-  _iter = joint_id_table_.find(joint_name);
-  if (_iter == joint_id_table_.end())
+  _iter = joint_id_table.find(joint_name);
+  if (_iter == joint_id_table.end())
     return false;
 
   id = _iter->second;
   return true;
 }
 
-void SoccerDemo::buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
+void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
 {
-  if (enable_ == false)
-    return;
-
   if (msg->data == "start")
   {
-    if (on_following_ball_ == true)
+    if (on_following_ball == true)
       stopSoccerMode();
     else
       startSoccerMode();
   }
 }
 
-void SoccerDemo::demoCommandCallback(const std_msgs::String::ConstPtr &msg)
+void demoCommandCallback(const std_msgs::String::ConstPtr &msg)
 {
-  if (enable_ == false)
-    return;
-
   if (msg->data == "start")
   {
-    if (on_following_ball_ == true)
+    if (on_following_ball == true)
       stopSoccerMode();
     else
       startSoccerMode();
@@ -353,12 +370,9 @@ void SoccerDemo::demoCommandCallback(const std_msgs::String::ConstPtr &msg)
 }
 
 // check fallen states
-void SoccerDemo::imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg)
+void imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  if (enable_ == false)
-    return;
-
-  if (stop_fallen_check_ == true)
+  if (stop_fallen_check == true)
     return;
 
   Eigen::Quaterniond orientation(msg->orientation.w, msg->orientation.x, msg->orientation.y, msg->orientation.z);
@@ -369,38 +383,38 @@ void SoccerDemo::imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg)
 
   double pitch = rpy_orientation.coeff(1, 0);
 
-  if (present_pitch_ == 0)
-    present_pitch_ = pitch;
+  if (present_pitch == 0)
+    present_pitch = pitch;
   else
-    present_pitch_ = present_pitch_ * 0.5 + pitch * 0.5;
+    present_pitch = present_pitch * 0.5 + pitch * 0.5;
 
-  if (present_pitch_ < FALLEN_FORWARD_LIMIT)
-    stand_state_ = Fallen_Forward;
-  else if (present_pitch_ > FALLEN_BEHIND_LIMIT)
-    stand_state_ = Fallen_Behind;
+  if (present_pitch < FALLEN_FORWARD_LIMIT)
+    stand_state = Fallen_Forward;
+  else if (present_pitch > FALLEN_BEHIND_LIMIT)
+    stand_state = Fallen_Behind;
   else
-    stand_state_ = Stand;
+    stand_state = Stand;
 }
 
-void SoccerDemo::startSoccerMode()
+void startSoccerMode()
 {
   setBodyModuleToDemo("walking_module");
 
   usleep(10 * 1000);
 
   ROS_INFO("Start Soccer Demo");
-  on_following_ball_ = true;
-  start_following_ = true;
+  on_following_ball = true;
+  start_following = true;
 }
 
-void SoccerDemo::stopSoccerMode()
+void stopSoccerMode()
 {
   ROS_INFO("Stop Soccer Demo");
-  on_following_ball_ = false;
-  stop_following_ = true;
+  on_following_ball = false;
+  stop_following = true;
 }
 
-void SoccerDemo::handleKick(int ball_position)
+void handleKick(int ball_position)
 {
   usleep(500 * 1000);
 
@@ -410,7 +424,7 @@ void SoccerDemo::handleKick(int ball_position)
 
   usleep(1000 * 1000);
 
-  if (handleFallen(stand_state_) == true)
+  if (handleFallen(stand_state) == true)
     return;
 
   // kick motion
@@ -430,11 +444,11 @@ void SoccerDemo::handleKick(int ball_position)
       break;
   }
 
-  on_following_ball_ = false;
+  on_following_ball = false;
 
   usleep(2000 * 1000);
 
-  if (handleFallen(stand_state_) == true)
+  if (handleFallen(stand_state) == true)
     return;
 
   // ceremony
@@ -442,7 +456,7 @@ void SoccerDemo::handleKick(int ball_position)
   playMotion(Ceremony);
 }
 
-bool SoccerDemo::handleFallen(int fallen_status)
+bool handleFallen(int fallen_status)
 {
   if (fallen_status == Stand)
   {
@@ -473,22 +487,20 @@ bool SoccerDemo::handleFallen(int fallen_status)
 
   usleep(500 * 1000);
 
-  if (on_following_ball_ == true)
-    restart_soccer_ = true;
+  if (on_following_ball == true)
+    restart_soccer = true;
 
   // reset state
   //stand_state = Stand;
-  on_following_ball_ = false;
+  on_following_ball = false;
 
   return true;
 }
 
-void SoccerDemo::playMotion(int motion_index)
+void playMotion(int motion_index)
 {
   std_msgs::Int32 motion_msg;
   motion_msg.data = motion_index;
 
-  motion_index_pub_.publish(motion_msg);
-}
-
+  motion_index_pub.publish(motion_msg);
 }

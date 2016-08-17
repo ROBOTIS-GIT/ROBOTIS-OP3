@@ -40,8 +40,8 @@
 #include <std_msgs/Int32MultiArray.h>
 #include <geometry_msgs/Point.h>
 
-#include "ball_tracker/op_demo.h"
-#include "ball_tracker/face_tracker.h"
+#include "op3_demo/op_demo.h"
+#include "op3_demo/face_tracker.h"
 
 namespace robotis_op
 {

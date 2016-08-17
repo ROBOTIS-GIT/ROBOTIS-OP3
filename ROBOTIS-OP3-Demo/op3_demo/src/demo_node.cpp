@@ -33,9 +33,9 @@
 #include <ros/ros.h>
 #include <std_msgs/String.h>
 
-#include "ball_tracker/soccer_demo.h"
-#include "ball_tracker/action_demo.h"
-#include "ball_tracker/vision_demo.h"
+#include "op3_demo/soccer_demo.h"
+#include "op3_demo/action_demo.h"
+#include "op3_demo/vision_demo.h"
 #include "robotis_math/robotis_linear_algebra.h"
 #include "robotis_controller_msgs/SyncWriteItem.h"
 
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 
   ros::NodeHandle nh(ros::this_node::getName());
 
-  std::string _default_path = ros::package::getPath("op3_demo") + "/config/demo_config.yaml";
+  std::string _default_path = ros::package::getPath("op3_gui_demo") + "/config/demo_config.yaml";
   std::string _path = nh.param<std::string>("demo_config", _default_path);
 
   init_pose_pub = nh.advertise<std_msgs::String>("/robotis/base/ini_pose", 0);
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
   led_pub = nh.advertise<robotis_controller_msgs::SyncWriteItem>("/robotis/sync_write_item", 0);
   ros::Subscriber buttuon_sub = nh.subscribe("/robotis/cm_740/button", 1, buttonHandlerCallback);
 
-  default_mp3_path = ros::package::getPath("ball_tracker") + "/Data/mp3/";
+  default_mp3_path = ros::package::getPath("op3_demo") + "/Data/mp3/";
 
   bool result = false;
 

@@ -30,103 +30,104 @@
 
 /* Author: Kayman Jung */
 
-#ifndef ACTION_DEMO_H_
-#define ACTION_DEMO_H_
-
-#include <boost/thread.hpp>
-#include <yaml-cpp/yaml.h>
+#ifndef SOCCER_DEMO_H
+#define SOCCER_DEMO_H
 
 #include <ros/ros.h>
-#include <ros/package.h>
-#include <std_msgs/Int32.h>
 #include <std_msgs/String.h>
+#include <sensor_msgs/Imu.h>
+#include <boost/thread.hpp>
 
-#include "ball_tracker/op_demo.h"
-#include "robotis_controller_msgs/JointCtrlModule.h"
-#include "op3_action_module_msgs/IsRunning.h"
+#include "op3_demo/op_demo.h"
+#include "op3_demo/ball_tracker.h"
+#include "op3_demo/ball_follower.h"
+#include "robotis_math/robotis_linear_algebra.h"
 
 namespace robotis_op
 {
 
-class ActionDemo : public OPDemo
+class SoccerDemo : public OPDemo
 {
  public:
-  ActionDemo();
-  ~ActionDemo();
+  enum Motion_Index
+  {
+    GetUpFront = 81,
+    GetUpBack = 82,
+    RightKick = 83,
+    LeftKick = 84,
+    Ceremony = 85,
+  };
+
+  enum Stand_Status
+  {
+    Stand = 0,
+    Fallen_Forward = 1,
+    Fallen_Behind = 2,
+  };
+
+  enum Robot_Status
+  {
+    Waited = 0,
+    TrackingAndFollowing = 1,
+    ReadyToKick = 2,
+    ReadyToCeremony = 3,
+    ReadyToGetup = 4,
+  };
+
+  SoccerDemo();
+  ~SoccerDemo();
 
   void setDemoEnable();
   void setDemoDisable();
 
  protected:
-  enum ActionCommandIndex
-  {
-    BrakeActionCommand = -2,
-    StopActionCommand = -1,
-  };
-
-  enum ActionStatus
-  {
-    PlayAction = 1,
-    PauseAction = 2,
-    StopAction = 3,
-  };
-
+  const double FALLEN_FORWARD_LIMIT;
+  const double FALLEN_BEHIND_LIMIT;
   const int SPIN_RATE;
-  const int DEMO_INIT_POSE;
 
   void processThread();
   void callbackThread();
 
-  void process();
-  void startProcess(const std::string &set_name = "default");
-  void resumeProcess();
-  void pauseProcess();
-  void stopProcess();
-
-  void handleStatus();
-
-  void parseActionScript(const std::string &path);
-  bool parseActoinScriptSetName(const std::string &path, const std::string &set_name);
-
-  bool playActionWithSound(int motion_index);
-
-  void playMP3(std::string &path);
-  void stopMP3();
-
-  void playAction(int motion_index);
-  void stopAction();
-  void brakeAction();
-  bool isActionRunning();
-
+  void setBodyModuleToDemo(const std::string &body_module);
   void setModuleToDemo(const std::string &module_name);
-
-  void actionIndexCallback(const std_msgs::Int32::ConstPtr& msg);
-  void actionSetNameCallback(const std_msgs::String::ConstPtr& msg);
+  void parseJointNameFromYaml(const std::string &path);
+  bool getJointNameFromID(const int &id, std::string &joint_name);
+  bool getIDFromJointName(const std::string &joint_name, int &id);
   void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg);
+  void demoCommandCallback(const std_msgs::String::ConstPtr& msg);
+  void imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg);
+
+  void startSoccerMode();
+  void stopSoccerMode();
+
+  void process();
+  void handleKick(int ball_position);
+  bool handleFallen(int fallen_status);
+
+  void playMotion(int motion_index);
+
+  BallTracker ball_tracker_;
+  BallFollower ball_follower_;
 
   ros::Publisher module_control_pub_;
   ros::Publisher motion_index_pub_;
-  ros::Publisher play_sound_pub_;
-
   ros::Subscriber buttuon_sub_;
-  // ros::Subscriber demo_command_sub_;
-  ros::Subscriber action_script_index_sub_;
+  ros::Subscriber demo_command_sub_;
+  ros::Subscriber imu_data_sub_;
+  std::map<int, std::string> id_joint_table_;
+  std::map<std::string, int> joint_id_table_;
 
-  ros::ServiceClient is_running_client_;
-
-  std::map<int, std::string> action_sound_table_;
-  std::vector<int> play_list_;
-
-  std::string script_path_;
-  int play_index_;
-
-  bool start_play_;
-  bool stop_play_;
-  bool pause_play_;
-
-  int play_status_;
+  bool debug_code_;
+  int wait_count_;
+  bool on_following_ball_;
+  bool restart_soccer_;
+  bool start_following_;
+  bool stop_following_;
+  bool stop_fallen_check_;
+  int robot_status_;
+  int stand_state_;
+  double present_pitch_;
 };
 
-} /* namespace robotis_op */
-
-#endif /* ACTION_DEMO_H_ */
+}  // namespace robotis_op
+#endif // SOCCER_DEMO_H

@@ -1,8 +1,11 @@
 <?xml version="1.0"?>
 <package>
-  <name>ball_tracker</name>
+  <name>op3_demo</name>
   <version>0.1.0</version>
-  <description>The ball_tracker package</description>
+  <description>
+    op3 default demo
+    It includes three demontrations(soccer demo, vision demo, action script demo)
+  </description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
@@ -25,7 +28,7 @@
   <!-- Author tags are optional, mutiple are allowed, one per tag -->
   <!-- Authors do not have to be maintianers, but could be -->
   <!-- Example: -->
-  <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
+  <author email="kmjung@robotis.com">kayman</author>
 
 
   <!-- The *_depend tags are used to specify dependencies -->

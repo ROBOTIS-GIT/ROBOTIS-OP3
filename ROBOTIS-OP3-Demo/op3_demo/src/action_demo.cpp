@@ -30,7 +30,7 @@
 
 /* Author: Kayman Jung */
 
-#include "ball_tracker/action_demo.h"
+#include "op3_demo/action_demo.h"
 
 namespace robotis_op
 {
@@ -48,7 +48,7 @@ ActionDemo::ActionDemo()
 
   ros::NodeHandle nh(ros::this_node::getName());
 
-  std::string default_path = ros::package::getPath("ball_tracker") + "/script/action_script.yaml";
+  std::string default_path = ros::package::getPath("op3_demo") + "/script/action_script.yaml";
   script_path_ = nh.param<std::string>("action_script", default_path);
   parseActionScript (script_path_);
 

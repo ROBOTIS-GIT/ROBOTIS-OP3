@@ -169,8 +169,10 @@ add_executable(op_demo_node
   src/demo_node.cpp
   src/soccer_demo.cpp
   src/action_demo.cpp
+  src/vision_demo.cpp
   src/ball_tracker.cpp
   src/ball_follower.cpp
+  src/face_tracker.cpp
 )
 
 ## Add cmake target dependencies of the executable

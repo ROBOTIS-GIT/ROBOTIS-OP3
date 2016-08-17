@@ -30,29 +30,56 @@
 
 /* Author: Kayman Jung */
 
-/*****************************************************************************
- ** Includes
- *****************************************************************************/
+#ifndef VISION_DEMO_H_
+#define VISION_DEMO_H_
 
-#include <QtGui>
-#include <QApplication>
-#include "../include/op3_demo/main_window.hpp"
+#include <boost/thread.hpp>
 
-/*****************************************************************************
- ** Main
- *****************************************************************************/
+#include <ros/ros.h>
+#include <std_msgs/String.h>
+#include <std_msgs/Int32MultiArray.h>
+#include <geometry_msgs/Point.h>
 
-int main(int argc, char **argv)
+#include "ball_tracker/op_demo.h"
+#include "ball_tracker/face_tracker.h"
+
+namespace robotis_op
 {
 
-  /*********************
-   ** Qt
-   **********************/
-  QApplication app(argc, argv);
-  robotis_op::MainWindow w(argc, argv);
-  w.show();
-  app.connect(&app, SIGNAL(lastWindowClosed()), &app, SLOT(quit()));
-  int result = app.exec();
+class VisionDemo : public OPDemo
+{
+ public:
+  VisionDemo();
+  ~VisionDemo();
 
-  return result;
-}
+  void setDemoEnable();
+  void setDemoDisable();
+
+ protected:
+  const int SPIN_RATE;
+
+  void processThread();
+  void callbackThread();
+
+  void process();
+
+  void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg);
+  //void ballPositionCallback(const ball_detector::circleSetStamped::ConstPtr &msg);
+  //void currentJointStatesCallback(const sensor_msgs::JointState::ConstPtr &msg);
+  void facePositionCallback(const std_msgs::Int32MultiArray::ConstPtr &msg);
+
+  //void publishHeadJoint(double pan, double tilt);
+
+  void setModuleToDemo(const std::string &module_name);
+
+  FaceTracker face_tracker_;
+
+  ros::Publisher module_control_pub_;
+  ros::Subscriber buttuon_sub_;
+  ros::Subscriber faceCoord_sub_;
+  geometry_msgs::Point face_position_;
+};
+
+} /* namespace robotis_op */
+
+#endif /* VISION_DEMO_H_ */

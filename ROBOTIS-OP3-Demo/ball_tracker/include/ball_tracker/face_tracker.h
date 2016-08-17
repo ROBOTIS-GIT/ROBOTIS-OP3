@@ -30,36 +30,80 @@
 
 /* Author: Kayman Jung */
 
-#include "ball_tracker/ball_tracker.h"
+#ifndef FACE_TRACKING_H_
+#define FACE_TRACKING_H_
 
-//node main
-int main(int argc, char **argv)
+#include <math.h>
+#include <yaml-cpp/yaml.h>
+
+#include <ros/ros.h>
+#include <ros/package.h>
+#include <std_msgs/String.h>
+#include <std_msgs/Int32.h>
+#include <sensor_msgs/JointState.h>
+#include <geometry_msgs/Point.h>
+
+namespace robotis_op
 {
-  //init ros
-  ros::init(argc, argv, "ball_tracker_node");
 
-  //create ros wrapper object
-  robotis_op::BallTracker tracker;
+// head tracking for looking the ball
+class FaceTracker
+{
+ public:
+  FaceTracker();
+  ~FaceTracker();
 
-  // start ball tracking
-  tracker.startTracking();
+  bool processTracking();
 
-  //set node loop rate
-  ros::Rate loop_rate(30);
+  void startTracking();
+  void stopTracking();
 
-  //node loop
-  while (ros::ok())
+  void setUsingHeadScan(bool use_scan);
+  void setFacePosition(geometry_msgs::Point &face_position);
+
+  double getPanOfFace()
   {
-    tracker.processTracking();
-
-    //execute pending callback
-    ros::spinOnce();
-
-    //relax to fit output rate
-    loop_rate.sleep();
+    return current_face_pan_;
+  }
+  double getTiltOfFace()
+  {
+    return current_face_tilt_;
   }
 
-  //exit program
-  return 0;
+ protected:
+  const double FOV_WIDTH;
+  const double FOV_HEIGHT;
+  const int NOT_FOUND_THRESHOLD;
+
+  void facePositionCallback(const geometry_msgs::Point::ConstPtr &msg);
+  void faceTrackerCommandCallback(const std_msgs::String::ConstPtr &msg);
+  void currentJointStatesCallback(const sensor_msgs::JointState::ConstPtr &msg);
+  void publishHeadJoint(double pan, double tilt);
+  void scanFace();
+
+  //ros node handle
+  ros::NodeHandle nh_;
+
+  //image publisher/subscriber
+  ros::Publisher module_control_pub_;
+  ros::Publisher head_joint_pub_;
+  ros::Publisher head_scan_pub_;
+
+  ros::Subscriber face_position_sub_;
+  ros::Subscriber face_tracking_command_sub_;
+  ros::Subscriber current_joint_states_sub_;
+
+  // (x, y) is the center position of the ball in image coordinates
+  // z is the face size
+  geometry_msgs::Point face_position_;
+
+  bool use_head_scan_;
+  int count_not_found_;
+  bool on_tracking_;
+  double current_head_pan_, current_head_tilt_;
+  double current_face_pan_, current_face_tilt_;
+
+};
 }
 
+#endif /* FACE_TRACKING_H_ */

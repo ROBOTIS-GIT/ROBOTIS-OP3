@@ -109,7 +109,7 @@ class ActionDemo : public OPDemo
   ros::Publisher play_sound_pub_;
 
   ros::Subscriber buttuon_sub_;
-  ros::Subscriber demo_command_sub_;
+  // ros::Subscriber demo_command_sub_;
   ros::Subscriber action_script_index_sub_;
 
   ros::ServiceClient is_running_client_;

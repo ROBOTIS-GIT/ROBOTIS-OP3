@@ -30,36 +30,29 @@
 
 /* Author: Kayman Jung */
 
-#include "ball_tracker/ball_tracker.h"
+/*****************************************************************************
+ ** Includes
+ *****************************************************************************/
 
-//node main
+#include <QtGui>
+#include <QApplication>
+#include "../include/op3_gui_demo/main_window.hpp"
+
+/*****************************************************************************
+ ** Main
+ *****************************************************************************/
+
 int main(int argc, char **argv)
 {
-  //init ros
-  ros::init(argc, argv, "ball_tracker_node");
 
-  //create ros wrapper object
-  robotis_op::BallTracker tracker;
+  /*********************
+   ** Qt
+   **********************/
+  QApplication app(argc, argv);
+  robotis_op::MainWindow w(argc, argv);
+  w.show();
+  app.connect(&app, SIGNAL(lastWindowClosed()), &app, SLOT(quit()));
+  int result = app.exec();
 
-  // start ball tracking
-  tracker.startTracking();
-
-  //set node loop rate
-  ros::Rate loop_rate(30);
-
-  //node loop
-  while (ros::ok())
-  {
-    tracker.processTracking();
-
-    //execute pending callback
-    ros::spinOnce();
-
-    //relax to fit output rate
-    loop_rate.sleep();
-  }
-
-  //exit program
-  return 0;
+  return result;
 }
-

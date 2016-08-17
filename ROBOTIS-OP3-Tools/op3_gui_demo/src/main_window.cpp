@@ -37,7 +37,7 @@
 #include <QtGui>
 #include <QMessageBox>
 #include <iostream>
-#include "../include/op3_demo/main_window.hpp"
+#include "../include/op3_gui_demo/main_window.hpp"
 
 /*****************************************************************************
  ** Namespaces

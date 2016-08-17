@@ -202,8 +202,8 @@ void BallDetector::publishCircles()
   //fill circle data
   for (int idx = 0; idx < circles_.size(); idx++)
   {
-    circles_msg_.circles[idx].x = circles_[idx][0] / in_image_.cols * 2 - 1;    // x
-    circles_msg_.circles[idx].y = circles_[idx][1] / in_image_.rows * 2 - 1;    // y
+    circles_msg_.circles[idx].x = circles_[idx][0] / in_image_.cols * 2 - 1;    // x (-1 ~ 1)
+    circles_msg_.circles[idx].y = circles_[idx][1] / in_image_.rows * 2 - 1;    // y (-1 ~ 1)
     circles_msg_.circles[idx].z = circles_[idx][2];    // radius
   }
 

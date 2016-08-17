@@ -35,6 +35,7 @@
 
 #include "ball_tracker/soccer_demo.h"
 #include "ball_tracker/action_demo.h"
+#include "ball_tracker/vision_demo.h"
 #include "robotis_math/robotis_linear_algebra.h"
 #include "robotis_controller_msgs/SyncWriteItem.h"
 
@@ -73,6 +74,7 @@ int main(int argc, char **argv)
   robotis_op::OPDemo *current_demo = NULL;
   robotis_op::SoccerDemo *soccer_demo = new robotis_op::SoccerDemo();
   robotis_op::ActionDemo *action_demo = new robotis_op::ActionDemo();
+  robotis_op::VisionDemo *vision_demo = new robotis_op::VisionDemo();
 
   ros::NodeHandle nh(ros::this_node::getName());
 
@@ -133,8 +135,8 @@ int main(int argc, char **argv)
           if (current_demo != NULL)
             current_demo->setDemoDisable();
 
-          // current_demo = soccer_demo;
-          // current_demo->setDemoEnable();
+          current_demo = vision_demo;
+          current_demo->setDemoEnable();
           ROS_INFO("[Start] Vision Demo");
           break;
         }

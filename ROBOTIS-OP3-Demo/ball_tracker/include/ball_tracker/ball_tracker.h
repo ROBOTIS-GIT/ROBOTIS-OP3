@@ -58,10 +58,11 @@ class BallTracker
   ~BallTracker();
 
   bool processTracking();
-  bool processActing();
 
   void startTracking();
   void stopTracking();
+
+  void setUsingHeadScan(bool use_scan);
 
   double getPanOfBall()
   {
@@ -76,27 +77,12 @@ class BallTracker
   const double FOV_WIDTH;
   const double FOV_HEIGHT;
   const int NOT_FOUND_THRESHOLD;
-  const double MAX_FB_STEP;
-  const double MAX_RL_TURN;
-  const double MIN_FB_STEP;
-  const double MIN_RL_TURN;
-  const double UNIT_FB_STEP;
-  const double UNIT_RL_TURN;
 
   void ballPositionCallback(const ball_detector::circleSetStamped::ConstPtr &msg);
   void ballTrackerCommandCallback(const std_msgs::String::ConstPtr &msg);
   void currentJointStatesCallback(const sensor_msgs::JointState::ConstPtr &msg);
   void publishHeadJoint(double pan, double tilt);
   void scanBall();
-  void approachBall(double pan, double tilt);
-  void setWalkingCommand(const std::string &command);
-  void setWalkingParam(double x_move, double y_move, double rotation_angle, bool balance = true);
-  void getWalkingParam();
-
-  void setModuleToDemo(const std::string &body_module);
-  void parseJointNameFromYaml(const std::string &path);
-  bool getJointNameFromID(const int &id, std::string &joint_name);
-  bool getIDFromJointName(const std::string &joint_name, int &id);
 
   //ros node handle
   ros::NodeHandle nh_;
@@ -105,31 +91,22 @@ class BallTracker
   ros::Publisher module_control_pub_;
   ros::Publisher head_joint_pub_;
   ros::Publisher head_scan_pub_;
-  ros::Publisher set_walking_command_pub_;
-  ros::Publisher set_walking_param_pub_;
-  ;
+
   ros::Publisher motion_index_pub_;
-  ros::ServiceClient get_walking_param_client_;
 
   ros::Subscriber ball_position_sub_;
   ros::Subscriber ball_tracking_command_sub_;
   ros::Subscriber current_joint_states_sub_;
 
-  std::map<int, std::string> id_joint_table_;
-  std::map<std::string, int> joint_id_table_;
-
   // (x, y) is the center position of the ball in image coordinates
   // z is the ball radius
   geometry_msgs::Point ball_position_;
-  op3_walking_module_msgs::WalkingParam current_walking_param_;
 
+  bool use_head_scan_;
   int count_not_found_;
   bool on_tracking_;
-  int approach_ball_position_;
   double current_head_pan_, current_head_tilt_;
   double current_ball_pan_, current_ball_tilt_;
-  double current_x_move_, current_r_angle_;
-  int kick_motion_index_;
 
 };
 }

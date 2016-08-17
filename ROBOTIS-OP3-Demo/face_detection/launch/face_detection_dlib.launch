@@ -1,0 +1,15 @@
+<launch>
+  <arg name="face_cascade_name_0"  default="$(find face_detection)/include/face_detection/HaarCascades/haarcascade_frontalface_alt.xml" />
+  <arg name="face_cascade_name_1"  default="$(find face_detection)/include/face_detection//HaarCascades/haarcascade_frontalface_alt2.xml" />
+  <arg name="face_cascade_name_2"  default="$(find face_detection)/include/face_detection//HaarCascades/haarcascade_frontalface_alt_tree.xml" />
+  <arg name="face_cascade_name_3"  default="$(find face_detection)/include/face_detection//HaarCascades/haarcascade_frontalface_default.xml" />
+  <arg name="face_cascade_name_4"  default="$(find face_detection)/include/face_detection/lbpCascades/lbpcascade_frontalface.xml" />
+
+  <node pkg="face_detection" type="face_detection_dlib" name="face_detection_dlib"
+      args="$(arg face_cascade_name_0)
+      $(arg face_cascade_name_1)
+      $(arg face_cascade_name_2)
+      $(arg face_cascade_name_3)
+      $(arg face_cascade_name_4)"
+      output="screen"/>
+</launch>

@@ -438,8 +438,10 @@ void SoccerDemo::handleKick(int ball_position)
     return;
 
   // ceremony
-  std::cout << "Go Ceremony!!!" << std::endl;
-  playMotion(Ceremony);
+  //std::cout << "Go Ceremony!!!" << std::endl;
+  //playMotion(Ceremony);
+
+  restart_soccer_ = true;
 }
 
 bool SoccerDemo::handleFallen(int fallen_status)

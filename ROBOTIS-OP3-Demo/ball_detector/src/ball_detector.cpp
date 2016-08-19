@@ -501,7 +501,7 @@ void BallDetector::mophology(const cv::Mat &intput_img, cv::Mat &output_img, int
 void BallDetector::houghDetection(const unsigned int imgEncoding)
 {
   cv::Mat gray_image;
-  cv::vector<cv::Vec3f> circles_current;
+  std::vector<cv::Vec3f> circles_current;
 
   //clear previous circles
   circles_.clear();

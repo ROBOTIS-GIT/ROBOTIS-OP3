@@ -28,52 +28,42 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-/* Author: Kayman Jung */
+/* Author: sch, Jay Song */
 
-#include "ball_tracker/ball_tracker.h"
+#include "op3_kinematics_dynamics/link_data.h"
 
-//node main
-int main(int argc, char **argv)
+namespace robotis_op
 {
-  //init ros
-  ros::init(argc, argv, "ball_tracker_node");
 
-  //create ros wrapper object
-  robotis_op::BallTracker tracker;
+LinkData::LinkData()
+{
+  name_ = "";
 
-  int wait_count = 0;
-  bool result = false;
+  parent_ = -1;
+  sibling_ = -1;
+  child_ = -1;
 
-  //set node loop rate
-  ros::Rate loop_rate(30);
+  mass_ = 0.0;
 
-  //node loop
-  while (ros::ok())
-  {
-    result = result | tracker.processTracking();
+  relative_position_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.0);
+  joint_axis_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.0);
+  center_of_mass_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.0);
+  inertia_ = robotis_framework::getInertiaXYZ(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 
-    if (result == true)
-    {
+  joint_limit_max_ = 100.0;
+  joint_limit_min_ = -100.0;
 
-      wait_count += 1;
+  joint_angle_ = 0.0;
+  joint_velocity_ = 0.0;
+  joint_acceleration_ = 0.0;
 
-      if (wait_count > 60)
-      {
-        tracker.processActing();
-        result = false;
-      }
-    }
-    else
-      wait_count = 0;
-
-    //execute pending callbacks
-    ros::spinOnce();
-
-    //relax to fit output rate
-    loop_rate.sleep();
-  }
-
-  //exit program
-  return 0;
+  position_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.0);
+  orientation_ = robotis_framework::convertRPYToRotation(0.0, 0.0, 0.0);
+  transformation_ = robotis_framework::getTransformationXYZRPY(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 }
 
+LinkData::~LinkData()
+{
+}
+
+}

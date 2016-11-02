@@ -1,33 +1,32 @@
 /*******************************************************************************
-* Copyright (c) 2016, ROBOTIS CO., LTD.
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*
-* * Redistributions of source code must retain the above copyright notice, this
-*   list of conditions and the following disclaimer.
-*
-* * Redistributions in binary form must reproduce the above copyright notice,
-*   this list of conditions and the following disclaimer in the documentation
-*   and/or other materials provided with the distribution.
-*
-* * Neither the name of ROBOTIS nor the names of its
-*   contributors may be used to endorse or promote products derived from
-*   this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*******************************************************************************/
-
+ * Copyright (c) 2016, ROBOTIS CO., LTD.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of ROBOTIS nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *******************************************************************************/
 
 /* Author: Jay Song */
 
@@ -38,10 +37,8 @@
 #include <std_msgs/String.h>
 #include <ros/ros.h>
 
-
-#include "robotis_controller/RobotisController.h"
+#include "robotis_controller/robotis_controller.h"
 #include "op3_action_module/action_module.h"
-
 
 #define PROGRAM_VERSION		"v1.00"
 #define SCREEN_COL			80
@@ -90,7 +87,6 @@
 #define ID_20_ROW	19
 #define ID_END_ROW  ID_20_ROW
 
-
 #define PAUSE_ROW	20
 #define SPEED_ROW	21
 #define CMD_ROW		23
@@ -105,10 +101,8 @@
 #define NEXT_ROW		7
 #define EXIT_ROW		8
 
-
 int _getch();
 bool AskSave();
-
 
 // Move cursor
 void GoToCursor(int col, int row);
@@ -116,7 +110,6 @@ void MoveUpCursor();
 void MoveDownCursor();
 void MoveLeftCursor();
 void MoveRightCursor();
-
 
 bool InitializeActionEditor(std::string robot_file_path, std::string init_file_path, std::string offset_file_path);
 
@@ -133,7 +126,7 @@ void PrintCmd(const char *message);
 // Edit value
 void UpDownValue(int offset);
 void SetValue(int value);
-int  GetValue();
+int GetValue();
 void ToggleTorque();
 
 // Command process
@@ -146,9 +139,9 @@ void PageCmd(int index);
 void TimeCmd();
 void SpeedCmd();
 void PlayCmd();
-void PlayCmd( const char* file_path);
+void PlayCmd(const char* file_path);
 void ListCmd();
-void OnOffCmd( bool on, int num_param, int *list);
+void OnOffCmd(bool on, int num_param, int *list);
 void WriteStepCmd(int index);
 void DeleteStepCmd(int index);
 void InsertStepCmd(int index);
@@ -164,7 +157,6 @@ void UnFoldRightHand();
 void FoldLeftHand();
 void UnFoldLeftHand();
 
-
 void MirrorRight2LeftCmd(int num_param, int *step_list);
 void MirrorLeft2RightCmd(int num_param, int *step_list);
 void MirrorCmd(int num_param, int *step_list);
@@ -173,6 +165,5 @@ void StepCopyCmd(int step_source, int step_destination);
 //play sound
 //void PlayWithCmd(Thor::MotionManager* manager);
 //int PlaySound(const char* filename);
-
 
 #endif /* CMD_PROCESS_H_ */

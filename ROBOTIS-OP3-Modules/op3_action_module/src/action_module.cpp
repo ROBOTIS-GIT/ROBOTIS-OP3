@@ -1,997 +1,966 @@
 /*******************************************************************************
-* Copyright (c) 2016, ROBOTIS CO., LTD.
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*
-* * Redistributions of source code must retain the above copyright notice, this
-*   list of conditions and the following disclaimer.
-*
-* * Redistributions in binary form must reproduce the above copyright notice,
-*   this list of conditions and the following disclaimer in the documentation
-*   and/or other materials provided with the distribution.
-*
-* * Neither the name of ROBOTIS nor the names of its
-*   contributors may be used to endorse or promote products derived from
-*   this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*******************************************************************************/
+ * Copyright (c) 2016, ROBOTIS CO., LTD.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of ROBOTIS nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *******************************************************************************/
 
-
-/* Author: Kayman Jung */
+/* Author: Kayman Jung, Jay Song */
 
 #include <stdio.h>
 #include <sstream>
 #include "op3_action_module/action_module.h"
 
-using namespace ROBOTIS;
+namespace robotis_op
+{
 
-std::string ActionModule::IntToString(int _n) {
-	std::ostringstream ostr;
-	ostr << _n;
-	return ostr.str();
+std::string ActionModule::convertIntToString(int n)
+{
+  std::ostringstream ostr;
+  ostr << n;
+  return ostr.str();
 }
 
 ActionModule::ActionModule()
-    : control_cycle_msec_(8)
+    : control_cycle_msec_(8),
+      PRE_SECTION(0),
+      MAIN_SECTION(1),
+      POST_SECTION(2),
+      PAUSE_SECTION(3),
+      ZERO_FINISH(0),
+      NONE_ZERO_FINISH(1)
 {
-    enable          = false;
-    module_name     = "action_module"; // set unique module name
-    control_mode    = POSITION_CONTROL;
+  /////////////// Const Variable
+  /**************************************
+   * Section             /----\
+       *                    /|    |\
+       *        /+---------/ |    | \
+       *       / |        |  |    |  \
+       * -----/  |        |  |    |   \----
+   *      PRE  MAIN   PRE MAIN POST PAUSE
+   ***************************************/
 
-//
-//    /* arm */
-//    result["r_sho_pitch"]   = new DynamixelState();
-//    result["l_sho_pitch"]   = new DynamixelState();
-//    result["r_sho_roll"]    = new DynamixelState();
-//    result["l_sho_roll"]    = new DynamixelState();
-//    result["r_el"]          = new DynamixelState();
-//    result["l_el"]          = new DynamixelState();
-//
-//    /* leg */
-//    result["r_hip_pitch"]   = new DynamixelState();
-//    result["r_hip_roll"]    = new DynamixelState();
-//    result["r_hip_yaw"]     = new DynamixelState();
-//    result["r_knee"]        = new DynamixelState();
-//    result["r_ank_pitch"]   = new DynamixelState();
-//    result["r_ank_roll"]    = new DynamixelState();
-//
-//    result["l_hip_pitch"]   = new DynamixelState();
-//    result["l_hip_roll"]    = new DynamixelState();
-//    result["l_hip_yaw"]     = new DynamixelState();
-//    result["l_knee"]        = new DynamixelState();
-//    result["l_ank_pitch"]   = new DynamixelState();
-//    result["l_ank_roll"]    = new DynamixelState();
-//
-//    /* head */
-//    result["head_pan"]      = new DynamixelState();
-//    result["head_tilt"]     = new DynamixelState();
-//
-//    /* arm */
-//    joint_name_to_id_["r_sho_pitch"]     = 1;
-//    joint_name_to_id_["l_sho_pitch"]     = 2;
-//    joint_name_to_id_["r_sho_roll"]      = 3;
-//    joint_name_to_id_["l_sho_roll"]      = 4;
-//    joint_name_to_id_["r_el"]            = 5;
-//    joint_name_to_id_["l_el"]            = 6;
-//
-//    /* leg */
-//    joint_name_to_id_["r_hip_yaw"]       = 7;
-//    joint_name_to_id_["l_hip_yaw"]       = 8;
-//    joint_name_to_id_["r_hip_roll"]      = 9;
-//    joint_name_to_id_["l_hip_roll"]      = 10;
-//    joint_name_to_id_["r_hip_pitch"]     = 11;
-//    joint_name_to_id_["l_hip_pitch"]     = 12;
-//    joint_name_to_id_["r_knee"]          = 13;
-//    joint_name_to_id_["l_knee"]          = 14;
-//    joint_name_to_id_["r_ank_pitch"]     = 15;
-//    joint_name_to_id_["l_ank_pitch"]     = 16;
-//    joint_name_to_id_["r_ank_roll"]      = 17;
-//    joint_name_to_id_["l_ank_roll"]      = 18;
-//
-//    /* head */
-//    joint_name_to_id_["head_pan"]        = 19;
-//    joint_name_to_id_["head_tilt"]       = 20;
-//
-//    for(std::map<std::string, int>::iterator _it = joint_name_to_id_.begin(); _it != joint_name_to_id_.end(); _it++)
-//    {
-//    	joint_id_to_name_[_it->second] = _it->first;
-//    }
+  enable_ = false;
+  module_name_ = "action_module";  // set unique module name
+  control_mode_ = robotis_framework::PositionControl;
 
-    //////////////////////////////////
-	action_file_ = 0;
-	playing_ = false;
-	first_driving_start_ = false;
-	playing_finished = true;
-	page_step_count_ = 0;
-	play_page_idx_ = 0;
-	stop_playing_ = true;
+  //////////////////////////////////
+  action_file_ = 0;
+  playing_ = false;
+  first_driving_start_ = false;
+  playing_finished = true;
+  page_step_count_ = 0;
+  play_page_idx_ = 0;
+  stop_playing_ = true;
 
-	previous_enable_  = false;
-	present_enable_   = false;
-	previous_running_ = false;
-	present_running_  = false;
+  previous_enable_ = false;
+  present_enable_ = false;
+  previous_running_ = false;
+  present_running_ = false;
 }
 
 ActionModule::~ActionModule()
 {
-    queue_thread_.join();
+  queue_thread_.join();
 
-    ////////////////////////////////////////
-	if(action_file_ != 0)
-		fclose( action_file_ );
+  ////////////////////////////////////////
+  if (action_file_ != 0)
+    fclose(action_file_);
 }
 
-void ActionModule::Initialize(const int control_cycle_msec, Robot *robot)
+void ActionModule::initialize(const int control_cycle_msec, robotis_framework::Robot *robot)
 {
-    control_cycle_msec_ = control_cycle_msec;
-    queue_thread_       = boost::thread(boost::bind(&ActionModule::QueueThread, this));
+  control_cycle_msec_ = control_cycle_msec;
+  queue_thread_ = boost::thread(boost::bind(&ActionModule::queueThread, this));
 
-    // init result, joint_id_table
-    for(std::map<std::string, Dynamixel*>::iterator it = robot->dxls.begin(); it != robot->dxls.end(); it++)
+  // init result, joint_id_table
+  for (std::map<std::string, robotis_framework::Dynamixel*>::iterator it = robot->dxls_.begin();
+      it != robot->dxls_.end(); it++)
+  {
+    std::string joint_name = it->first;
+    robotis_framework::Dynamixel* dxl_info = it->second;
+
+    joint_name_to_id_[joint_name] = dxl_info->id_;
+    joint_id_to_name_[dxl_info->id_] = joint_name;
+    result_[joint_name] = new robotis_framework::DynamixelState();
+    result_[joint_name]->goal_position_ = dxl_info->dxl_state_->goal_position_;
+  }
+
+  ros::NodeHandle node_handle;
+
+  std::string default_path = ros::package::getPath("op3_action_module") + "/data/motion_4095.bin";
+  std::string action_file_path;
+  node_handle.param<std::string>("action_file_path", action_file_path, default_path);
+
+  loadFile((char*) action_file_path.c_str());
+
+  playing_ = false;
+}
+
+void ActionModule::queueThread()
+{
+  ros::NodeHandle node_handle;
+  ros::CallbackQueue callback_queue;
+
+  node_handle.setCallbackQueue(&callback_queue);
+
+  /* subscriber */
+  action_page_sub_ = node_handle.subscribe("/robotis/action/page_num", 1, &ActionModule::pageNumberCallback, this);
+
+  /* publisher */
+  status_msg_pub_ = node_handle.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 0);
+
+  while (node_handle.ok())
+  {
+    callback_queue.callAvailable();
+
+    usleep(100);
+  }
+}
+
+void ActionModule::pageNumberCallback(const std_msgs::Int32::ConstPtr& msg)
+{
+  if (msg->data == -1)
+  {
+    stop();
+  }
+  else if (msg->data == -2)
+  {
+    brakeAction();
+  }
+  else
+  {
+    if (isRunning() == true)
     {
-        std::string joint_name = it->first;
-        Dynamixel*  dxl_info   = it->second;
+      ROS_ERROR_STREAM("Previous Motion is not finished.");
+      publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, "Previous Motion is not finished.");
 
-        joint_name_to_id_[joint_name]   = dxl_info->id;
-        joint_id_to_name_[dxl_info->id] = joint_name;
-        result[joint_name] = new DynamixelState();
-        result[joint_name]->goal_position = dxl_info->dxl_state->goal_position;
     }
 
-    ros::NodeHandle _ros_node;
-
-    std::string _path = ros::package::getPath("op3_action_module") + "/data/motion_4095.bin";
-    std::string _action_file_path;
-    _ros_node.param<std::string>("action_file_path", _action_file_path, _path);
-
-    LoadFile((char*)_action_file_path.c_str());
-
-
-    playing_ = false;
-}
-
-void ActionModule::QueueThread()
-{
-    ros::NodeHandle     _ros_node;
-    ros::CallbackQueue  _callback_queue;
-
-    _ros_node.setCallbackQueue(&_callback_queue);
-
-    /* subscriber */
-    action_page_sub_ = _ros_node.subscribe("/robotis/action/page_num", 1, &ActionModule::PageNumberCallback, this);
-
-    /* publisher */
-    status_msg_pub_ = _ros_node.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 0);
-
-    while(_ros_node.ok())
+    if (startAction(msg->data) == true)
     {
-        _callback_queue.callAvailable();
-
-        usleep(100);
+      std::string status_msg = "Succeed to start page " + convertIntToString(msg->data);
+      ROS_INFO_STREAM(status_msg);
+      publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, status_msg);
     }
-}
-
-
-void ActionModule::PageNumberCallback(const std_msgs::Int32::ConstPtr& _msg)
-{
-	if(_msg->data == -1) {
-		Stop();
-	}
-	else if(_msg->data == -2) {
-		Brake();
-	}
-	else {
-		if(IsRunning() == true) {
-			ROS_ERROR_STREAM("Previous Motion is not finished.");
-			PublishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, "Previous Motion is not finished.");
-
-		}
-
-		if(Start(_msg->data) == true) {
-	    	std::string _status_msg = "Succeed to start page " + IntToString(_msg->data);
-	    	ROS_INFO_STREAM(_status_msg);
-			PublishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, _status_msg);
-		}
-		else {
-	    	std::string _status_msg = "Failed to start page " + IntToString(_msg->data);
-	    	ROS_ERROR_STREAM(_status_msg);
-			PublishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, _status_msg);
-		}
-	}
-}
-
-
-void ActionModule::Process(std::map<std::string, Dynamixel *> dxls, std::map<std::string, double> sensors)
-{
-	//previous_enable_ = present_enable_;
-	//present_enable_  = enable;
-
-    if(enable == false)
-        return;
-
-//     if((present_enable_ == true) && (present_enable_ != previous_enable_))
-    if(present_enable_ == true)
+    else
     {
-    	for(std::map<std::string, Dynamixel *>::iterator _it = dxls.begin() ; _it != dxls.end(); _it++)
-    	{
-    		std::string _joint_name = _it->first;
-
-    		if(result.find(_joint_name) == result.end())
-    			continue;
-    		else {
-    			result[_joint_name]->goal_position = _it->second->dxl_state->goal_position;
-    		}
-    	}
+      std::string status_msg = "Failed to start page " + convertIntToString(msg->data);
+      ROS_ERROR_STREAM(status_msg);
+      publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
     }
-
-
-	previous_running_ = present_running_;
-	present_running_  = IsRunning();
-
-	if(present_running_ != previous_running_) {
-		if(present_running_ == true) {
-	    	std::string _status_msg = "Action_Start";
-	    	ROS_INFO_STREAM(_status_msg);
-			PublishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, _status_msg);
-		}
-		else {
-	    	std::string _status_msg = "Action_Finish";
-	    	ROS_INFO_STREAM(_status_msg);
-			PublishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, _status_msg);
-		}
-	}
-
-    ActionPlayProcess(dxls);
+  }
 }
 
-
-
-
-void ActionModule::Stop()
+void ActionModule::process(std::map<std::string, robotis_framework::Dynamixel *> dxls,
+                           std::map<std::string, double> sensors)
 {
-	stop_playing_ = true;
-}
+  if (enable_ == false)
+    return;
 
-bool ActionModule::IsRunning()
-{
-	return playing_;
-}
-
-int  ActionModule::RadTow4095(double _rad)
-{
-	return (int)((_rad + M_PI)*2048.0/M_PI);
-}
-
-double ActionModule::w4095ToRad(int _w4095)
-{
-	return (_w4095 - 2048)*M_PI/2048.0;
-}
-
-
-bool ActionModule::VerifyChecksum( ACTION_FILE::PAGE* _page )
-{
-	unsigned char _checksum = 0x00;
-    unsigned char* _pt = (unsigned char*)_page;
-
-    for(unsigned int i = 0; i < sizeof(ACTION_FILE::PAGE); i++)
+  if (present_enable_ == true)
+  {
+    for (std::map<std::string, robotis_framework::Dynamixel *>::iterator _it = dxls.begin(); _it != dxls.end(); _it++)
     {
-        _checksum += *_pt;
-        _pt++;
+      std::string joint_name = _it->first;
+
+      if (result_.find(joint_name) == result_.end())
+        continue;
+      else
+      {
+        result_[joint_name]->goal_position_ = _it->second->dxl_state_->goal_position_;
+      }
     }
+  }
 
-    if(_checksum != 0xff)
-        return false;
+  previous_running_ = present_running_;
+  present_running_ = isRunning();
 
-	return true;
-}
-
-void ActionModule::SetChecksum( ACTION_FILE::PAGE* _page )
-{
-	unsigned char _checksum = 0x00;
-    unsigned char* _pt = (unsigned char*)_page;
-
-    _page->header.checksum = 0x00;
-
-    for(unsigned int i=0; i<sizeof(ACTION_FILE::PAGE); i++)
+  if (present_running_ != previous_running_)
+  {
+    if (present_running_ == true)
     {
-        _checksum += *_pt;
-        _pt++;
+      std::string status_msg = "Action_Start";
+      ROS_INFO_STREAM(status_msg);
+      publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, status_msg);
     }
-
-    _page->header.checksum = (unsigned char)(0xff - _checksum);
-}
-
-
-
-bool ActionModule::LoadFile(char* _file_name)
-{
-	FILE* _action = fopen( _file_name, "r+b" );
-    if( _action == 0 )
-	{
-    	std::string _status_msg = "Can not open Action file!";
-    	ROS_ERROR_STREAM(_status_msg);
-		PublishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, _status_msg);
-        return false;
-	}
-
-    fseek( _action, 0, SEEK_END );
-    if( ftell(_action) != (long)(sizeof(ACTION_FILE::PAGE) * ACTION_FILE::MAXNUM_PAGE) )
+    else
     {
-    	std::string _status_msg = "It's not an Action file!";
-    	ROS_ERROR_STREAM(_status_msg);
-		PublishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, _status_msg);
-        fclose( _action );
-        return false;
+      std::string status_msg = "Action_Finish";
+      ROS_INFO_STREAM(status_msg);
+      publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, status_msg);
     }
+  }
 
-	if(action_file_ != 0)
-		fclose( action_file_ );
-
-	action_file_ = _action;
-	return true;
+  actionPlayProcess(dxls);
 }
 
-bool ActionModule::CreateFile(char* _file_name)
+void ActionModule::stop()
 {
-	FILE* _action = fopen( _file_name, "ab" );
-	if( _action == 0 )
-	{
-		std::string _status_msg = "Can not create Action file!";
-		ROS_ERROR_STREAM(_status_msg);
-		PublishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, _status_msg);
-		return false;
-	}
-
-	ACTION_FILE::PAGE page;
-	ResetPage(&page);
-
-	for(int i=0; i < ACTION_FILE::MAXNUM_PAGE; i++)
-		fwrite((const void *)&page, 1, sizeof(ACTION_FILE::PAGE), _action);
-
-	if(action_file_ != 0)
-		fclose( action_file_ );
-
-	action_file_ = _action;
-
-	return true;
+  stop_playing_ = true;
 }
 
-bool ActionModule::Start(int _page_number)
+bool ActionModule::isRunning()
 {
-	if( _page_number < 1 || _page_number >= ACTION_FILE::MAXNUM_PAGE )
-	{
-
-		std::string _status_msg = "Can not play page.(" + IntToString(_page_number) + " is invalid index)";
-		ROS_ERROR_STREAM(_status_msg);
-		PublishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, _status_msg);
-        return false;
-	}
-
-	ACTION_FILE::PAGE page;
-	if( LoadPage(_page_number, &page) == false )
-        return false;
-
-	return Start(_page_number, &page);
+  return playing_;
 }
 
-bool ActionModule::Start(char* _page_name)
+int ActionModule::radTow4095(double rad)
 {
-	int index;
-	ACTION_FILE::PAGE page;
-
-	for(index=1; index < ACTION_FILE::MAXNUM_PAGE; index++)
-	{
-		if(LoadPage(index, &page) == false)
-			return false;
-
-		if(strcmp(_page_name, (char*)page.header.name) == 0)
-			break;
-	}
-
-	if(index == ACTION_FILE::MAXNUM_PAGE) {
-		std::string _str_name_page = _page_name;
-		std::string _status_msg = "Can not play page.(" + _str_name_page + " is invalid name)\n";
-		ROS_ERROR_STREAM(_status_msg);
-		PublishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, _status_msg);
-        return false;
-	}
-	else
-		return Start(index, &page);
+  return (int) ((rad + M_PI) * 2048.0 / M_PI);
 }
 
-bool ActionModule::Start(int _page_number, ACTION_FILE::PAGE *_page)
+double ActionModule::w4095ToRad(int w4095)
 {
-	if(enable == false)	{
-		std::string _status_msg = "Action Module is disabled";
-		ROS_ERROR_STREAM(_status_msg);
-		PublishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, _status_msg);
-		return false;
-	}
-
-	if(playing_ == true)
-	{
-		std::string _status_msg = "Can not play page " + IntToString(_page_number) + ".(Now playing)";
-		ROS_ERROR_STREAM(_status_msg);
-		PublishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, _status_msg);
-        return false;
-	}
-
-	play_page_ = *_page;
-
-    if( play_page_.header.repeat == 0 || play_page_.header.stepnum == 0 )
-	{
-		std::string _status_msg = "Page " + IntToString(_page_number) + " has no action\n";
-		ROS_ERROR_STREAM(_status_msg);
-		PublishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, _status_msg);
-        return false;
-	}
-
-    play_page_idx_ = _page_number;
-    first_driving_start_ = true;
-    playing_ = true;
-
-	return true;
+  return (w4095 - 2048) * M_PI / 2048.0;
 }
 
-void ActionModule::Brake()
+bool ActionModule::verifyChecksum(action_file_define::PAGE* page)
 {
-	playing_ = false;
+  unsigned char checksum = 0x00;
+  unsigned char* pt = (unsigned char*) page;
+
+  for (unsigned int i = 0; i < sizeof(action_file_define::PAGE); i++)
+  {
+    checksum += *pt;
+    pt++;
+  }
+
+  if (checksum != 0xff)
+    return false;
+
+  return true;
 }
 
-bool ActionModule::IsRunning(int* _playing_page_num, int* _playing_step_num)
+void ActionModule::setChecksum(action_file_define::PAGE* page)
 {
-	if(_playing_page_num != 0)
-		*_playing_page_num = play_page_idx_;
+  unsigned char checksum = 0x00;
+  unsigned char* pt = (unsigned char*) page;
 
-	if(_playing_step_num != 0)
-		*_playing_step_num = page_step_count_ - 1;
+  page->header.checksum = 0x00;
 
-	return IsRunning();
+  for (unsigned int i = 0; i < sizeof(action_file_define::PAGE); i++)
+  {
+    checksum += *pt;
+    pt++;
+  }
+
+  page->header.checksum = (unsigned char) (0xff - checksum);
 }
 
-bool ActionModule::LoadPage(int _page_number, ACTION_FILE::PAGE* _page)
+bool ActionModule::loadFile(char* file_name)
 {
-	long position = (long)(sizeof(ACTION_FILE::PAGE)*_page_number);
+  FILE* action_file = fopen(file_name, "r+b");
+  if (action_file == 0)
+  {
+    std::string status_msg = "Can not open Action file!";
+    ROS_ERROR_STREAM(status_msg);
+    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
+    return false;
+  }
 
-    if( fseek( action_file_, position, SEEK_SET ) != 0 )
-        return false;
+  fseek(action_file, 0, SEEK_END);
+  if (ftell(action_file) != (long) (sizeof(action_file_define::PAGE) * action_file_define::MAXNUM_PAGE))
+  {
+    std::string status_msg = "It's not an Action file!";
+    ROS_ERROR_STREAM(status_msg);
+    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
+    fclose(action_file);
+    return false;
+  }
 
-    if( fread( _page, 1, sizeof(ACTION_FILE::PAGE), action_file_ ) != sizeof(ACTION_FILE::PAGE) )
-        return false;
+  if (action_file_ != 0)
+    fclose(action_file_);
 
-    if( VerifyChecksum( _page ) == false )
-        ResetPage( _page );
-
-	return true;
+  action_file_ = action_file;
+  return true;
 }
 
-bool ActionModule::SavePage(int _page_number, ACTION_FILE::PAGE* _page)
+bool ActionModule::createFile(char* file_name)
 {
-	long position = (long)(sizeof(ACTION_FILE::PAGE)*_page_number);
+  FILE* action_file = fopen(file_name, "ab");
+  if (action_file == 0)
+  {
+    std::string status_msg = "Can not create Action file!";
+    ROS_ERROR_STREAM(status_msg);
+    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
+    return false;
+  }
 
-	if( VerifyChecksum(_page) == false )
-        SetChecksum(_page);
+  action_file_define::PAGE page;
+  resetPage(&page);
 
-    if( fseek( action_file_, position, SEEK_SET ) != 0 )
-        return false;
+  for (int i = 0; i < action_file_define::MAXNUM_PAGE; i++)
+    fwrite((const void *) &page, 1, sizeof(action_file_define::PAGE), action_file);
 
-    if( fwrite( _page, 1, sizeof(ACTION_FILE::PAGE), action_file_ ) != sizeof(ACTION_FILE::PAGE) )
-        return false;
+  if (action_file_ != 0)
+    fclose(action_file_);
 
-	return true;
+  action_file_ = action_file;
+
+  return true;
 }
 
-void ActionModule::ResetPage(ACTION_FILE::PAGE *_page)
+bool ActionModule::startAction(int page_number)
 {
-	unsigned char *pt = (unsigned char*)_page;
+  if (page_number < 1 || page_number >= action_file_define::MAXNUM_PAGE)
+  {
 
-    for(unsigned int i=0; i<sizeof(ACTION_FILE::PAGE); i++)
-    {
-        *pt = 0x00;
-        pt++;
-    }
+    std::string status_msg = "Can not play page.(" + convertIntToString(page_number) + " is invalid index)";
+    ROS_ERROR_STREAM(status_msg);
+    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
+    return false;
+  }
 
-    _page->header.schedule = ACTION_FILE::TIME_BASE_SCHEDULE; // default time base
-    _page->header.repeat = 1;
-    _page->header.speed = 32;
-    _page->header.accel = 32;
+  action_file_define::PAGE page;
+  if (loadPage(page_number, &page) == false)
+    return false;
 
-	for(int i=0; i < 38; i++)
-		_page->header.pgain[i] = 0x55;
-
-    for(int i=0; i < ACTION_FILE::MAXNUM_STEP; i++)
-    {
-        for(int j=0; j < 38; j++)
-            _page->step[i].position[j] = ACTION_FILE::INVALID_BIT_MASK;
-
-        _page->step[i].pause = 0;
-        _page->step[i].time = 0;
-    }
-
-    SetChecksum( _page );
+  return startAction(page_number, &page);
 }
 
-void ActionModule::ActionPlayProcess(std::map<std::string, Dynamixel *> dxls)
+bool ActionModule::startAction(char* page_name)
 {
-	//////////////////// Local variable
-    unsigned char bID;
-    unsigned long ulTotalTime256T;
-    unsigned long ulPreSectionTime256T;
-    unsigned long ulMainTime256T;
-    long lStartSpeed1024_PreTime_256T;
-    long lMovingAngle_Speed1024Scale_256T_2T;
-    long lDivider1,lDivider2;
-    //unsigned short
-    int wMaxAngle1024;
-    int wMaxSpeed256;
-    int wTmp;
-    int wPrevTargetAngle; // Start position
-    int wCurrentTargetAngle; // Target position
-    int wNextTargetAngle; // Next target position
-    unsigned char bDirectionChanged;
+  int index;
+  action_file_define::PAGE page;
 
-    ///////////////// Static variable
-	static unsigned short wpStartAngle1024[ACTION_FILE::MAXNUM_JOINTS]; // Starting point of interpolation
-    static unsigned short wpTargetAngle1024[ACTION_FILE::MAXNUM_JOINTS]; // Target point of interpolation
-    static short int ipMovingAngle1024[ACTION_FILE::MAXNUM_JOINTS]; // Total moving angle
-    static short int ipMainAngle1024[ACTION_FILE::MAXNUM_JOINTS]; // Moving angle of constant velocity
-    static short int ipAccelAngle1024[ACTION_FILE::MAXNUM_JOINTS]; // Moving anble of acceleration
-    static short int ipMainSpeed1024[ACTION_FILE::MAXNUM_JOINTS]; // Target constant velocity
-    static short int ipLastOutSpeed1024[ACTION_FILE::MAXNUM_JOINTS]; // Velocity of last state
-    static short int ipGoalSpeed1024[ACTION_FILE::MAXNUM_JOINTS]; // Target velocity
-    static unsigned char bpFinishType[ACTION_FILE::MAXNUM_JOINTS]; // Condition of target angle
-    short int iSpeedN;
-    static unsigned short wUnitTimeCount;
-    static unsigned short wUnitTimeNum;
-    static unsigned short wPauseTime;
-    static unsigned short wUnitTimeTotalNum;
-    static unsigned short wAccelStep;
-    static unsigned char bSection;
-    static unsigned char bPlayRepeatCount;
-    static unsigned short wNextPlayPage;
+  for (index = 1; index < action_file_define::MAXNUM_PAGE; index++)
+  {
+    if (loadPage(index, &page) == false)
+      return false;
 
-    /////////////// Enum  variable
+    if (strcmp(page_name, (char*) page.header.name) == 0)
+      break;
+  }
 
-    /**************************************
-    * Section             /----\
+  if (index == action_file_define::MAXNUM_PAGE)
+  {
+    std::string str_name_page = page_name;
+    std::string status_msg = "Can not play page.(" + str_name_page + " is invalid name)\n";
+    ROS_ERROR_STREAM(status_msg);
+    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
+    return false;
+  }
+  else
+    return startAction(index, &page);
+}
+
+bool ActionModule::startAction(int page_number, action_file_define::PAGE *page)
+{
+  if (enable_ == false)
+  {
+    std::string status_msg = "Action Module is disabled";
+    ROS_ERROR_STREAM(status_msg);
+    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
+    return false;
+  }
+
+  if (playing_ == true)
+  {
+    std::string status_msg = "Can not play page " + convertIntToString(page_number) + ".(Now playing)";
+    ROS_ERROR_STREAM(status_msg);
+    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
+    return false;
+  }
+
+  play_page_ = *page;
+
+  if (play_page_.header.repeat == 0 || play_page_.header.stepnum == 0)
+  {
+    std::string status_msg = "Page " + convertIntToString(page_number) + " has no action\n";
+    ROS_ERROR_STREAM(status_msg);
+    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
+    return false;
+  }
+
+  play_page_idx_ = page_number;
+  first_driving_start_ = true;
+  playing_ = true;
+
+  return true;
+}
+
+void ActionModule::brakeAction()
+{
+  playing_ = false;
+}
+
+bool ActionModule::isRunning(int* playing_page_num, int* playing_step_num)
+{
+  if (playing_page_num != 0)
+    *playing_page_num = play_page_idx_;
+
+  if (playing_step_num != 0)
+    *playing_step_num = page_step_count_ - 1;
+
+  return isRunning();
+}
+
+bool ActionModule::loadPage(int page_number, action_file_define::PAGE* page)
+{
+  long position = (long) (sizeof(action_file_define::PAGE) * page_number);
+
+  if (fseek(action_file_, position, SEEK_SET) != 0)
+    return false;
+
+  if (fread(page, 1, sizeof(action_file_define::PAGE), action_file_) != sizeof(action_file_define::PAGE))
+    return false;
+
+  if (verifyChecksum(page) == false)
+    resetPage(page);
+
+  return true;
+}
+
+bool ActionModule::savePage(int page_number, action_file_define::PAGE* page)
+{
+  long position = (long) (sizeof(action_file_define::PAGE) * page_number);
+
+  if (verifyChecksum(page) == false)
+    setChecksum(page);
+
+  if (fseek(action_file_, position, SEEK_SET) != 0)
+    return false;
+
+  if (fwrite(page, 1, sizeof(action_file_define::PAGE), action_file_) != sizeof(action_file_define::PAGE))
+    return false;
+
+  return true;
+}
+
+void ActionModule::resetPage(action_file_define::PAGE *page)
+{
+  unsigned char *pt = (unsigned char*) page;
+
+  for (unsigned int i = 0; i < sizeof(action_file_define::PAGE); i++)
+  {
+    *pt = 0x00;
+    pt++;
+  }
+
+  page->header.schedule = action_file_define::TIME_BASE_SCHEDULE;  // default time base
+  page->header.repeat = 1;
+  page->header.speed = 32;
+  page->header.accel = 32;
+
+  for (int i = 0; i < 38; i++)
+    page->header.pgain[i] = 0x55;
+
+  for (int i = 0; i < action_file_define::MAXNUM_STEP; i++)
+  {
+    for (int j = 0; j < 38; j++)
+      page->step[i].position[j] = action_file_define::INVALID_BIT_MASK;
+
+    page->step[i].pause = 0;
+    page->step[i].time = 0;
+  }
+
+  setChecksum(page);
+}
+
+void ActionModule::actionPlayProcess(std::map<std::string, robotis_framework::Dynamixel *> dxls)
+{
+  //////////////////// Local variable
+  unsigned char id;
+  unsigned long total_time_256t;
+  unsigned long pre_section_time_256t;
+  unsigned long main_time_256t;
+  long start_speed1024_pre_time_256t;
+  long moving_angle_speed1024_scale_time_256t_2t;
+  long divider1, divider2;
+  //unsigned short
+  int max_angle1024;
+  int max_speed;
+  int tmp;
+  int prev_target_angle;  // Start position
+  int curr_target_angle;  // Target position
+  int next_target_angle;  // Next target position
+  unsigned char direction_changed;
+
+  ///////////////// Static variable
+  static unsigned short start_angle1024[action_file_define::MAXNUM_JOINTS];  // Starting point of interpolation
+  static unsigned short target_angle1024[action_file_define::MAXNUM_JOINTS];  // Target point of interpolation
+  static short int moving_angle1024[action_file_define::MAXNUM_JOINTS];  // Total moving angle
+  static short int main_angle1024[action_file_define::MAXNUM_JOINTS];  // Moving angle of constant velocity
+  static short int accel_angle1024[action_file_define::MAXNUM_JOINTS];  // Moving anble of acceleration
+  static short int main_speed1024[action_file_define::MAXNUM_JOINTS];  // Target constant velocity
+  static short int last_out_speed1024[action_file_define::MAXNUM_JOINTS];  // Velocity of last state
+  static short int goal_speed1024[action_file_define::MAXNUM_JOINTS];  // Target velocity
+  static unsigned char finish_type[action_file_define::MAXNUM_JOINTS];  // Condition of target angle
+
+  short int speed_n;
+  static unsigned short unit_time_count;
+  static unsigned short unit_time_num;
+  static unsigned short pause_time;
+  static unsigned short unit_time_total_num;
+  static unsigned short accel_step;
+  static unsigned char section;
+  static unsigned char play_repeat_count;
+  static unsigned short next_play_page;
+
+  /////////////// Const Variable
+  /**************************************
+   * Section             /----\
     *                    /|    |\
     *        /+---------/ |    | \
     *       / |        |  |    |  \
     * -----/  |        |  |    |   \----
-    *      PRE  MAIN   PRE MAIN POST PAUSE
-    ***************************************/
-    enum{ PRE_SECTION, MAIN_SECTION, POST_SECTION, PAUSE_SECTION };
-    enum{ ZERO_FINISH, NONE_ZERO_FINISH};
+   *      PRE  MAIN   PRE MAIN POST PAUSE
+   ***************************************/
 
-    if( playing_ == false )
-        return;
+  if (playing_ == false)
+    return;
 
-    if( first_driving_start_ == true ) // First start
+  if (first_driving_start_ == true)  // First start
+  {
+    first_driving_start_ = false;  //First Process end
+    playing_finished = false;
+    stop_playing_ = false;
+    unit_time_count = 0;
+    unit_time_num = 0;
+    pause_time = 0;
+    section = PAUSE_SECTION;
+    page_step_count_ = 0;
+    play_repeat_count = play_page_.header.repeat;
+    next_play_page = 0;
+
+    for (unsigned int joint_index = 0; joint_index < action_file_define::MAXNUM_JOINTS; joint_index++)
     {
-        first_driving_start_ = false; //First Process end
-        playing_finished = false;
-		stop_playing_ = false;
-        wUnitTimeCount = 0;
-        wUnitTimeNum = 0;
-        wPauseTime = 0;
-        bSection = PAUSE_SECTION;
-        page_step_count_ = 0;
-        bPlayRepeatCount = play_page_.header.repeat;
-        wNextPlayPage = 0;
+      id = joint_index;
+      std::string joint_name = "";
 
+      if (joint_id_to_name_.find(id) == joint_id_to_name_.end())
+        continue;
+      else
+        joint_name = joint_id_to_name_[id];
 
-		for(unsigned int _jointIndex = 0; _jointIndex < ACTION_FILE::MAXNUM_JOINTS; _jointIndex++)
-		{
-			bID = _jointIndex;
-			std::string _joint_name = "";
-
-			if(joint_id_to_name_.find(bID) == joint_id_to_name_.end())
-				continue;
-			else
-				_joint_name = joint_id_to_name_[bID];
-
-			if(dxls.find(_joint_name) == dxls.end())
-				continue;
-			else {
-				double _goal_joint_angle_rad = dxls[joint_id_to_name_[bID]]->dxl_state->goal_position;
-				wpTargetAngle1024[bID] = RadTow4095(_goal_joint_angle_rad);
-				ipLastOutSpeed1024[bID] = 0;
-				ipMovingAngle1024[bID] = 0;
-				ipGoalSpeed1024[bID] = 0;
-			}
-		}
+      if (dxls.find(joint_name) == dxls.end())
+        continue;
+      else
+      {
+        double _goal_joint_angle_rad = dxls[joint_id_to_name_[id]]->dxl_state_->goal_position_;
+        target_angle1024[id] = radTow4095(_goal_joint_angle_rad);
+        last_out_speed1024[id] = 0;
+        moving_angle1024[id] = 0;
+        goal_speed1024[id] = 0;
+      }
     }
+  }
 
-
-    if( wUnitTimeCount < wUnitTimeNum ) // Ongoing
+  if (unit_time_count < unit_time_num)  // Ongoing
+  {
+    unit_time_count++;
+    if (section == PAUSE_SECTION)
     {
-        wUnitTimeCount++;
-        if( bSection == PAUSE_SECTION )
+    }
+    else
+    {
+      for (unsigned int joint_index = 0; joint_index < action_file_define::MAXNUM_JOINTS; joint_index++)
+      {
+        id = joint_index;
+        std::string joint_name = "";
+
+        if (joint_id_to_name_.find(id) == joint_id_to_name_.end())
+          continue;
+        else
+          joint_name = joint_id_to_name_[id];
+
+        if (dxls.find(joint_name) == dxls.end())
         {
+          continue;
         }
         else
         {
-            for(unsigned int _jointIndex = 0; _jointIndex < ACTION_FILE::MAXNUM_JOINTS; _jointIndex++ )
+          if (moving_angle1024[id] == 0)
+          {
+            result_[joint_name]->goal_position_ = w4095ToRad(start_angle1024[id]);
+          }
+          else
+          {
+            if (section == PRE_SECTION)
             {
-				bID = _jointIndex;
-				std::string _joint_name = "";
+              speed_n = (short) (((long) (main_speed1024[id] - last_out_speed1024[id]) * unit_time_count)
+                  / unit_time_num);
+              goal_speed1024[id] = last_out_speed1024[id] + speed_n;
+              accel_angle1024[id] = (short) ((((long) (last_out_speed1024[id] + (speed_n >> 1)) * unit_time_count * 144)
+                  / 15) >> 9);
 
-				if(joint_id_to_name_.find(bID) == joint_id_to_name_.end())
-					continue;
-				else
-					_joint_name = joint_id_to_name_[bID];
-
-				if(dxls.find(_joint_name) == dxls.end())
-				{
-					continue;
-				}
-				else
-				{
-					if( ipMovingAngle1024[bID] == 0 )
-					{
-						result[_joint_name]->goal_position = w4095ToRad(wpStartAngle1024[bID]);
-					}
-					else
-					{
-						if( bSection == PRE_SECTION )
-						{
-							iSpeedN = (short)( ( (long)(ipMainSpeed1024[bID] - ipLastOutSpeed1024[bID]) * wUnitTimeCount ) / wUnitTimeNum );
-							ipGoalSpeed1024[bID] = ipLastOutSpeed1024[bID] + iSpeedN;
-							ipAccelAngle1024[bID] =  (short)( ( ( (long)( ipLastOutSpeed1024[bID] + (iSpeedN >> 1) ) * wUnitTimeCount * 144 ) / 15 ) >> 9);
-
-							result[_joint_name]->goal_position = w4095ToRad(wpStartAngle1024[bID] + ipAccelAngle1024[bID]);
-						}
-						else if( bSection == MAIN_SECTION )
-						{
-							result[_joint_name]->goal_position	= w4095ToRad(wpStartAngle1024[bID] + (short int)(((long)(ipMainAngle1024[bID])*wUnitTimeCount) / wUnitTimeNum));
-
-							ipGoalSpeed1024[bID] = ipMainSpeed1024[bID];
-						}
-						else // POST_SECTION
-						{
-							if( wUnitTimeCount == (wUnitTimeNum-1) )
-							{
-								// use target angle in order to reduce the last step error
-								result[_joint_name]->goal_position	= w4095ToRad(wpTargetAngle1024[bID]);
-							}
-							else
-							{
-								if( bpFinishType[bID] == ZERO_FINISH )
-								{
-									iSpeedN = (short int)(((long)(0 - ipLastOutSpeed1024[bID]) * wUnitTimeCount) / wUnitTimeNum);
-									ipGoalSpeed1024[bID] = ipLastOutSpeed1024[bID] + iSpeedN;
-
-									result[_joint_name]->goal_position
-									= w4095ToRad(wpStartAngle1024[bID] +  (short)((((long)(ipLastOutSpeed1024[bID] + (iSpeedN>>1)) * wUnitTimeCount * 144) / 15) >> 9));
-
-								}
-								else // NONE_ZERO_FINISH
-								{
-									// same as MAIN Section
-									// some servors are moving, others aren't in this step
-									result[_joint_name]->goal_position
-									= w4095ToRad(wpStartAngle1024[bID] + (short int)(((long)(ipMainAngle1024[bID]) * wUnitTimeCount) / wUnitTimeNum));
-
-									ipGoalSpeed1024[bID] = ipMainSpeed1024[bID];
-								}
-							}
-						}
-					}
-
-                    // gains are excepted
-                    // result[_joint_name]->position_p_gain = ( 256 >> (play_page_.header.pgain[bID] >> 4) ) << 2 ;
-				}
-			}
-		}
-	}
-    else if( wUnitTimeCount >= wUnitTimeNum ) // Current section is completed
-    {
-        wUnitTimeCount = 0;
-
-        for(unsigned int _jointIndex = 0; _jointIndex < ACTION_FILE::MAXNUM_JOINTS; _jointIndex++)
-        {
-			bID = _jointIndex;
-			std::string _joint_name = "";
-
-			if(joint_id_to_name_.find(bID) == joint_id_to_name_.end())
-				continue;
-			else
-				_joint_name = joint_id_to_name_[bID];
-
-			if(dxls.find(_joint_name) == dxls.end())
-				continue;
-			else {
-				double _goal_joint_angle_rad = dxls[joint_id_to_name_[bID]]->dxl_state->goal_position;
-				wpStartAngle1024[bID] = RadTow4095(_goal_joint_angle_rad);
-				ipLastOutSpeed1024[bID] = ipGoalSpeed1024[bID];
-			}
-        }
-
-        // Update section ( PRE -> MAIN -> POST -> (PAUSE or PRE) ... )
-        if( bSection == PRE_SECTION )
-        {
-            // Prepare for MAIN Section
-            bSection = MAIN_SECTION;
-            wUnitTimeNum =  wUnitTimeTotalNum - (wAccelStep << 1);
-
-            for(unsigned int _jointIndex = 0; _jointIndex < ACTION_FILE::MAXNUM_JOINTS; _jointIndex++)
-			{
-				bID = _jointIndex;
-
-				if( bpFinishType[bID] == NONE_ZERO_FINISH )
-				{
-					if( (wUnitTimeTotalNum - wAccelStep) == 0 ) // No point of constant velocity
-						ipMainAngle1024[bID] = 0;
-					else
-						ipMainAngle1024[bID] = (short)((((long)(ipMovingAngle1024[bID] - ipAccelAngle1024[bID])) * wUnitTimeNum) / (wUnitTimeTotalNum - wAccelStep));
-				}
-				else // ZERO_FINISH
-					ipMainAngle1024[bID] = ipMovingAngle1024[bID] - ipAccelAngle1024[bID] - (short int)((((long)ipMainSpeed1024[bID] * wAccelStep * 12) / 5) >> 8);
-			}
-        }
-        else if( bSection == MAIN_SECTION )
-        {
-            // Prepare for POST Section
-            bSection = POST_SECTION;
-            wUnitTimeNum = wAccelStep;
-
-            for(unsigned int _jointIndex = 0; _jointIndex < ACTION_FILE::MAXNUM_JOINTS; _jointIndex++)
-			{
-				bID = _jointIndex;
-				ipMainAngle1024[bID] = ipMovingAngle1024[bID] - ipMainAngle1024[bID] - ipAccelAngle1024[bID];
-			}
-        }
-        else if( bSection == POST_SECTION )
-        {
-            // Pause time
-            if( wPauseTime )
-            {
-                bSection = PAUSE_SECTION;
-                wUnitTimeNum = wPauseTime;
+              result_[joint_name]->goal_position_ = w4095ToRad(start_angle1024[id] + accel_angle1024[id]);
             }
-            else
+            else if (section == MAIN_SECTION)
             {
-                bSection = PRE_SECTION;
+              result_[joint_name]->goal_position_ = w4095ToRad(
+                  start_angle1024[id] + (short int) (((long) (main_angle1024[id]) * unit_time_count) / unit_time_num));
+
+              goal_speed1024[id] = main_speed1024[id];
             }
-        }
-        else if( bSection == PAUSE_SECTION )
-        {
-            // Prepare for PRE Section
-            bSection = PRE_SECTION;
-
-            for(unsigned int _jointIndex = 0; _jointIndex < ACTION_FILE::MAXNUM_JOINTS; _jointIndex++)
-			{
-            	bID = _jointIndex;
-				ipLastOutSpeed1024[bID] = 0;
-			}
-        }
-
-        // Ready for all in PRE Section
-        if( bSection == PRE_SECTION )
-        {
-            if( playing_finished == true ) // if motion is finished
+            else  // POST_SECTION
             {
-                playing_ = false;
-                return;
-            }
-
-            page_step_count_++;
-
-            if( page_step_count_ > play_page_.header.stepnum ) // If motion playing of present page is finished
-            {
-                // copy next page
-                play_page_ = next_play_page_;
-                if( play_page_idx_ != wNextPlayPage )
-                    bPlayRepeatCount = play_page_.header.repeat;
-                page_step_count_ = 1;
-                play_page_idx_ = wNextPlayPage;
-            }
-
-            if( page_step_count_ == play_page_.header.stepnum ) // If this is last step
-            {
-                // load next page
-                if( stop_playing_ == true ) // STOP command
+              if (unit_time_count == (unit_time_num - 1))
+              {
+                // use target angle in order to reduce the last step error
+                result_[joint_name]->goal_position_ = w4095ToRad(target_angle1024[id]);
+              }
+              else
+              {
+                if (finish_type[id] == ZERO_FINISH)
                 {
-                    wNextPlayPage = play_page_.header.exit; // Go to Exit page
-                }
-                else
-                {
-                    bPlayRepeatCount--;
-                    if( bPlayRepeatCount > 0 ) // if repeat count is remained
-                        wNextPlayPage = play_page_idx_; // Set next page to present page
-                    else // Complete repeat
-                        wNextPlayPage = play_page_.header.next; // set next page
-                }
+                  speed_n = (short int) (((long) (0 - last_out_speed1024[id]) * unit_time_count) / unit_time_num);
+                  goal_speed1024[id] = last_out_speed1024[id] + speed_n;
 
-                if( wNextPlayPage == 0 ) // If next page don't exist
-                    playing_finished = true;
-                else
-                {
-                    // load next page
-                    if( play_page_idx_ != wNextPlayPage )
-                        LoadPage( wNextPlayPage, &next_play_page_ );
-                    else
-                        next_play_page_ = play_page_;
+                  result_[joint_name]->goal_position_ = w4095ToRad(
+                      start_angle1024[id]
+                          + (short) ((((long) (last_out_speed1024[id] + (speed_n >> 1)) * unit_time_count * 144) / 15)
+                              >> 9));
 
-                    // If next page doesn't have information for playing action, Process will be finished.
-                    if( next_play_page_.header.repeat == 0 || next_play_page_.header.stepnum == 0 )
-                        playing_finished = true;
                 }
+                else  // NONE_ZERO_FINISH
+                {
+                  // same as MAIN Section
+                  // some servors are moving, others aren't in this step
+                  result_[joint_name]->goal_position_ = w4095ToRad(
+                      start_angle1024[id]
+                          + (short int) (((long) (main_angle1024[id]) * unit_time_count) / unit_time_num));
+
+                  goal_speed1024[id] = main_speed1024[id];
+                }
+              }
             }
+          }
 
-            //////// Calculate Step parameter
-            wPauseTime = (((unsigned short)play_page_.step[page_step_count_-1].pause) << 5) / play_page_.header.speed;
-            wMaxSpeed256 = ((unsigned short)play_page_.step[page_step_count_-1].time * (unsigned short)play_page_.header.speed) >> 5;
-            if( wMaxSpeed256 == 0 )
-                wMaxSpeed256 = 1;
-            wMaxAngle1024 = 0;
-
-            ////////// Calculate parameter of Joint
-            for(unsigned int _jointIndex = 0; _jointIndex < ACTION_FILE::MAXNUM_JOINTS; _jointIndex++)
-			{
-				bID = _jointIndex;
-				// calculate the trajectory on the basis of previous, present and future
-				ipAccelAngle1024[bID] = 0;
-
-				// Find current target angle
-				if( play_page_.step[page_step_count_-1].position[bID] & ACTION_FILE::INVALID_BIT_MASK )
-					wCurrentTargetAngle = wpTargetAngle1024[bID];
-				else
-					wCurrentTargetAngle = play_page_.step[page_step_count_-1].position[bID];
-
-				// Update start, prev_target, curr_target
-				wpStartAngle1024[bID] = wpTargetAngle1024[bID];
-				wPrevTargetAngle = wpTargetAngle1024[bID];
-				wpTargetAngle1024[bID] = wCurrentTargetAngle;
-
-				// Find Moving offset
-				ipMovingAngle1024[bID] = (int)(wpTargetAngle1024[bID] - wpStartAngle1024[bID]);
-
-				// Find Next target angle
-				if( page_step_count_ == play_page_.header.stepnum ) // If current step is the last one
-				{
-					if( playing_finished == true ) // Finished
-						wNextTargetAngle = wCurrentTargetAngle;
-					else
-					{
-						if( next_play_page_.step[0].position[bID] & ACTION_FILE::INVALID_BIT_MASK )
-							wNextTargetAngle = wCurrentTargetAngle;
-						else
-							wNextTargetAngle = next_play_page_.step[0].position[bID];
-					}
-				}
-				else
-				{
-					if( play_page_.step[page_step_count_].position[bID] & ACTION_FILE::INVALID_BIT_MASK )
-						wNextTargetAngle = wCurrentTargetAngle;
-					else
-						wNextTargetAngle = play_page_.step[page_step_count_].position[bID];
-				}
-
-				// Find direction change
-				if( ((wPrevTargetAngle < wCurrentTargetAngle) && (wCurrentTargetAngle < wNextTargetAngle))
-					|| ((wPrevTargetAngle > wCurrentTargetAngle) && (wCurrentTargetAngle > wNextTargetAngle)) )
-				{
-					// same direction
-					bDirectionChanged = 0;
-				}
-				else
-				{
-					bDirectionChanged = 1;
-				}
-
-				// Find finish type
-				if( bDirectionChanged || wPauseTime || playing_finished == true )
-				{
-					bpFinishType[bID] = ZERO_FINISH;
-				}
-				else
-				{
-					bpFinishType[bID] = NONE_ZERO_FINISH;
-				}
-
-				if( play_page_.header.schedule == ACTION_FILE::SPEED_BASE_SCHEDULE )
-				{
-					//MaxAngle1024 update
-					if( ipMovingAngle1024[bID] < 0 )
-						wTmp = -ipMovingAngle1024[bID];
-					else
-						wTmp = ipMovingAngle1024[bID];
-
-					if( wTmp > wMaxAngle1024 )
-						wMaxAngle1024 = wTmp;
-				}
-
-			}
-
-            // Unit count of total moving time (one unit time : 7.8ms)
-            // Transformation --- Angle : 1024 unit -> 300 unit, Velocity : 256 unit -> 720 unit
-            // wUnitTimeNum = ((wMaxAngle1024*300/1024) /(wMaxSpeed256 * 720/256)) /7.8msec;
-            //             = ((128*wMaxAngle1024*300/1024) /(wMaxSpeed256 * 720/256)) ;    (/7.8msec == *128)
-            //             = (wMaxAngle1024*40) /(wMaxSpeed256 *3);
-            if( play_page_.header.schedule == ACTION_FILE::TIME_BASE_SCHEDULE )
-                wUnitTimeTotalNum  = wMaxSpeed256; //TIME BASE 051025
-            else
-                wUnitTimeTotalNum  = (wMaxAngle1024 * 40) / (wMaxSpeed256 * 3);
-
-            wAccelStep = play_page_.header.accel;
-            if( wUnitTimeTotalNum <= (wAccelStep << 1) )
-            {
-                if( wUnitTimeTotalNum == 0 )
-                    wAccelStep = 0;
-                else
-                {
-                    wAccelStep = (wUnitTimeTotalNum - 1) >> 1;
-                    if( wAccelStep == 0 )
-                        wUnitTimeTotalNum = 0; // Acceleration and constant velocity steps have to be more than one in order to move
-                }
-            }
-
-            ulTotalTime256T = ((unsigned long)wUnitTimeTotalNum) << 1;// /128 * 256
-            ulPreSectionTime256T = ((unsigned long)wAccelStep) << 1;// /128 * 256
-            ulMainTime256T = ulTotalTime256T - ulPreSectionTime256T;
-            lDivider1 = ulPreSectionTime256T + (ulMainTime256T << 1);
-            lDivider2 = (ulMainTime256T << 1);
-
-            if(lDivider1 == 0)
-                lDivider1 = 1;
-
-            if(lDivider2 == 0)
-                lDivider2 = 1;
-
-            for(unsigned int _jointIndex = 0; _jointIndex < ACTION_FILE::MAXNUM_JOINTS; _jointIndex++)
-			{
-				bID = _jointIndex;
-				lStartSpeed1024_PreTime_256T = (long)ipLastOutSpeed1024[bID] * ulPreSectionTime256T; //  *300/1024 * 1024/720 * 256 * 2
-				lMovingAngle_Speed1024Scale_256T_2T = (((long)ipMovingAngle1024[bID]) * 2560L) / 12;
-
-				if( bpFinishType[bID] == ZERO_FINISH )
-					ipMainSpeed1024[bID] = (short int)((lMovingAngle_Speed1024Scale_256T_2T - lStartSpeed1024_PreTime_256T) / lDivider2);
-				else
-					ipMainSpeed1024[bID] = (short int)((lMovingAngle_Speed1024Scale_256T_2T - lStartSpeed1024_PreTime_256T) / lDivider1);
-
-				if( ipMainSpeed1024[bID] > 1023 )
-					ipMainSpeed1024[bID] = 1023;
-
-				if( ipMainSpeed1024[bID] < -1023 )
-					ipMainSpeed1024[bID] = -1023;
-
-			}
-            wUnitTimeNum = wAccelStep; //PreSection
+          // gains are excepted
+          // result[_joint_name]->position_p_gain = ( 256 >> (play_page_.header.pgain[bID] >> 4) ) << 2 ;
         }
+      }
     }
+  }
+  else if (unit_time_count >= unit_time_num)  // Current section is completed
+  {
+    unit_time_count = 0;
+
+    for (unsigned int joint_index = 0; joint_index < action_file_define::MAXNUM_JOINTS; joint_index++)
+    {
+      id = joint_index;
+      std::string joint_name = "";
+
+      if (joint_id_to_name_.find(id) == joint_id_to_name_.end())
+        continue;
+      else
+        joint_name = joint_id_to_name_[id];
+
+      if (dxls.find(joint_name) == dxls.end())
+        continue;
+      else
+      {
+        double goal_joint_angle_rad = dxls[joint_id_to_name_[id]]->dxl_state_->goal_position_;
+        start_angle1024[id] = radTow4095(goal_joint_angle_rad);
+        last_out_speed1024[id] = goal_speed1024[id];
+      }
+    }
+
+    // Update section ( PRE -> MAIN -> POST -> (PAUSE or PRE) ... )
+    if (section == PRE_SECTION)
+    {
+      // Prepare for MAIN Section
+      section = MAIN_SECTION;
+      unit_time_num = unit_time_total_num - (accel_step << 1);
+
+      for (unsigned int joint_index = 0; joint_index < action_file_define::MAXNUM_JOINTS; joint_index++)
+      {
+        id = joint_index;
+
+        if (finish_type[id] == NONE_ZERO_FINISH)
+        {
+          if ((unit_time_total_num - accel_step) == 0)  // No point of constant velocity
+            main_angle1024[id] = 0;
+          else
+            main_angle1024[id] = (short) ((((long) (moving_angle1024[id] - accel_angle1024[id])) * unit_time_num)
+                / (unit_time_total_num - accel_step));
+        }
+        else
+          // ZERO_FINISH
+          main_angle1024[id] = moving_angle1024[id] - accel_angle1024[id]
+              - (short int) ((((long) main_speed1024[id] * accel_step * 12) / 5) >> 8);
+      }
+    }
+    else if (section == MAIN_SECTION)
+    {
+      // Prepare for POST Section
+      section = POST_SECTION;
+      unit_time_num = accel_step;
+
+      for (unsigned int joint_index = 0; joint_index < action_file_define::MAXNUM_JOINTS; joint_index++)
+      {
+        id = joint_index;
+        main_angle1024[id] = moving_angle1024[id] - main_angle1024[id] - accel_angle1024[id];
+      }
+    }
+    else if (section == POST_SECTION)
+    {
+      // Pause time
+      if (pause_time)
+      {
+        section = PAUSE_SECTION;
+        unit_time_num = pause_time;
+      }
+      else
+      {
+        section = PRE_SECTION;
+      }
+    }
+    else if (section == PAUSE_SECTION)
+    {
+      // Prepare for PRE Section
+      section = PRE_SECTION;
+
+      for (unsigned int joint_index = 0; joint_index < action_file_define::MAXNUM_JOINTS; joint_index++)
+      {
+        id = joint_index;
+        last_out_speed1024[id] = 0;
+      }
+    }
+
+    // Ready for all in PRE Section
+    if (section == PRE_SECTION)
+    {
+      if (playing_finished == true)  // if motion is finished
+      {
+        playing_ = false;
+        return;
+      }
+
+      page_step_count_++;
+
+      if (page_step_count_ > play_page_.header.stepnum)  // If motion playing of present page is finished
+      {
+        // copy next page
+        play_page_ = next_play_page_;
+        if (play_page_idx_ != next_play_page)
+          play_repeat_count = play_page_.header.repeat;
+        page_step_count_ = 1;
+        play_page_idx_ = next_play_page;
+      }
+
+      if (page_step_count_ == play_page_.header.stepnum)  // If this is last step
+      {
+        // load next page
+        if (stop_playing_ == true)  // STOP command
+        {
+          next_play_page = play_page_.header.exit;  // Go to Exit page
+        }
+        else
+        {
+          play_repeat_count--;
+          if (play_repeat_count > 0)  // if repeat count is remained
+            next_play_page = play_page_idx_;  // Set next page to present page
+          else
+            // Complete repeat
+            next_play_page = play_page_.header.next;  // set next page
+        }
+
+        if (next_play_page == 0)  // If next page don't exist
+          playing_finished = true;
+        else
+        {
+          // load next page
+          if (play_page_idx_ != next_play_page)
+            loadPage(next_play_page, &next_play_page_);
+          else
+            next_play_page_ = play_page_;
+
+          // If next page doesn't have information for playing action, Process will be finished.
+          if (next_play_page_.header.repeat == 0 || next_play_page_.header.stepnum == 0)
+            playing_finished = true;
+        }
+      }
+
+      //////// Calculate Step parameter
+      pause_time = (((unsigned short) play_page_.step[page_step_count_ - 1].pause) << 5) / play_page_.header.speed;
+      max_speed = ((unsigned short) play_page_.step[page_step_count_ - 1].time
+          * (unsigned short) play_page_.header.speed) >> 5;
+      if (max_speed == 0)
+        max_speed = 1;
+      max_angle1024 = 0;
+
+      ////////// Calculate parameter of Joint
+      for (unsigned int joint_index = 0; joint_index < action_file_define::MAXNUM_JOINTS; joint_index++)
+      {
+        id = joint_index;
+        // calculate the trajectory on the basis of previous, present and future
+        accel_angle1024[id] = 0;
+
+        // Find current target angle
+        if (play_page_.step[page_step_count_ - 1].position[id] & action_file_define::INVALID_BIT_MASK)
+          curr_target_angle = target_angle1024[id];
+        else
+          curr_target_angle = play_page_.step[page_step_count_ - 1].position[id];
+
+        // Update start, prev_target, curr_target
+        start_angle1024[id] = target_angle1024[id];
+        prev_target_angle = target_angle1024[id];
+        target_angle1024[id] = curr_target_angle;
+
+        // Find Moving offset
+        moving_angle1024[id] = (int) (target_angle1024[id] - start_angle1024[id]);
+
+        // Find Next target angle
+        if (page_step_count_ == play_page_.header.stepnum)  // If current step is the last one
+        {
+          if (playing_finished == true)  // Finished
+            next_target_angle = curr_target_angle;
+          else
+          {
+            if (next_play_page_.step[0].position[id] & action_file_define::INVALID_BIT_MASK)
+              next_target_angle = curr_target_angle;
+            else
+              next_target_angle = next_play_page_.step[0].position[id];
+          }
+        }
+        else
+        {
+          if (play_page_.step[page_step_count_].position[id] & action_file_define::INVALID_BIT_MASK)
+            next_target_angle = curr_target_angle;
+          else
+            next_target_angle = play_page_.step[page_step_count_].position[id];
+        }
+
+        // Find direction change
+        if (((prev_target_angle < curr_target_angle) && (curr_target_angle < next_target_angle))
+            || ((prev_target_angle > curr_target_angle) && (curr_target_angle > next_target_angle)))
+        {
+          // same direction
+          direction_changed = 0;
+        }
+        else
+        {
+          direction_changed = 1;
+        }
+
+        // Find finish type
+        if (direction_changed || pause_time || playing_finished == true)
+        {
+          finish_type[id] = ZERO_FINISH;
+        }
+        else
+        {
+          finish_type[id] = NONE_ZERO_FINISH;
+        }
+
+        if (play_page_.header.schedule == action_file_define::SPEED_BASE_SCHEDULE)
+        {
+          //MaxAngle1024 update
+          if (moving_angle1024[id] < 0)
+            tmp = -moving_angle1024[id];
+          else
+            tmp = moving_angle1024[id];
+
+          if (tmp > max_angle1024)
+            max_angle1024 = tmp;
+        }
+
+      }
+
+      // Unit count of total moving time (one unit time : 7.8ms)
+      // Transformation --- Angle : 1024 unit -> 300 unit, Velocity : 256 unit -> 720 unit
+      // wUnitTimeNum = ((wMaxAngle1024*300/1024) /(wMaxSpeed256 * 720/256)) /7.8msec;
+      //             = ((128*wMaxAngle1024*300/1024) /(wMaxSpeed256 * 720/256)) ;    (/7.8msec == *128)
+      //             = (wMaxAngle1024*40) /(wMaxSpeed256 *3);
+      if (play_page_.header.schedule == action_file_define::TIME_BASE_SCHEDULE)
+        unit_time_total_num = max_speed;  //TIME BASE 051025
+      else
+        unit_time_total_num = (max_angle1024 * 40) / (max_speed * 3);
+
+      accel_step = play_page_.header.accel;
+      if (unit_time_total_num <= (accel_step << 1))
+      {
+        if (unit_time_total_num == 0)
+          accel_step = 0;
+        else
+        {
+          accel_step = (unit_time_total_num - 1) >> 1;
+          if (accel_step == 0)
+            unit_time_total_num = 0;  // Acceleration and constant velocity steps have to be more than one in order to move
+        }
+      }
+
+      total_time_256t = ((unsigned long) unit_time_total_num) << 1;  // /128 * 256
+      pre_section_time_256t = ((unsigned long) accel_step) << 1;  // /128 * 256
+      main_time_256t = total_time_256t - pre_section_time_256t;
+      divider1 = pre_section_time_256t + (main_time_256t << 1);
+      divider2 = (main_time_256t << 1);
+
+      if (divider1 == 0)
+        divider1 = 1;
+
+      if (divider2 == 0)
+        divider2 = 1;
+
+      for (unsigned int joint_index = 0; joint_index < action_file_define::MAXNUM_JOINTS; joint_index++)
+      {
+        id = joint_index;
+        start_speed1024_pre_time_256t = (long) last_out_speed1024[id] * pre_section_time_256t;  //  *300/1024 * 1024/720 * 256 * 2
+        moving_angle_speed1024_scale_time_256t_2t = (((long) moving_angle1024[id]) * 2560L) / 12;
+
+        if (finish_type[id] == ZERO_FINISH)
+          main_speed1024[id] = (short int) ((moving_angle_speed1024_scale_time_256t_2t - start_speed1024_pre_time_256t)
+              / divider2);
+        else
+          main_speed1024[id] = (short int) ((moving_angle_speed1024_scale_time_256t_2t - start_speed1024_pre_time_256t)
+              / divider1);
+
+        if (main_speed1024[id] > 1023)
+          main_speed1024[id] = 1023;
+
+        if (main_speed1024[id] < -1023)
+          main_speed1024[id] = -1023;
+
+      }
+      unit_time_num = accel_step;  //PreSection
+    }
+  }
 }
 
-
-void ActionModule::PublishStatusMsg(unsigned int type, std::string msg)
+void ActionModule::publishStatusMsg(unsigned int type, std::string msg)
 {
-    robotis_controller_msgs::StatusMsg _status;
-    _status.header.stamp = ros::Time::now();
-    _status.type = type;
-    _status.module_name = "Action";
-    _status.status_msg = msg;
+  robotis_controller_msgs::StatusMsg status_msg;
+  status_msg.header.stamp = ros::Time::now();
+  status_msg.type = type;
+  status_msg.module_name = "Action";
+  status_msg.status_msg = msg;
 
-    status_msg_pub_.publish(_status);
+  status_msg_pub_.publish(status_msg);
 }
 
-void ActionModule::OnModuleEnable()
+void ActionModule::onModuleEnable()
 {
-    present_enable_ = true;
+  present_enable_ = true;
 }
 
-void ActionModule::OnModuleDisable()
+void ActionModule::onModuleDisable()
 {
-    present_enable_ = false;
+  present_enable_ = false;
+}
 }

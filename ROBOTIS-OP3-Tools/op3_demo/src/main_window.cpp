@@ -1,10 +1,35 @@
-/**
- * @file /src/main_window.cpp
+/*******************************************************************************
+ * Copyright (c) 2016, ROBOTIS CO., LTD.
+ * All rights reserved.
  *
- * @brief Implementation for the qt gui.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
  *
- * @date February 2011
- **/
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of ROBOTIS nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *******************************************************************************/
+
+/* Author: Kayman Jung */
+
 /*****************************************************************************
  ** Includes
  *****************************************************************************/
@@ -18,7 +43,8 @@
  ** Namespaces
  *****************************************************************************/
 
-namespace op3_demo {
+namespace robotis_op
+{
 
 using namespace Qt;
 
@@ -27,61 +53,61 @@ using namespace Qt;
  *****************************************************************************/
 
 MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
-  : QMainWindow(parent)
-  , qnode_op3(argc,argv)
-  , is_updating_(false)
-  , is_walking_(false)
+    : QMainWindow(parent),
+      qnode_op3_(argc, argv),
+      is_updating_(false),
+      is_walking_(false)
 {
   // code to DEBUG
-  DEBUG = false;
+  debug_ = false;
 
-  if(argc >= 2)
+  if (argc >= 2)
   {
-    std::string _debug_code(argv[1]);
-    if(_debug_code == "debug")
-      DEBUG = true;
+    std::string arg_code(argv[1]);
+    if (arg_code == "debug")
+      debug_ = true;
     else
-      DEBUG = false;
+      debug_ = false;
   }
 
-  ui.setupUi(this); // Calling this incidentally connects all ui's triggers to on_...() callbacks in this class.
-  QObject::connect(ui.actionAbout_Qt, SIGNAL(triggered(bool)), qApp, SLOT(aboutQt())); // qApp is a global variable for the application
+  ui_.setupUi(this);  // Calling this incidentally connects all ui's triggers to on_...() callbacks in this class.
+  QObject::connect(ui_.actionAbout_Qt, SIGNAL(triggered(bool)), qApp, SLOT(aboutQt()));  // qApp is a global variable for the application
 
-  ReadSettings();
+  readSettings();
   setWindowIcon(QIcon(":/images/icon.png"));
-  ui.tab_manager->setCurrentIndex(0); // ensure the first tab is showing - qt-designer should have this already hardwired, but often loses it (settings?).
-  QObject::connect(&qnode_op3, SIGNAL(rosShutdown()), this, SLOT(close()));
+  ui_.tab_manager->setCurrentIndex(0);  // ensure the first tab is showing - qt-designer should have this already hardwired, but often loses it (settings?).
+  QObject::connect(&qnode_op3_, SIGNAL(rosShutdown()), this, SLOT(close()));
 
-  qRegisterMetaType< std::vector<int> >("std::vector<int>");
-  QObject::connect(&qnode_op3, SIGNAL(updateCurrentJointControlMode(std::vector<int>)), this, SLOT(updateCurrentJointMode(std::vector<int>)));
-  QObject::connect(&qnode_op3, SIGNAL(updateHeadAngles(double,double)), this, SLOT(updateHeadAngles(double,double)));
+  qRegisterMetaType<std::vector<int> >("std::vector<int>");
+  QObject::connect(&qnode_op3_, SIGNAL(updateCurrentJointControlMode(std::vector<int>)), this,
+                   SLOT(updateCurrentJointMode(std::vector<int>)));
+  QObject::connect(&qnode_op3_, SIGNAL(updateHeadAngles(double,double)), this, SLOT(updateHeadAngles(double,double)));
 
-  QObject::connect(ui.head_pan_slider, SIGNAL(valueChanged(int)), this, SLOT(setHeadAngle()));
-  QObject::connect(ui.head_tilt_slider, SIGNAL(valueChanged(int)), this, SLOT(setHeadAngle()));
-
-  QObject::connect(&qnode_op3, SIGNAL(updateCurrJoint(double)), this, SLOT(updateCurrJointSpinbox(double)));
-  QObject::connect(&qnode_op3, SIGNAL(updateCurrPos(double , double , double)), this, SLOT(updateCurrPosSpinbox(double , double , double)));
-  QObject::connect(&qnode_op3, SIGNAL(updateCurrOri(double , double , double, double)), this, SLOT(updateCurrOriSpinbox(double , double , double , double)));
+  QObject::connect(ui_.head_pan_slider, SIGNAL(valueChanged(int)), this, SLOT(setHeadAngle()));
+  QObject::connect(ui_.head_tilt_slider, SIGNAL(valueChanged(int)), this, SLOT(setHeadAngle()));
 
   qRegisterMetaType<op3_walking_module_msgs::WalkingParam>("op_walking_params");
-  QObject::connect(&qnode_op3, SIGNAL(updateWalkingParameters(op3_walking_module_msgs::WalkingParam)), this, SLOT(updateWalkingParams(op3_walking_module_msgs::WalkingParam)));
+  QObject::connect(&qnode_op3_, SIGNAL(updateWalkingParameters(op3_walking_module_msgs::WalkingParam)), this,
+                   SLOT(updateWalkingParams(op3_walking_module_msgs::WalkingParam)));
 
   /*********************
-     ** Logging
-     **********************/
-  ui.view_logging->setModel(qnode_op3.loggingModel());
-  QObject::connect(&qnode_op3, SIGNAL(loggingUpdated()), this, SLOT(updateLoggingView()));
+   ** Logging
+   **********************/
+  ui_.view_logging->setModel(qnode_op3_.loggingModel());
+  QObject::connect(&qnode_op3_, SIGNAL(loggingUpdated()), this, SLOT(updateLoggingView()));
 
   /*********************
-     ** Auto Start
-     **********************/
-  qnode_op3.init();
+   ** Auto Start
+   **********************/
+  qnode_op3_.init();
   initModeUnit();
   setUserShortcut();
   updateModuleUI();
 }
 
-MainWindow::~MainWindow() {}
+MainWindow::~MainWindow()
+{
+}
 
 /*****************************************************************************
  ** Implementation [Slots]
@@ -100,124 +126,36 @@ void MainWindow::showNoMasterMessage()
  * is already checked or not.
  */
 
-//void MainWindow::on_button_assemble_lidar_clicked(bool check) { qnode_thor3.assemble_lidar(); }
-void MainWindow::on_button_clear_log_clicked(bool check) { qnode_op3.clearLog(); }
-void MainWindow::on_button_init_pose_clicked(bool check) { qnode_op3.moveInitPose(); }
-
-//void MainWindow::on_button_ft_air_clicked(bool check) { qnode_thor3.initFTCommand("ft_air"); }
-//void MainWindow::on_button_ft_gnd_clicked(bool check) { qnode_thor3.initFTCommand("ft_gnd"); }
-//void MainWindow::on_button_ft_calc_clicked(bool check)
-//{
-//    qnode_thor3.initFTCommand("ft_send");
-//    qnode_thor3.log(QNodeOP3::Info, "Apply new FT config");
-//}
-//void MainWindow::on_button_ft_save_clicked(bool check)
-//{
-//    qnode_thor3.initFTCommand("ft_save");
-//    qnode_thor3.log(QNodeOP3::Info, "Save FT config data.");
-//}
-
-/*
-// Manipulation
-void MainWindow::on_inipose_button_clicked( bool check )
+void MainWindow::on_button_clear_log_clicked(bool check)
 {
-    std_msgs::String msg;
-
-    msg.data = "ini_pose";
-
-    qnode_thor3.sendInitPoseMsg( msg );
+  qnode_op3_.clearLog();
 }
-
-void MainWindow::on_currjoint_button_clicked( bool check )
+void MainWindow::on_button_init_pose_clicked(bool check)
 {
-    qnode_thor3.getJointPose( ui.joint_combobox->currentText().toStdString() );
+  qnode_op3_.moveInitPose();
 }
-
-void MainWindow::on_desjoint_button_clicked( bool check )
-{
-    thormang3_manipulation_module_msgs::JointPose msg;
-
-    msg.name = ui.joint_combobox->currentText().toStdString();
-    msg.value = ui.joint_spinbox->value() * M_PI / 180.0 ;
-
-    qnode_thor3.sendDestJointMsg( msg );
-}
-
-void MainWindow::on_currpos_button_clicked( bool check )
-{
-    qnode_thor3.getKinematicsPose( ui.group_combobox->currentText().toStdString() );
-}
-
-void MainWindow::on_despos_button_clicked( bool check )
-{
-    thormang3_manipulation_module_msgs::KinematicsPose msg;
-
-    msg.name = ui.group_combobox->currentText().toStdString();
-
-    msg.pose.position.x = ui.pos_x_spinbox->value();
-    msg.pose.position.y = ui.pos_y_spinbox->value();
-    msg.pose.position.z = ui.pos_z_spinbox->value();
-
-    double roll = ui.ori_roll_spinbox->value() * M_PI / 180.0;
-    double pitch = ui.ori_pitch_spinbox->value() * M_PI / 180.0;
-    double yaw = ui.ori_yaw_spinbox->value() * M_PI / 180.0;
-
-    Eigen::Quaterniond QR = rpy2quaternion( roll, pitch, yaw );
-
-    msg.pose.orientation.x = QR.x();
-    msg.pose.orientation.y = QR.y();
-    msg.pose.orientation.z = QR.z();
-    msg.pose.orientation.w = QR.w();
-
-    qnode_thor3.sendIkMsg( msg );
-}
-
-void MainWindow::on_button_grip_on_clicked(bool check)
-{
-    thormang3_manipulation_module_msgs::JointPose _msg;
-
-    _msg.name = ui.gripper_comboBox->currentText().toStdString();
-    _msg.value = 60 * M_PI / 180.0 ;
-
-    qnode_thor3.sendDestJointMsg( _msg );
-}
-
-void MainWindow::on_button_grip_off_clicked(bool check)
-{
-    thormang3_manipulation_module_msgs::JointPose _msg;
-
-    _msg.name = ui.gripper_comboBox->currentText().toStdString();
-    _msg.value = 0 * M_PI / 180.0 ;
-
-    qnode_thor3.sendDestJointMsg( _msg );
-}
-
-void MainWindow::on_button_pathplanning_ini_clicked(bool check) { sendDemoMsg("ini_pose"); }
-void MainWindow::on_button_pathplanning_a_clicked(bool check) { sendDemoMsg("line"); }
-void MainWindow::on_button_pathplanning_b_clicked(bool check) { sendDemoMsg("circle"); }
- */
 
 // Walking
-
 void MainWindow::on_button_walking_start_clicked(bool check)
 {
   is_walking_ = true;
-  qnode_op3.setWalkingCommand("start");
+  qnode_op3_.setWalkingCommand("start");
 }
+
 void MainWindow::on_button_walking_stop_clicked(bool check)
 {
   is_walking_ = false;
-  qnode_op3.setWalkingCommand("stop");
+  qnode_op3_.setWalkingCommand("stop");
 }
 
 void MainWindow::on_button_param_refresh_clicked(bool check)
 {
-  qnode_op3.refreshWalkingParam();
+  qnode_op3_.refreshWalkingParam();
 }
 
 void MainWindow::on_button_param_save_clicked(bool check)
 {
-  qnode_op3.setWalkingCommand("save");
+  qnode_op3_.setWalkingCommand("save");
 }
 
 void MainWindow::on_button_param_apply_clicked(bool check)
@@ -225,9 +163,12 @@ void MainWindow::on_button_param_apply_clicked(bool check)
   applyWalkingParams();
 }
 
-void MainWindow::on_checkBox_balance_on_clicked(bool check) { }
-void MainWindow::on_checkBox_balance_off_clicked(bool check) { }
-
+void MainWindow::on_checkBox_balance_on_clicked(bool check)
+{
+}
+void MainWindow::on_checkBox_balance_off_clicked(bool check)
+{
+}
 
 void MainWindow::on_head_center_button_clicked(bool check)
 {
@@ -236,64 +177,64 @@ void MainWindow::on_head_center_button_clicked(bool check)
   //    ui.head_tilt_slider->setValue(0.0);
   //    is_updating_ == false;
 
-  qnode_op3.log(QNodeOP3::Info, "Go Head init position");
+  qnode_op3_.log(QNodeOP3::Info, "Go Head init position");
   setHeadAngle(0, 0);
 }
 
 void MainWindow::on_button_demo_start_clicked(bool check)
 {
-  qnode_op3.setModuleToDemo();
+  qnode_op3_.setModuleToDemo();
 
   usleep(10 * 1000);
 
-  qnode_op3.setDemoCommand("start");
+  qnode_op3_.setDemoCommand("start");
 }
 
 void MainWindow::on_button_demo_stop_clicked(bool check)
 {
-  qnode_op3.setDemoCommand("stop");
+  qnode_op3_.setDemoCommand("stop");
 }
 
 void MainWindow::on_button_r_kick_clicked(bool check)
 {
   // temporary code
-  qnode_op3.setActionModuleBody();
+  qnode_op3_.setActionModuleBody();
 
   usleep(10 * 1000);
 
-  qnode_op3.playMotion(83);
+  qnode_op3_.playMotion(83);
 }
 
 void MainWindow::on_button_l_kick_clicked(bool check)
 {
   // temporary code
-  qnode_op3.setActionModuleBody();
+  qnode_op3_.setActionModuleBody();
 
   usleep(10 * 1000);
 
-  qnode_op3.playMotion(84);
+  qnode_op3_.playMotion(84);
 
 }
 
 void MainWindow::on_button_getup_front_clicked(bool check)
 {
   // temporary code
-  qnode_op3.setActionModuleBody();
+  qnode_op3_.setActionModuleBody();
 
   usleep(10 * 1000);
 
-  qnode_op3.playMotion(81);
+  qnode_op3_.playMotion(81);
 
 }
 
 void MainWindow::on_button_getup_back_clicked(bool check)
 {
   // temporary code
-  qnode_op3.setActionModuleBody();
+  qnode_op3_.setActionModuleBody();
 
   usleep(10 * 1000);
 
-  qnode_op3.playMotion(82);
+  qnode_op3_.playMotion(82);
 
 }
 
@@ -306,8 +247,9 @@ void MainWindow::on_button_getup_back_clicked(bool check)
  * this will drop the cursor down to the last line in the QListview to ensure
  * the user can always see the latest log message.
  */
-void MainWindow::updateLoggingView() {
-  ui.view_logging->scrollToBottom();
+void MainWindow::updateLoggingView()
+{
+  ui_.view_logging->scrollToBottom();
 }
 
 // user shortcut
@@ -342,7 +284,7 @@ void MainWindow::setUserShortcut()
   _sig_map->setMapping(_short_tab5, 4);
 
   // Wire the signal mapper to the tab widget index change slot
-  connect(_sig_map, SIGNAL(mapped(int)), ui.tabWidget_control, SLOT(setCurrentIndex(int)));
+  connect(_sig_map, SIGNAL(mapped(int)), ui_.tabWidget_control, SLOT(setCurrentIndex(int)));
 
   QShortcut *walking_shortcut = new QShortcut(QKeySequence(Qt::Key_Space), this);
   connect(walking_shortcut, SIGNAL(activated()), this, SLOT(walkingCommandShortcut()));
@@ -354,8 +296,8 @@ void MainWindow::setMode(bool check)
 {
   robotis_controller_msgs::JointCtrlModule _control_msg;
 
-  QList<QComboBox *> _combo_children = ui.widget_mode->findChildren<QComboBox *>();
-  for(int ix = 0; ix < _combo_children.length(); ix++)
+  QList<QComboBox *> _combo_children = ui_.widget_mode->findChildren<QComboBox *>();
+  for (int ix = 0; ix < _combo_children.length(); ix++)
   {
     std::stringstream _stream;
     std::string _joint;
@@ -366,9 +308,9 @@ void MainWindow::setMode(bool check)
 
     std::string _control_mode = _combo_children.at(ix)->currentText().toStdString();
 
-    if(qnode_op3.getIDJointNameFromIndex(ix, _id, _joint) == true)
+    if (qnode_op3_.getIDJointNameFromIndex(ix, _id, _joint) == true)
     {
-      _stream << "[" << (_id < 10 ? "0" : "") << _id << "] "<< _joint <<" : " << _control_mode;
+      _stream << "[" << (_id < 10 ? "0" : "") << _id << "] " << _joint << " : " << _control_mode;
 
       _control_msg.joint_name.push_back(_joint);
       _control_msg.module_name.push_back(_control_mode);
@@ -378,26 +320,27 @@ void MainWindow::setMode(bool check)
       _stream << "id " << ix << " : " << _control_mode;
     }
 
-    qnode_op3.log(QNodeOP3::Info, _stream.str());
+    qnode_op3_.log(QNodeOP3::Info, _stream.str());
   }
 
   // no control
-  if(_control_msg.joint_name.size() == 0) return;
+  if (_control_msg.joint_name.size() == 0)
+    return;
 
-  qnode_op3.log(QNodeOP3::Info, "set mode");
+  qnode_op3_.log(QNodeOP3::Info, "set mode");
 
-  qnode_op3.setJointControlMode(_control_msg);
+  qnode_op3_.setJointControlMode(_control_msg);
 }
 
 void MainWindow::updateCurrentJointMode(std::vector<int> mode)
 {
-  QList<QComboBox *> _combo_children = ui.widget_mode->findChildren<QComboBox *>();
-  for(int ix = 0; ix < _combo_children.length(); ix++)
+  QList<QComboBox *> _combo_children = ui_.widget_mode->findChildren<QComboBox *>();
+  for (int ix = 0; ix < _combo_children.length(); ix++)
   {
     int _control_index = mode.at(ix);
     _combo_children.at(ix)->setCurrentIndex(_control_index);
 
-    if(DEBUG)
+    if (debug_)
     {
       std::stringstream _stream;
       std::string _joint;
@@ -405,16 +348,16 @@ void MainWindow::updateCurrentJointMode(std::vector<int> mode)
 
       std::string _control_mode = _combo_children.at(ix)->currentText().toStdString();
 
-      if(qnode_op3.getIDJointNameFromIndex(ix, _id, _joint) == true)
+      if (qnode_op3_.getIDJointNameFromIndex(ix, _id, _joint) == true)
       {
-        _stream << "[" << (_id < 10 ? "0" : "") << _id << "] "<< _joint <<" : " << _control_mode;
+        _stream << "[" << (_id < 10 ? "0" : "") << _id << "] " << _joint << " : " << _control_mode;
       }
       else
       {
         _stream << "id " << ix << " : " << _control_mode;
       }
 
-      qnode_op3.log(QNodeOP3::Info, _stream.str());
+      qnode_op3_.log(QNodeOP3::Info, _stream.str());
     }
   }
 
@@ -424,42 +367,50 @@ void MainWindow::updateCurrentJointMode(std::vector<int> mode)
 
 void MainWindow::updateModuleUI()
 {
-  if(DEBUG) return;
+  if (debug_)
+    return;
 
-  for(int index = 0; index < qnode_op3.getModeSize(); index++)
+  for (int index = 0; index < qnode_op3_.getModeSize(); index++)
   {
-    std::string _mode = qnode_op3.getModeName(index);
-    if(_mode == "") continue;
+    std::string _mode = qnode_op3_.getModeName(index);
+    if (_mode == "")
+      continue;
 
-    std::map< std::string, QList<QWidget *> >::iterator _module_iter = module_ui_table_.find(_mode);
-    if(_module_iter == module_ui_table_.end()) continue;
+    std::map<std::string, QList<QWidget *> >::iterator _module_iter = module_ui_table_.find(_mode);
+    if (_module_iter == module_ui_table_.end())
+      continue;
 
-    bool _is_enable = qnode_op3.isUsingModule(_mode);
+    bool _is_enable = qnode_op3_.isUsingModule(_mode);
 
     QList<QWidget *> _list = _module_iter->second;
-    for(int ix = 0; ix < _list.size(); ix++)
+    for (int ix = 0; ix < _list.size(); ix++)
     {
       _list.at(ix)->setEnabled(_is_enable);
     }
   }
 
   // refresh walking parameter
-  if(qnode_op3.isUsingModule("walking_module"))
-    qnode_op3.refreshWalkingParam();
+  if (qnode_op3_.isUsingModule("walking_module"))
+    qnode_op3_.refreshWalkingParam();
 }
 
+// head control
 void MainWindow::updateHeadAngles(double pan, double tilt)
 {
-  if(ui.head_pan_slider->underMouse() == true) return;
-  if(ui.head_pan_spinbox->underMouse() == true) return;
-  if(ui.head_tilt_slider->underMouse() == true) return;
-  if(ui.head_tilt_spinbox->underMouse() == true) return;
+  if (ui_.head_pan_slider->underMouse() == true)
+    return;
+  if (ui_.head_pan_spinbox->underMouse() == true)
+    return;
+  if (ui_.head_tilt_slider->underMouse() == true)
+    return;
+  if (ui_.head_tilt_spinbox->underMouse() == true)
+    return;
 
   is_updating_ = true;
 
-  ui.head_pan_slider->setValue( pan * 180.0 / M_PI );
+  ui_.head_pan_slider->setValue(pan * 180.0 / M_PI);
   // ui.head_pan_spinbox->setValue( pan * 180.0 / M_PI );
-  ui.head_tilt_slider->setValue( tilt * 180.0 / M_PI );
+  ui_.head_tilt_slider->setValue(tilt * 180.0 / M_PI);
   // ui.head_tilt_spinbox->setValue( tilt * 180.0 / M_PI );
 
   is_updating_ = false;
@@ -467,149 +418,150 @@ void MainWindow::updateHeadAngles(double pan, double tilt)
 
 void MainWindow::setHeadAngle()
 {
-  if(is_updating_ == true) return;
-  qnode_op3.setHeadJoint(ui.head_pan_slider->value() * M_PI / 180, ui.head_tilt_slider->value() * M_PI / 180);
+  if (is_updating_ == true)
+    return;
+  qnode_op3_.setHeadJoint(ui_.head_pan_slider->value() * M_PI / 180, ui_.head_tilt_slider->value() * M_PI / 180);
 }
 
 void MainWindow::setHeadAngle(double pan, double tilt)
 {
-  qnode_op3.setHeadJoint(pan * M_PI / 180, tilt * M_PI / 180);
+  qnode_op3_.setHeadJoint(pan * M_PI / 180, tilt * M_PI / 180);
 }
-
 
 // manipulation
-void MainWindow::updateCurrJointSpinbox( double value )
-{
-  ui.joint_spinbox->setValue( value * 180.0 / M_PI );
-}
+//void MainWindow::updateCurrJointSpinbox( double value )
+//{
+//  ui_.joint_spinbox->setValue( value * 180.0 / M_PI );
+//}
 
-void MainWindow::updateCurrPosSpinbox( double x, double y, double z )
-{
-  ui.pos_x_spinbox->setValue( x );
-  ui.pos_y_spinbox->setValue( y );
-  ui.pos_z_spinbox->setValue( z );
-}
+//void MainWindow::updateCurrPosSpinbox( double x, double y, double z )
+//{
+//  ui_.pos_x_spinbox->setValue( x );
+//  ui_.pos_y_spinbox->setValue( y );
+//  ui_.pos_z_spinbox->setValue( z );
+//}
 
-void MainWindow::updateCurrOriSpinbox( double x , double y , double z , double w )
-{
-  Eigen::Quaterniond QR(w,x,y,z);
+//void MainWindow::updateCurrOriSpinbox( double x , double y , double z , double w )
+//{
+//  Eigen::Quaterniond QR(w,x,y,z);
 
-  Eigen::MatrixXd R = QR.toRotationMatrix();
+//  Eigen::MatrixXd R = QR.toRotationMatrix();
 
-  double roll = atan2( R.coeff(2,1), R.coeff(2,2) ) * 180.0 / M_PI;
-  double pitch = atan2( -R.coeff(2,0), sqrt( pow(R.coeff(2,1),2) + pow(R.coeff(2,2),2) ) ) * 180.0 / M_PI;
-  double yaw = atan2 ( R.coeff(1,0) , R.coeff(0,0) ) * 180.0 / M_PI;
+//  double roll = atan2( R.coeff(2,1), R.coeff(2,2) ) * 180.0 / M_PI;
+//  double pitch = atan2( -R.coeff(2,0), sqrt( pow(R.coeff(2,1),2) + pow(R.coeff(2,2),2) ) ) * 180.0 / M_PI;
+//  double yaw = atan2 ( R.coeff(1,0) , R.coeff(0,0) ) * 180.0 / M_PI;
 
-  ui.ori_roll_spinbox->setValue( roll );
-  ui.ori_pitch_spinbox->setValue( pitch );
-  ui.ori_yaw_spinbox->setValue( yaw );
-}
+//  ui_.ori_roll_spinbox->setValue( roll );
+//  ui_.ori_pitch_spinbox->setValue( pitch );
+//  ui_.ori_yaw_spinbox->setValue( yaw );
+//}
 
 /*
-void MainWindow::sendDemoMsg(const std::string &demo_command)
-{
-    thormang3_manipulation_module_msgs::DemoPose _msg;
+ void MainWindow::sendDemoMsg(const std::string &demo_command)
+ {
+ thormang3_manipulation_module_msgs::DemoPose _msg;
 
-    std::string _group_name = ui.demo_group_combobox->currentText().toStdString() + (demo_command == "ini_pose" ? "" : "_with_torso");
-    _msg.name = _group_name;
-    _msg.demo = demo_command;
+ std::string _group_name = ui.demo_group_combobox->currentText().toStdString() + (demo_command == "ini_pose" ? "" : "_with_torso");
+ _msg.name = _group_name;
+ _msg.demo = demo_command;
 
-    _msg.pose.position.x = 0.0;
-    _msg.pose.position.y = 0.0;
-    _msg.pose.position.z = 0.0;
+ _msg.pose.position.x = 0.0;
+ _msg.pose.position.y = 0.0;
+ _msg.pose.position.z = 0.0;
 
-    _msg.pose.orientation.x = 0.0;
-    _msg.pose.orientation.y = 0.0;
-    _msg.pose.orientation.z = 0.0;
-    _msg.pose.orientation.w = 1.0;
+ _msg.pose.orientation.x = 0.0;
+ _msg.pose.orientation.y = 0.0;
+ _msg.pose.orientation.z = 0.0;
+ _msg.pose.orientation.w = 1.0;
 
-    qnode_thor3.sendDemoMsg( _msg );
-}
+ qnode_thor3.sendDemoMsg( _msg );
+ }
  */
-
 
 // walking
 void MainWindow::updateWalkingParams(op3_walking_module_msgs::WalkingParam params)
 {
   // init pose
-  ui.dSpinBox_init_offset_x->setValue(params.init_x_offset);
-  ui.dSpinBox_init_offset_y->setValue(params.init_y_offset);
-  ui.dSpinBox_init_offset_z->setValue(params.init_z_offset);
-  ui.dSpinBox_init_offset_roll->setValue(params.init_roll_offset * rad2deg);
-  ui.dSpinBox_init_offset_pitch->setValue(params.init_pitch_offset * rad2deg);
-  ui.dSpinBox_init_offset_yaw->setValue(params.init_yaw_offset * rad2deg);
-  ui.dSpinBox_hip_pitch_offset->setValue(params.hip_pitch_offset * rad2deg);
+  ui_.dSpinBox_init_offset_x->setValue(params.init_x_offset);
+  ui_.dSpinBox_init_offset_y->setValue(params.init_y_offset);
+  ui_.dSpinBox_init_offset_z->setValue(params.init_z_offset);
+  ui_.dSpinBox_init_offset_roll->setValue(params.init_roll_offset * RADIAN2DEGREE);
+  ui_.dSpinBox_init_offset_pitch->setValue(params.init_pitch_offset * RADIAN2DEGREE);
+  ui_.dSpinBox_init_offset_yaw->setValue(params.init_yaw_offset * RADIAN2DEGREE);
+  ui_.dSpinBox_hip_pitch_offset->setValue(params.hip_pitch_offset * RADIAN2DEGREE);
   // time
-  ui.dSpinBox_period_time->setValue(params.period_time * 1000);       // s -> ms
-  ui.dSpinBox_dsp_ratio->setValue(params.dsp_ratio);
-  ui.dSpinBox_step_fb_ratio->setValue(params.step_fb_ratio);;
+  ui_.dSpinBox_period_time->setValue(params.period_time * 1000);       // s -> ms
+  ui_.dSpinBox_dsp_ratio->setValue(params.dsp_ratio);
+  ui_.dSpinBox_step_fb_ratio->setValue(params.step_fb_ratio);
+  ;
   // walking
-  ui.dSpinBox_x_move_amplitude->setValue(params.x_move_amplitude);
-  ui.dSpinBox_y_move_amplitude->setValue(params.y_move_amplitude);
-  ui.dSpinBox_z_move_amplitude->setValue(params.z_move_amplitude);
-  ui.dSpinBox_y_move_amplitude->setValue(params.angle_move_amplitude);
-  ui.checkBox_move_aim_on->setChecked(params.move_aim_on);
-  ui.checkBox_move_aim_off->setChecked(!params.move_aim_on);
+  ui_.dSpinBox_x_move_amplitude->setValue(params.x_move_amplitude);
+  ui_.dSpinBox_y_move_amplitude->setValue(params.y_move_amplitude);
+  ui_.dSpinBox_z_move_amplitude->setValue(params.z_move_amplitude);
+  ui_.dSpinBox_y_move_amplitude->setValue(params.angle_move_amplitude);
+  ui_.checkBox_move_aim_on->setChecked(params.move_aim_on);
+  ui_.checkBox_move_aim_off->setChecked(!params.move_aim_on);
   // balance
-  ui.checkBox_balance_on->setChecked(params.balance_enable);
-  ui.checkBox_balance_off->setChecked(!params.balance_enable);
-  ui.dSpinBox_hip_roll_gain->setValue(params.balance_hip_roll_gain);
-  ui.dSpinBox_knee_gain->setValue(params.balance_knee_gain);
-  ui.dSpinBox_ankle_roll_gain->setValue(params.balance_ankle_roll_gain);
-  ui.dSpinBox_ankle_pitch_gain->setValue(params.balance_ankle_pitch_gain);
-  ui.dSpinBox_y_swap_amplitude->setValue(params.y_swap_amplitude);
-  ui.dSpinBox_z_swap_amplitude->setValue(params.z_swap_amplitude);
-  ui.dSpinBox_pelvis_offset->setValue(params.pelvis_offset * rad2deg);
-  ui.dSpinBox_arm_swing_gain->setValue(params.arm_swing_gain);
+  ui_.checkBox_balance_on->setChecked(params.balance_enable);
+  ui_.checkBox_balance_off->setChecked(!params.balance_enable);
+  ui_.dSpinBox_hip_roll_gain->setValue(params.balance_hip_roll_gain);
+  ui_.dSpinBox_knee_gain->setValue(params.balance_knee_gain);
+  ui_.dSpinBox_ankle_roll_gain->setValue(params.balance_ankle_roll_gain);
+  ui_.dSpinBox_ankle_pitch_gain->setValue(params.balance_ankle_pitch_gain);
+  ui_.dSpinBox_y_swap_amplitude->setValue(params.y_swap_amplitude);
+  ui_.dSpinBox_z_swap_amplitude->setValue(params.z_swap_amplitude);
+  ui_.dSpinBox_pelvis_offset->setValue(params.pelvis_offset * RADIAN2DEGREE);
+  ui_.dSpinBox_arm_swing_gain->setValue(params.arm_swing_gain);
 }
 
 void MainWindow::applyWalkingParams()
 {
-  op3_walking_module_msgs::WalkingParam _walking_param;
+  op3_walking_module_msgs::WalkingParam walking_param;
 
   // init pose
-  _walking_param.init_x_offset            = ui.dSpinBox_init_offset_x->value();
-  _walking_param.init_y_offset            = ui.dSpinBox_init_offset_y->value();
-  _walking_param.init_z_offset            = ui.dSpinBox_init_offset_z->value();
-  _walking_param.init_roll_offset         = ui.dSpinBox_init_offset_roll->value() * deg2rad;
-  _walking_param.init_pitch_offset        = ui.dSpinBox_init_offset_pitch->value() * deg2rad;
-  _walking_param.init_yaw_offset          = ui.dSpinBox_init_offset_yaw->value() * deg2rad;
-  _walking_param.hip_pitch_offset         = ui.dSpinBox_hip_pitch_offset->value() * deg2rad;
+  walking_param.init_x_offset = ui_.dSpinBox_init_offset_x->value();
+  walking_param.init_y_offset = ui_.dSpinBox_init_offset_y->value();
+  walking_param.init_z_offset = ui_.dSpinBox_init_offset_z->value();
+  walking_param.init_roll_offset = ui_.dSpinBox_init_offset_roll->value() * DEGREE2RADIAN;
+  walking_param.init_pitch_offset = ui_.dSpinBox_init_offset_pitch->value() * DEGREE2RADIAN;
+  walking_param.init_yaw_offset = ui_.dSpinBox_init_offset_yaw->value() * DEGREE2RADIAN;
+  walking_param.hip_pitch_offset = ui_.dSpinBox_hip_pitch_offset->value() * DEGREE2RADIAN;
   // time
-  _walking_param.period_time              = ui.dSpinBox_period_time->value() * 0.001;     // ms -> s
-  _walking_param.dsp_ratio                = ui.dSpinBox_dsp_ratio->value();
-  _walking_param.step_fb_ratio            = ui.dSpinBox_step_fb_ratio->value();;
+  walking_param.period_time = ui_.dSpinBox_period_time->value() * 0.001;     // ms -> s
+  walking_param.dsp_ratio = ui_.dSpinBox_dsp_ratio->value();
+  walking_param.step_fb_ratio = ui_.dSpinBox_step_fb_ratio->value();
+  ;
   // walking
-  _walking_param.x_move_amplitude         = ui.dSpinBox_x_move_amplitude->value();
-  _walking_param.y_move_amplitude         = ui.dSpinBox_y_move_amplitude->value();
-  _walking_param.z_move_amplitude         = ui.dSpinBox_z_move_amplitude->value();
-  _walking_param.angle_move_amplitude     = ui.dSpinBox_a_move_amplitude->value() * deg2rad;
-  _walking_param.move_aim_on              = ui.checkBox_move_aim_on->isChecked();
+  walking_param.x_move_amplitude = ui_.dSpinBox_x_move_amplitude->value();
+  walking_param.y_move_amplitude = ui_.dSpinBox_y_move_amplitude->value();
+  walking_param.z_move_amplitude = ui_.dSpinBox_z_move_amplitude->value();
+  walking_param.angle_move_amplitude = ui_.dSpinBox_a_move_amplitude->value() * DEGREE2RADIAN;
+  walking_param.move_aim_on = ui_.checkBox_move_aim_on->isChecked();
   // balance
-  _walking_param.balance_enable           = ui.checkBox_balance_on->isChecked();
-  _walking_param.balance_hip_roll_gain    = ui.dSpinBox_hip_roll_gain->value();
-  _walking_param.balance_knee_gain        = ui.dSpinBox_knee_gain->value();
-  _walking_param.balance_ankle_roll_gain  = ui.dSpinBox_ankle_roll_gain->value();
-  _walking_param.balance_ankle_pitch_gain = ui.dSpinBox_ankle_pitch_gain->value();
-  _walking_param.y_swap_amplitude         = ui.dSpinBox_y_swap_amplitude->value();
-  _walking_param.z_swap_amplitude         = ui.dSpinBox_z_swap_amplitude->value();
-  _walking_param.pelvis_offset            = ui.dSpinBox_pelvis_offset->value() * deg2rad;
-  _walking_param.arm_swing_gain           = ui.dSpinBox_arm_swing_gain->value();
+  walking_param.balance_enable = ui_.checkBox_balance_on->isChecked();
+  walking_param.balance_hip_roll_gain = ui_.dSpinBox_hip_roll_gain->value();
+  walking_param.balance_knee_gain = ui_.dSpinBox_knee_gain->value();
+  walking_param.balance_ankle_roll_gain = ui_.dSpinBox_ankle_roll_gain->value();
+  walking_param.balance_ankle_pitch_gain = ui_.dSpinBox_ankle_pitch_gain->value();
+  walking_param.y_swap_amplitude = ui_.dSpinBox_y_swap_amplitude->value();
+  walking_param.z_swap_amplitude = ui_.dSpinBox_z_swap_amplitude->value();
+  walking_param.pelvis_offset = ui_.dSpinBox_pelvis_offset->value() * DEGREE2RADIAN;
+  walking_param.arm_swing_gain = ui_.dSpinBox_arm_swing_gain->value();
 
-  qnode_op3.applyWalkingParam(_walking_param);
+  qnode_op3_.applyWalkingParam(walking_param);
 }
 
 void MainWindow::walkingCommandShortcut()
 {
-  if(is_walking_ == true)
+  if (is_walking_ == true)
   {
     is_walking_ = false;
-    qnode_op3.setWalkingCommand("stop");
+    qnode_op3_.setWalkingCommand("stop");
   }
   else
   {
     is_walking_ = true;
-    qnode_op3.setWalkingCommand("start");
+    qnode_op3_.setWalkingCommand("start");
   }
 }
 
@@ -617,8 +569,9 @@ void MainWindow::walkingCommandShortcut()
  ** Implementation [Menu]
  *****************************************************************************/
 
-void MainWindow::on_actionAbout_triggered() {
-  QMessageBox::about(this, tr("About ..."),tr("<h2>PACKAGE_NAME Test Program 0.10</h2><p>Copyright Yujin Robot</p><p>This package needs an about description.</p>"));
+void MainWindow::on_actionAbout_triggered()
+{
+  QMessageBox::about(this, tr("About ..."), tr("<h2>OP3 Demo 0.10</h2><p>Copyright ROBOTIS</p>"));
 }
 
 /*****************************************************************************
@@ -628,150 +581,157 @@ void MainWindow::on_actionAbout_triggered() {
 void MainWindow::initModeUnit()
 {
   // std::string _module[] = {"None", "Walking", "Manipulation", "Action", "Head", "Direct"};
-  int _number_joint = qnode_op3.getJointSize();
+  int number_joint = qnode_op3_.getJointSize();
 
   // preset button
-  QHBoxLayout *_preset_layout = new QHBoxLayout;
-  QSignalMapper *_signalMapper = new QSignalMapper(this);
+  QHBoxLayout *preset_layout = new QHBoxLayout;
+  QSignalMapper *signalMapper = new QSignalMapper(this);
 
   // yaml preset
-  for(std::map< int, std::string >::iterator _iter = qnode_op3.module_table.begin(); _iter != qnode_op3.module_table.end(); ++_iter)
+  for (std::map<int, std::string>::iterator module_it = qnode_op3_.module_table_.begin();
+      module_it != qnode_op3_.module_table_.end(); ++module_it)
   {
-    std::string _preset_name = _iter->second;
-    QPushButton *_preset_button = new QPushButton(tr(_preset_name.c_str()));
-    if(DEBUG) std::cout << "name : " <<  _preset_name << std::endl;
+    std::string preset_name = module_it->second;
+    QPushButton *preset_button = new QPushButton(tr(preset_name.c_str()));
+    if (debug_)
+      std::cout << "name : " << preset_name << std::endl;
 
-    _preset_layout->addWidget(_preset_button);
+    preset_layout->addWidget(preset_button);
 
-    _signalMapper->setMapping(_preset_button, _preset_button->text());
-    QObject::connect(_preset_button, SIGNAL(clicked()), _signalMapper, SLOT(map()));
+    signalMapper->setMapping(preset_button, preset_button->text());
+    QObject::connect(preset_button, SIGNAL(clicked()), signalMapper, SLOT(map()));
   }
 
   // QObject::connect(_signalMapper, SIGNAL(mapped(QString)), this, SLOT(setPreset(QString)));
-  QObject::connect(_signalMapper, SIGNAL(mapped(QString)), this, SLOT(setMode(QString)));
+  QObject::connect(signalMapper, SIGNAL(mapped(QString)), this, SLOT(setMode(QString)));
 
-  ui.widget_mode_preset->setLayout(_preset_layout);
+  ui_.widget_mode_preset->setLayout(preset_layout);
 
   // joints
-  QGridLayout *_grid_mod = new QGridLayout;
-  for(int ix = 0; ix < _number_joint; ix++)
+  QGridLayout *grid_layout = new QGridLayout;
+  for (int ix = 0; ix < number_joint; ix++)
   {
-    std::stringstream _stream;
-    std::string _joint;
-    int _id;
+    std::stringstream label_stream;
+    std::string joint_name;
+    int joint_id;
 
-    if(qnode_op3.getIDJointNameFromIndex(ix, _id, _joint) == false) continue;
+    if (qnode_op3_.getIDJointNameFromIndex(ix, joint_id, joint_name) == false)
+      continue;
 
-    _stream << "[" << (_id < 10 ? "0" : "") << _id << "] "<< _joint ;
-    QLabel *_label = new QLabel(tr(_stream.str().c_str()));
+    label_stream << "[" << (joint_id < 10 ? "0" : "") << joint_id << "] " << joint_name;
+    QLabel *id_label = new QLabel(tr(label_stream.str().c_str()));
 
-    QStringList _list;
-    for(int index = 0; index < qnode_op3.getModeSize(); index++)
+    QStringList module_list;
+    for (int index = 0; index < qnode_op3_.getModeSize(); index++)
     {
-      std::string _mode = qnode_op3.getModeName(index);
-      if(_mode != "")
-        _list << _mode.c_str();
+      std::string module_name = qnode_op3_.getModeName(index);
+      if (module_name != "")
+        module_list << module_name.c_str();
     }
 
-    QComboBox *_combo = new QComboBox();
-    _combo->setObjectName(tr(_joint.c_str()));
-    _combo->addItems(_list);
-    _combo->setEnabled(false);      // not changable
-    int _row = ix / 2 + 1;
-    int _col = (ix % 2) * 3;
-    _grid_mod->addWidget(_label, _row, _col, 1, 1);
-    _grid_mod->addWidget(_combo, _row, _col + 1, 1, 2);
+    QComboBox *module_combo = new QComboBox();
+    module_combo->setObjectName(tr(joint_name.c_str()));
+    module_combo->addItems(module_list);
+    module_combo->setEnabled(false);      // not changable
+    int num_row = ix / 2 + 1;
+    int num_col = (ix % 2) * 3;
+    grid_layout->addWidget(id_label, num_row, num_col, 1, 1);
+    grid_layout->addWidget(module_combo, num_row, num_col + 1, 1, 2);
   }
 
   // get/set buttons
-  QPushButton *_get_mode_button = new QPushButton(tr("Get Mode"));
-  _grid_mod->addWidget(_get_mode_button, (_number_joint / 2) + 2, 0, 1, 3);
-  QObject::connect(_get_mode_button, SIGNAL(clicked(bool)), &qnode_op3, SLOT(getJointControlMode()));
+  QPushButton *get_mode_button = new QPushButton(tr("Get Mode"));
+  grid_layout->addWidget(get_mode_button, (number_joint / 2) + 2, 0, 1, 3);
+  QObject::connect(get_mode_button, SIGNAL(clicked(bool)), &qnode_op3_, SLOT(getJointControlMode()));
 
   // QPushButton *_set_mode_button = new QPushButton(tr("Set Mode"));
   // _grid_mod->addWidget(_set_mode_button, (_number_joint / 2) + 2, 3, 1, 3);
   // QObject::connect(_set_mode_button, SIGNAL(clicked(bool)), this, SLOT(setMode(bool)));
 
-  ui.widget_mode->setLayout(_grid_mod);
+  ui_.widget_mode->setLayout(grid_layout);
 
   // make module widget table
-  for(int index = 0; index < qnode_op3.getModeSize(); index++)
+  for (int index = 0; index < qnode_op3_.getModeSize(); index++)
   {
-    std::string _mode = qnode_op3.getModeName(index);
-    if(_mode == "") continue;
-    std::string _mode_reg = "*_" + _mode;
+    std::string module_name = qnode_op3_.getModeName(index);
+    if (module_name == "")
+      continue;
+    std::string module_reg = "*_" + module_name;
 
-    QRegExp _rx(QRegExp(tr(_mode_reg.c_str())));
-    _rx.setPatternSyntax(QRegExp::Wildcard);
+    QRegExp reg_exp(QRegExp(tr(module_reg.c_str())));
+    reg_exp.setPatternSyntax(QRegExp::Wildcard);
 
-    QList<QWidget *> _list = ui.centralwidget->findChildren<QWidget *>(_rx);
-    module_ui_table_[_mode] = _list;
+    QList<QWidget *> widget_list = ui_.centralwidget->findChildren<QWidget *>(reg_exp);
+    module_ui_table_[module_name] = widget_list;
 
-    if(DEBUG) std::cout << "Module widget : " << _mode << " [" << _list.size() << "]" << std::endl;
+    if (debug_)
+      std::cout << "Module widget : " << module_name << " [" << widget_list.size() << "]" << std::endl;
   }
 
   // make motion tab
-  if(qnode_op3.getModeIndex("action_module") != -1) initMotionUnit();
+  if (qnode_op3_.getModeIndex("action_module") != -1)
+    initMotionUnit();
 }
 
 void MainWindow::initMotionUnit()
 {
   // preset button
-  QGridLayout *_motion_layout = new QGridLayout;
-  QSignalMapper *_signalMapper = new QSignalMapper(this);
+  QGridLayout *motion_layout = new QGridLayout;
+  QSignalMapper *signal_mapper = new QSignalMapper(this);
 
   // yaml preset
-  int _index = 0;
-  for(std::map< int, std::string >::iterator _iter = qnode_op3.motion_table.begin(); _iter != qnode_op3.motion_table.end(); ++_iter)
+  int index = 0;
+  for (std::map<int, std::string>::iterator motion_it = qnode_op3_.motion_table_.begin();
+      motion_it != qnode_op3_.motion_table_.end(); ++motion_it)
   {
-    int _motion_index = _iter->first;
-    std::string _motion_name = _iter->second;
-    QString _q_motion_name = QString::fromStdString(_motion_name);
-    QPushButton *_motion_button = new QPushButton(_q_motion_name);
+    int motion_index = motion_it->first;
+    std::string motion_name = motion_it->second;
+    QString q_motion_name = QString::fromStdString(motion_name);
+    QPushButton *motion_button = new QPushButton(q_motion_name);
 
     // if(DEBUG) std::cout << "name : " <<  _motion_name << std::endl;
 
-    int _size = (_motion_index < 0) ? 2 : 1;
-    int _row = _index / 4;
-    int _col = _index % 4;
-    _motion_layout->addWidget(_motion_button, _row, _col, 1, _size);
+    int button_size = (motion_index < 0) ? 2 : 1;
+    int num_row = index / 4;
+    int num_col = index % 4;
+    motion_layout->addWidget(motion_button, num_row, num_col, 1, button_size);
 
     //hotkey
-    std::map<int, int>::iterator _short_iter = qnode_op3.shortcut_table.find(_motion_index);
-    if(_short_iter != qnode_op3.shortcut_table.end())
-      _motion_button->setShortcut(QKeySequence(_short_iter->second));
+    std::map<int, int>::iterator shortcut_it = qnode_op3_.motion_shortcut_table_.find(motion_index);
+    if (shortcut_it != qnode_op3_.motion_shortcut_table_.end())
+      motion_button->setShortcut(QKeySequence(shortcut_it->second));
 
-    _signalMapper->setMapping(_motion_button, _motion_index);
-    QObject::connect(_motion_button, SIGNAL(clicked()), _signalMapper, SLOT(map()));
+    signal_mapper->setMapping(motion_button, motion_index);
+    QObject::connect(motion_button, SIGNAL(clicked()), signal_mapper, SLOT(map()));
 
-    _index += _size;
+    index += button_size;
   }
 
-  int _row = _index / 4;
-  _row = (_index % 4 == 0) ? _row : _row + 1;
-  QSpacerItem *_verticalSpacer = new QSpacerItem(20, 400, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  _motion_layout->addItem(_verticalSpacer, _row, 0, 1, 4);
+  int num_row = index / 4;
+  num_row = (index % 4 == 0) ? num_row : num_row + 1;
+  QSpacerItem *vertical_spacer = new QSpacerItem(20, 400, QSizePolicy::Minimum, QSizePolicy::Expanding);
+  motion_layout->addItem(vertical_spacer, num_row, 0, 1, 4);
 
-  QObject::connect(_signalMapper, SIGNAL(mapped(int)), &qnode_op3, SLOT(playMotion(int)));
+  QObject::connect(signal_mapper, SIGNAL(mapped(int)), &qnode_op3_, SLOT(playMotion(int)));
 
-  ui.scroll_widget_motion->setLayout(_motion_layout);
+  ui_.scroll_widget_motion->setLayout(motion_layout);
 }
 
 void MainWindow::setMode(QString mode_name)
 {
-  qnode_op3.setControlMode(mode_name.toStdString());
+  qnode_op3_.setControlMode(mode_name.toStdString());
 }
 
-void MainWindow::ReadSettings()
+void MainWindow::readSettings()
 {
-  QSettings settings("Qt-Ros Package", "thor3_control");
+  QSettings settings("Qt-Ros Package", "op3_demo");
   restoreGeometry(settings.value("geometry").toByteArray());
   restoreState(settings.value("windowState").toByteArray());
 }
 
-void MainWindow::WriteSettings()
+void MainWindow::writeSettings()
 {
-  QSettings settings("Qt-Ros Package", "thor3_control");
+  QSettings settings("Qt-Ros Package", "op3_demo");
   //settings.setValue("master_url",ui.line_edit_master->text());
   //settings.setValue("host_url",ui.line_edit_host->text());
   //settings.setValue("topic_name",ui.line_edit_topic->text());
@@ -782,7 +742,7 @@ void MainWindow::WriteSettings()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-  WriteSettings();
+  writeSettings();
   QMainWindow::closeEvent(event);
 }
 
@@ -790,58 +750,52 @@ void MainWindow::closeEvent(QCloseEvent *event)
  ** Implementation [Util]
  *****************************************************************************/
 
-Eigen::MatrixXd MainWindow::rx( double s )
+Eigen::MatrixXd MainWindow::rotateX(double s)
 {
-  Eigen::MatrixXd R(3,3);
+  Eigen::MatrixXd rotation_matrix(3, 3);
 
-  R << 1.0, 	 0.0, 	  0.0,
-      0.0, cos(s), -sin(s),
-      0.0, sin(s),  cos(s);
+  rotation_matrix << 1.0, 0.0, 0.0, 0.0, cos(s), -sin(s), 0.0, sin(s), cos(s);
 
-  return R;
+  return rotation_matrix;
 }
 
-Eigen::MatrixXd MainWindow::ry( double s )
+Eigen::MatrixXd MainWindow::rotateY(double s)
 {
-  Eigen::MatrixXd R(3,3);
+  Eigen::MatrixXd rotation_matrix(3, 3);
 
-  R << cos(s), 0.0, sin(s),
-      0.0, 	 1.0, 	 0.0,
-      -sin(s), 0.0, cos(s);
+  rotation_matrix << cos(s), 0.0, sin(s), 0.0, 1.0, 0.0, -sin(s), 0.0, cos(s);
 
-  return R;
+  return rotation_matrix;
 }
 
-Eigen::MatrixXd MainWindow::rz( double s )
+Eigen::MatrixXd MainWindow::rotateZ(double s)
 {
-  Eigen::MatrixXd R(3,3);
+  Eigen::MatrixXd rotation_matrix(3, 3);
 
-  R << cos(s), -sin(s), 0.0,
-      sin(s),  cos(s), 0.0,
-      0.0,     0.0, 1.0;
+  rotation_matrix << cos(s), -sin(s), 0.0, sin(s), cos(s), 0.0, 0.0, 0.0, 1.0;
 
-  return R;
+  return rotation_matrix;
 }
 
-Eigen::MatrixXd MainWindow::rpy2rotation( double r, double p, double y )
+Eigen::MatrixXd MainWindow::convertRpy2Rotation(double r, double p, double y)
 {
-  Eigen::MatrixXd R = rz(y)*ry(p)*rx(r);
+  Eigen::MatrixXd rotation_matrix = rotateZ(y) * rotateY(p) * rotateX(r);
 
-  return R;
+  return rotation_matrix;
 }
 
-Eigen::Quaterniond MainWindow::rpy2quaternion( double r, double p, double y )
+Eigen::Quaterniond MainWindow::convertRpy2Quaternion(double r, double p, double y)
 {
-  Eigen::MatrixXd R = rpy2rotation(r, p, y);
+  Eigen::MatrixXd rotation_matrix = convertRpy2Rotation(r, p, y);
 
-  Eigen::Matrix3d R_plus;
-  R_plus = R.block(0,0,3,3);
+  Eigen::Matrix3d rotation_matrix_block;
+  rotation_matrix_block = rotation_matrix.block(0, 0, 3, 3);
 
-  Eigen::Quaterniond QR;
-  QR = R_plus;
+  Eigen::Quaterniond quaternion;
+  quaternion = rotation_matrix_block;
 
-  return QR;
+  return quaternion;
 }
 
-}  // namespace thor3_control
+}  // namespace robotis_op
 

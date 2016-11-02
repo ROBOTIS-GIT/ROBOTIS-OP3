@@ -1,5 +1,6 @@
 offset:
-  cm_740: 0
+  head_pan: 0
+  head_tilt: 0
   l_ank_pitch: 0
   l_ank_roll: 0
   l_el: 0
@@ -19,7 +20,8 @@ offset:
   r_sho_pitch: 0
   r_sho_roll: 0
 init_pose_for_offset_tuner:
-  cm_740: 0
+  head_pan: 0
+  head_tilt: 0
   l_ank_pitch: 0
   l_ank_roll: 0
   l_el: 0

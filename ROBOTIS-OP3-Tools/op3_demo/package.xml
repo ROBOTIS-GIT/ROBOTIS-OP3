@@ -7,11 +7,10 @@
      op3_demo
 
   </description>
-  <maintainer email="kmjung@robotis.com">kayman</maintainer>
-  <author>kayman</author>
+  <maintainer email="kmjung@robotis.com">Kayman Jung</maintainer>
+  <author email="kmjung@robotis.com">Kayman Jung</author>
+
   <license>BSD</license>
-  <!-- <url type="bugtracker">https://github.com/stonier/qt_ros/issues</url> -->
-  <!-- <url type="repository">https://github.com/stonier/qt_ros</url> -->
 
   <buildtool_depend>catkin</buildtool_depend>
 

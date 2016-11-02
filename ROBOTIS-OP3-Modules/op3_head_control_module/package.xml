@@ -4,13 +4,13 @@
   <version>0.1.0</version>
   <description>The op3_head_control_module package</description>
 
-  <maintainer email="kmjung@robotis.com">kayman</maintainer>
+  <maintainer email="kmjung@robotis.com">Kayman Jung</maintainer>
 
   <license>BSD</license>
 
   <!-- <url type="website">http://wiki.ros.org/test_motion_module</url> -->
 
-  <author email="kmjung@robotis.com">kayman</author> 
+  <author email="kmjung@robotis.com">Kayman Jung</author> 
 
   <buildtool_depend>catkin</buildtool_depend>
   

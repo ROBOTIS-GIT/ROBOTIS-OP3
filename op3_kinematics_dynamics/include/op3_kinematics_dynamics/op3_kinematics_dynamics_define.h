@@ -28,52 +28,35 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-/* Author: Kayman Jung */
+/* Author: sch */
 
-#include "ball_tracker/ball_tracker.h"
+#ifndef OP3_KINEMATICS_DYNAMICS_DEFINE_H_
+#define OP3_KINEMATICS_DYNAMICS_DEFINE_H_
 
-//node main
-int main(int argc, char **argv)
+namespace robotis_op
 {
-  //init ros
-  ros::init(argc, argv, "ball_tracker_node");
+#define MAX_JOINT_ID    (20)
+#define ALL_JOINT_ID    (31)
 
-  //create ros wrapper object
-  robotis_op::BallTracker tracker;
+#define MAX_ARM_ID      (3)
+#define MAX_LEG_ID      (6)
+#define MAX_ITER        (5)
 
-  int wait_count = 0;
-  bool result = false;
+#define ID_HEAD_END     (20)
+#define ID_COB          (29)
+#define ID_TORSO        (29)
 
-  //set node loop rate
-  ros::Rate loop_rate(30);
+#define ID_R_ARM_START  (1)
+#define ID_L_ARM_START  (2)
+#define ID_R_ARM_END    (21)
+#define ID_L_ARM_END    (22)
 
-  //node loop
-  while (ros::ok())
-  {
-    result = result | tracker.processTracking();
+#define ID_R_LEG_START  (7)
+#define ID_L_LEG_START  (8)
+#define ID_R_LEG_END    (31)
+#define ID_L_LEG_END    (30)
 
-    if (result == true)
-    {
-
-      wait_count += 1;
-
-      if (wait_count > 60)
-      {
-        tracker.processActing();
-        result = false;
-      }
-    }
-    else
-      wait_count = 0;
-
-    //execute pending callbacks
-    ros::spinOnce();
-
-    //relax to fit output rate
-    loop_rate.sleep();
-  }
-
-  //exit program
-  return 0;
+#define GRAVITY_ACCELERATION (9.8)
 }
 
+#endif /* OP3_KINEMATICS_DYNAMICS_DEFINE_H_ */

@@ -28,52 +28,39 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-/* Author: Kayman Jung */
+/* Author: sch */
 
-#include "ball_tracker/ball_tracker.h"
+#include "op3_base_module/base_module_state.h"
 
-//node main
-int main(int argc, char **argv)
+namespace robotis_op
 {
-  //init ros
-  ros::init(argc, argv, "ball_tracker_node");
 
-  //create ros wrapper object
-  robotis_op::BallTracker tracker;
+BaseModuleState::BaseModuleState()
+{
+  is_moving_ = false;
 
-  int wait_count = 0;
-  bool result = false;
+  cnt_ = 0;
 
-  //set node loop rate
-  ros::Rate loop_rate(30);
+  mov_time_ = 1.0;
+  smp_time_ = 0.008;
+  all_time_steps_ = int(mov_time_ / smp_time_) + 1;
 
-  //node loop
-  while (ros::ok())
-  {
-    result = result | tracker.processTracking();
+  calc_joint_tra_ = Eigen::MatrixXd::Zero(all_time_steps_, MAX_JOINT_ID + 1);
 
-    if (result == true)
-    {
+  joint_ini_pose_ = Eigen::MatrixXd::Zero( MAX_JOINT_ID + 1, 1);
+  joint_pose_ = Eigen::MatrixXd::Zero( MAX_JOINT_ID + 1, 1);
 
-      wait_count += 1;
+  via_num_ = 1;
 
-      if (wait_count > 60)
-      {
-        tracker.processActing();
-        result = false;
-      }
-    }
-    else
-      wait_count = 0;
+  joint_via_pose_ = Eigen::MatrixXd::Zero(via_num_, MAX_JOINT_ID + 1);
+  joint_via_dpose_ = Eigen::MatrixXd::Zero(via_num_, MAX_JOINT_ID + 1);
+  joint_via_ddpose_ = Eigen::MatrixXd::Zero(via_num_, MAX_JOINT_ID + 1);
 
-    //execute pending callbacks
-    ros::spinOnce();
-
-    //relax to fit output rate
-    loop_rate.sleep();
-  }
-
-  //exit program
-  return 0;
+  via_time_ = Eigen::MatrixXd::Zero(via_num_, 1);
 }
 
+BaseModuleState::~BaseModuleState()
+{
+}
+
+}

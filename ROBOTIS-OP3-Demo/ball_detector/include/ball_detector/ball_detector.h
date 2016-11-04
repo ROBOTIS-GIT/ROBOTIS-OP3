@@ -136,7 +136,7 @@ class BallDetector
    *    radius_i: circles[i][2]
    *
    **/
-  cv::vector<cv::Vec3f> circles_;
+  std::vector<cv::Vec3f> circles_;
   cv::Mat in_image_;
   cv::Mat out_image_;
 

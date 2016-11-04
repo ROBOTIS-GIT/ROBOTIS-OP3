@@ -46,6 +46,7 @@
 
 #include "robotis_framework_common/motion_module.h"
 #include "robotis_controller_msgs/StatusMsg.h"
+#include "op3_action_module_msgs/IsRunning.h"
 #include "action_file_define.h"
 
 namespace robotis_op
@@ -99,6 +100,9 @@ class ActionModule : public robotis_framework::MotionModule, public robotis_fram
   double w4095ToRad(int w4095);
 
   void publishStatusMsg(unsigned int type, std::string msg);
+
+  bool isRunningServiceCallback(op3_action_module_msgs::IsRunning::Request  &req,
+                                op3_action_module_msgs::IsRunning::Response &res);
 
   std::string convertIntToString(int n);
 

@@ -41,6 +41,7 @@ namespace robotis_op
 BallDetector::BallDetector()
     : nh_(ros::this_node::getName()),
       it_(this->nh_),
+      enable_(true),
       params_config_(),
       init_param_(false)
 {
@@ -102,6 +103,7 @@ BallDetector::BallDetector()
   camera_info_pub_ = nh_.advertise<sensor_msgs::CameraInfo>("camera_info", 100);
 
   //sets subscribers
+  enable_sub_ = nh_.subscribe("enable", 1, &BallDetector::enableCallback, this);
   image_sub_ = it_.subscribe("image_in", 1, &BallDetector::imageCallback, this);
   camera_info_sub_ = nh_.subscribe("cameraInfo_in", 100, &BallDetector::cameraInfoCallback, this);
 
@@ -138,6 +140,9 @@ bool BallDetector::newImage()
 
 void BallDetector::process()
 {
+  if(enable_ == false)
+    return;
+
   if (cv_img_ptr_sub_ != NULL)
   {
     //sets input image
@@ -153,6 +158,9 @@ void BallDetector::process()
 
 void BallDetector::publishImage()
 {
+  if(enable_ == false)
+    return;
+
   //image_raw topic
   cv_img_pub_.header.seq++;
   cv_img_pub_.header.stamp = sub_time_;
@@ -176,6 +184,9 @@ void BallDetector::publishImage()
 
 void BallDetector::publishCircles()
 {
+  if(enable_ == false)
+    return;
+
   if (circles_.size() == 0)
     return;
 
@@ -191,8 +202,8 @@ void BallDetector::publishCircles()
   //fill circle data
   for (int idx = 0; idx < circles_.size(); idx++)
   {
-    circles_msg_.circles[idx].x = circles_[idx][0] / in_image_.cols * 2 - 1;    // x
-    circles_msg_.circles[idx].y = circles_[idx][1] / in_image_.rows * 2 - 1;    // y
+    circles_msg_.circles[idx].x = circles_[idx][0] / in_image_.cols * 2 - 1;    // x (-1 ~ 1)
+    circles_msg_.circles[idx].y = circles_[idx][1] / in_image_.rows * 2 - 1;    // y (-1 ~ 1)
     circles_msg_.circles[idx].z = circles_[idx][2];    // radius
   }
 
@@ -200,8 +211,16 @@ void BallDetector::publishCircles()
   circles_pub_.publish(circles_msg_);
 }
 
+void BallDetector::enableCallback(const std_msgs::Bool::ConstPtr &msg)
+{
+  enable_ = msg->data;
+}
+
 void BallDetector::imageCallback(const sensor_msgs::ImageConstPtr & msg)
 {
+  if(enable_ == false)
+    return;
+
   try
   {
     if (msg->encoding.compare(sensor_msgs::image_encodings::MONO8) == 0)
@@ -260,6 +279,9 @@ void BallDetector::dynParamCallback(ball_detector::detectorParamsConfig &config,
 
 void BallDetector::cameraInfoCallback(const sensor_msgs::CameraInfo & msg)
 {
+  if(enable_ == false)
+    return;
+
   camera_info_msg_ = msg;
 }
 
@@ -297,37 +319,37 @@ void BallDetector::saveConfig()
   if (has_path_ == false)
     return;
 
-  YAML::Emitter _out;
+  YAML::Emitter yaml_out;
 
-  _out << YAML::BeginMap;
-  _out << YAML::Key << "gaussian_blur_size" << YAML::Value << params_config_.gaussian_blur_size;
-  _out << YAML::Key << "gaussian_blur_sigma" << YAML::Value << params_config_.gaussian_blur_sigma;
-  _out << YAML::Key << "canny_edge_th" << YAML::Value << params_config_.canny_edge_th;
-  _out << YAML::Key << "hough_accum_resolution" << YAML::Value << params_config_.hough_accum_resolution;
-  _out << YAML::Key << "min_circle_dist" << YAML::Value << params_config_.min_circle_dist;
-  _out << YAML::Key << "hough_accum_th" << YAML::Value << params_config_.hough_accum_th;
-  _out << YAML::Key << "min_radius" << YAML::Value << params_config_.min_radius;
-  _out << YAML::Key << "max_radius" << YAML::Value << params_config_.max_radius;
-  _out << YAML::Key << "filter_h_min" << YAML::Value << params_config_.filter_threshold.h_min;
-  _out << YAML::Key << "filter_h_max" << YAML::Value << params_config_.filter_threshold.h_max;
-  _out << YAML::Key << "filter_s_min" << YAML::Value << params_config_.filter_threshold.s_min;
-  _out << YAML::Key << "filter_s_max" << YAML::Value << params_config_.filter_threshold.s_max;
-  _out << YAML::Key << "filter_v_min" << YAML::Value << params_config_.filter_threshold.v_min;
-  _out << YAML::Key << "filter_v_max" << YAML::Value << params_config_.filter_threshold.v_max;
-  _out << YAML::Key << "use_second_filter" << YAML::Value << params_config_.use_second_filter;
-  _out << YAML::Key << "filter2_h_min" << YAML::Value << params_config_.filter2_threshold.h_min;
-  _out << YAML::Key << "filter2_h_max" << YAML::Value << params_config_.filter2_threshold.h_max;
-  _out << YAML::Key << "filter2_s_min" << YAML::Value << params_config_.filter2_threshold.s_min;
-  _out << YAML::Key << "filter2_s_max" << YAML::Value << params_config_.filter2_threshold.s_max;
-  _out << YAML::Key << "filter2_v_min" << YAML::Value << params_config_.filter2_threshold.v_min;
-  _out << YAML::Key << "filter2_v_max" << YAML::Value << params_config_.filter2_threshold.v_max;
-  _out << YAML::Key << "ellipse_size" << YAML::Value << params_config_.ellipse_size;
-  _out << YAML::Key << "filter_debug" << YAML::Value << params_config_.debug;
-  _out << YAML::EndMap;
+  yaml_out << YAML::BeginMap;
+  yaml_out << YAML::Key << "gaussian_blur_size" << YAML::Value << params_config_.gaussian_blur_size;
+  yaml_out << YAML::Key << "gaussian_blur_sigma" << YAML::Value << params_config_.gaussian_blur_sigma;
+  yaml_out << YAML::Key << "canny_edge_th" << YAML::Value << params_config_.canny_edge_th;
+  yaml_out << YAML::Key << "hough_accum_resolution" << YAML::Value << params_config_.hough_accum_resolution;
+  yaml_out << YAML::Key << "min_circle_dist" << YAML::Value << params_config_.min_circle_dist;
+  yaml_out << YAML::Key << "hough_accum_th" << YAML::Value << params_config_.hough_accum_th;
+  yaml_out << YAML::Key << "min_radius" << YAML::Value << params_config_.min_radius;
+  yaml_out << YAML::Key << "max_radius" << YAML::Value << params_config_.max_radius;
+  yaml_out << YAML::Key << "filter_h_min" << YAML::Value << params_config_.filter_threshold.h_min;
+  yaml_out << YAML::Key << "filter_h_max" << YAML::Value << params_config_.filter_threshold.h_max;
+  yaml_out << YAML::Key << "filter_s_min" << YAML::Value << params_config_.filter_threshold.s_min;
+  yaml_out << YAML::Key << "filter_s_max" << YAML::Value << params_config_.filter_threshold.s_max;
+  yaml_out << YAML::Key << "filter_v_min" << YAML::Value << params_config_.filter_threshold.v_min;
+  yaml_out << YAML::Key << "filter_v_max" << YAML::Value << params_config_.filter_threshold.v_max;
+  yaml_out << YAML::Key << "use_second_filter" << YAML::Value << params_config_.use_second_filter;
+  yaml_out << YAML::Key << "filter2_h_min" << YAML::Value << params_config_.filter2_threshold.h_min;
+  yaml_out << YAML::Key << "filter2_h_max" << YAML::Value << params_config_.filter2_threshold.h_max;
+  yaml_out << YAML::Key << "filter2_s_min" << YAML::Value << params_config_.filter2_threshold.s_min;
+  yaml_out << YAML::Key << "filter2_s_max" << YAML::Value << params_config_.filter2_threshold.s_max;
+  yaml_out << YAML::Key << "filter2_v_min" << YAML::Value << params_config_.filter2_threshold.v_min;
+  yaml_out << YAML::Key << "filter2_v_max" << YAML::Value << params_config_.filter2_threshold.v_max;
+  yaml_out << YAML::Key << "ellipse_size" << YAML::Value << params_config_.ellipse_size;
+  yaml_out << YAML::Key << "filter_debug" << YAML::Value << params_config_.debug;
+  yaml_out << YAML::EndMap;
 
   // output to file
   std::ofstream fout(param_path_.c_str());
-  fout << _out.c_str();
+  fout << yaml_out.c_str();
 }
 
 void BallDetector::setInputImage(const cv::Mat & inIm)
@@ -366,36 +388,36 @@ void BallDetector::filterImage()
    cv::cvtColor(imgCr, in_image_, cv::COLOR_GRAY2RGB);
    */
 
-  cv::Mat imgHsv, imgFiltered;
-  cv::cvtColor(in_image_, imgHsv, cv::COLOR_RGB2HSV);
+  cv::Mat img_hsv, img_filtered;
+  cv::cvtColor(in_image_, img_hsv, cv::COLOR_RGB2HSV);
 
-  inRangeHsv(imgHsv, params_config_.filter_threshold, imgFiltered);
+  inRangeHsv(img_hsv, params_config_.filter_threshold, img_filtered);
 
   if (params_config_.use_second_filter == true)
   {
     // mask
-    cv::Mat imgMask;
+    cv::Mat img_mask;
 
     // mophology : open and close
     int ellipse_size = 5;
-    cv::erode(imgFiltered, imgMask, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(ellipse_size, ellipse_size)));
-    cv::dilate(imgMask, imgMask,
+    cv::erode(img_filtered, img_mask, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(ellipse_size, ellipse_size)));
+    cv::dilate(img_mask, img_mask,
                cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(ellipse_size * 10, ellipse_size * 10)));
 
     // check hsv range
-    cv::Mat imgFiltered2;
-    inRangeHsv(imgHsv, params_config_.filter2_threshold, imgFiltered2);
+    cv::Mat img_filtered2;
+    inRangeHsv(img_hsv, params_config_.filter2_threshold, img_filtered2);
 
-    cv::bitwise_and(imgFiltered2, imgMask, imgFiltered2);
+    cv::bitwise_and(img_filtered2, img_mask, img_filtered2);
 
     // or
-    cv::bitwise_or(imgFiltered, imgFiltered2, imgFiltered);
+    cv::bitwise_or(img_filtered, img_filtered2, img_filtered);
   }
 
   // mophology : open and close
-  mophology(imgFiltered, imgFiltered, params_config_.ellipse_size);
+  mophology(img_filtered, img_filtered, params_config_.ellipse_size);
 
-  cv::cvtColor(imgFiltered, in_image_, cv::COLOR_GRAY2RGB);
+  cv::cvtColor(img_filtered, in_image_, cv::COLOR_GRAY2RGB);
 }
 
 void BallDetector::makeFilterMask(const cv::Mat &source_img, cv::Mat &mask_img, int range)
@@ -478,62 +500,62 @@ void BallDetector::mophology(const cv::Mat &intput_img, cv::Mat &output_img, int
 
 void BallDetector::houghDetection(const unsigned int imgEncoding)
 {
-  cv::Mat grayImage;
-  std::vector<cv::Vec3f> circlesCurrent;
+  cv::Mat gray_image;
+  std::vector<cv::Vec3f> circles_current;
 
   //clear previous circles
   circles_.clear();
 
   // If input image is RGB, convert it to gray
   if (imgEncoding == IMG_RGB8)
-    cv::cvtColor(in_image_, grayImage, CV_RGB2GRAY);
+    cv::cvtColor(in_image_, gray_image, CV_RGB2GRAY);
 
   //Reduce the noise so we avoid false circle detection
-  cv::GaussianBlur(grayImage, grayImage, cv::Size(params_config_.gaussian_blur_size, params_config_.gaussian_blur_size),
+  cv::GaussianBlur(gray_image, gray_image, cv::Size(params_config_.gaussian_blur_size, params_config_.gaussian_blur_size),
                    params_config_.gaussian_blur_sigma);
 
   //Apply the Hough Transform to find the circles
-  cv::HoughCircles(grayImage, circlesCurrent, CV_HOUGH_GRADIENT, params_config_.hough_accum_resolution,
+  cv::HoughCircles(gray_image, circles_current, CV_HOUGH_GRADIENT, params_config_.hough_accum_resolution,
                    params_config_.min_circle_dist, params_config_.canny_edge_th, params_config_.hough_accum_th,
                    params_config_.min_radius, params_config_.max_radius);
 
   //set found circles to circles set. Apply some condition if desired.
   unsigned int ii;
-  for (ii = 0; ii < circlesCurrent.size(); ii++)
+  for (ii = 0; ii < circles_current.size(); ii++)
   {
-    circles_.push_back(circlesCurrent.at(ii));
+    circles_.push_back(circles_current.at(ii));
     // std::cout << "circle " << ii << ": (" << circles.at(ii)[0] << "," << circles.at(ii)[1] << ")" << std::endl;
   }
 }
 
 void BallDetector::drawOutputImage()
 {
-  cv::Point _center;
-  int _radius = 0;
-  size_t _ii;
+  cv::Point center_position;
+  int radius = 0;
+  size_t ii;
 
   //draws results to output Image
   if (params_config_.debug == true)
     out_image_ = in_image_.clone();
 
-  for (_ii = 0; _ii < circles_.size(); _ii++)
+  for (ii = 0; ii < circles_.size(); ii++)
   {
-    if (circles_[_ii][0] != -1)
+    if (circles_[ii][0] != -1)
     {
       //      _center = cv::Point(cvRound(circles_[_ii][0]), cvRound(circles_[_ii][1]));
       //      _radius = cvRound(circles_[_ii][2]);
       //      cv::circle( out_image_, _center, 5, cv::Scalar(0,0,255), -1, 8, 0 );// circle center in green
       //      cv::circle( out_image_, _center, _radius, cv::Scalar(0,0,255), 3, 8, 0 );// circle outline in red
-      int this_radius = cvRound(circles_[_ii][2]);
-      if (this_radius > _radius)
+      int this_radius = cvRound(circles_[ii][2]);
+      if (this_radius > radius)
       {
-        _radius = this_radius;
-        _center = cv::Point(cvRound(circles_[_ii][0]), cvRound(circles_[_ii][1]));
+        radius = this_radius;
+        center_position = cv::Point(cvRound(circles_[ii][0]), cvRound(circles_[ii][1]));
       }
     }
   }
-  cv::circle(out_image_, _center, 5, cv::Scalar(0, 0, 255), -1, 8, 0);      // circle center in blue
-  cv::circle(out_image_, _center, _radius, cv::Scalar(0, 0, 255), 3, 8, 0);      // circle outline in blue
+  cv::circle(out_image_, center_position, 5, cv::Scalar(0, 0, 255), -1, 8, 0);      // circle center in blue
+  cv::circle(out_image_, center_position, radius, cv::Scalar(0, 0, 255), 3, 8, 0);      // circle outline in blue
 
 }
 

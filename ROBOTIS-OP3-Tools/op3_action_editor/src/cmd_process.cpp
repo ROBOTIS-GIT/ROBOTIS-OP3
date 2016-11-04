@@ -1213,7 +1213,7 @@ void ListCmd()
     {
       for (int j = 0; j < 4; j++)
       {
-        int k = (index * 88) + (j * 22 + i);
+        int k = (index * 88) + (j * 22 + i) + 1; //first page number is 1
         robotis_op::action_file_define::PAGE page;
         if (robotis_op::ActionModule::getInstance()->loadPage(k, &page) == true)
         {

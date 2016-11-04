@@ -165,7 +165,7 @@ void HeadControlModule::setHeadJoint(const sensor_msgs::JointState::ConstPtr &ms
       target_position_.coeffRef(0, joint_index) = target_position;
 
       // set time
-      double angle_unit = is_offset ? 40 * M_PI / 180 : 25 * M_PI / 180;
+      double angle_unit = is_offset ? 50 * M_PI / 180 : 25 * M_PI / 180;
       int calc_moving_time = fabs(goal_position_.coeff(0, joint_index) - target_position_.coeff(0, joint_index))
           / angle_unit;
       if (calc_moving_time > moving_time_)

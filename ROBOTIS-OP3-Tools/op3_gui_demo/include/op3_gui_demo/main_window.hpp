@@ -30,21 +30,15 @@
 
 /* Author: Kayman Jung */
 
-#ifndef OP3_OFFSET_TUNER_CLIENT_MAIN_WINDOW_H
-#define OP3_OFFSET_TUNER_CLIENT_MAIN_WINDOW_H
+#ifndef OP3_DEMO_MAIN_WINDOW_H
+#define OP3_DEMO_MAIN_WINDOW_H
 
 /*****************************************************************************
  ** Includes
  *****************************************************************************/
 #ifndef Q_MOC_RUN
 
-#include <QtGui>
-#include <QList>
-#include <QSpinBox>
 #include <QtGui/QMainWindow>
-
-#include <math.h>
-
 #include "ui_main_window.h"
 #include "qnode.hpp"
 
@@ -53,8 +47,11 @@
  ** Namespace
  *****************************************************************************/
 
-namespace op3_offset_tuner_client
+namespace robotis_op
 {
+
+#define DEGREE2RADIAN     (M_PI / 180.0)
+#define RADIAN2DEGREE     (180.0 / M_PI)
 
 /*****************************************************************************
  ** Interface [MainWindow]
@@ -70,50 +67,93 @@ Q_OBJECT
   MainWindow(int argc, char** argv, QWidget *parent = 0);
   ~MainWindow();
 
+  void readSettings();  // Load up qt program settings at startup
+  void writeSettings();  // Save qt program settings when closing
+
   void closeEvent(QCloseEvent *event);  // Overloaded function
+  void showNoMasterMessage();
 
  public Q_SLOTS:
+
   /******************************************
    ** Auto-connections (connectSlotsByName())
    *******************************************/
   void on_actionAbout_triggered();
+  void on_button_clear_log_clicked(bool check);
+  void on_button_init_pose_clicked(bool check);
 
-  void on_save_button_clicked(bool check);
-  void on_refresh_button_clicked(bool check);
-  void on_inipose_button_clicked(bool checck);
+  // Walking
+  void on_button_walking_start_clicked(bool check);
+  void on_button_walking_stop_clicked(bool check);
+
+  void on_button_param_refresh_clicked(bool check);
+  void on_button_param_apply_clicked(bool check);
+  void on_button_param_save_clicked(bool check);
+
+  void on_checkBox_balance_on_clicked(bool check);
+  void on_checkBox_balance_off_clicked(bool check);
+
+  // Head Control
+  void on_head_center_button_clicked(bool check);
+
+  // Demo
+  void on_button_demo_start_clicked(bool check);
+  void on_button_demo_stop_clicked(bool check);
+  void on_button_r_kick_clicked(bool check);
+  void on_button_l_kick_clicked(bool check);
+  void on_button_getup_front_clicked(bool check);
+  void on_button_getup_back_clicked(bool check);
 
   /******************************************
    ** Manual connections
    *******************************************/
   void updateLoggingView();  // no idea why this can't connect automatically
+  void setMode(bool check);
+  void updateCurrentJointMode(std::vector<int> mode);
+  void setMode(QString mode_name);
 
-  void updateJointOffsetSpinbox(op3_offset_tuner_msgs::JointOffsetPositionData msg);
+  // Head Control
+  void updateHeadAngles(double pan, double tilt);
 
-  void changedSpinBoxValue(QString q_joint_name);
-  void clickedTorqueCheckbox(QWidget *widget);
-  void clickedAllTorqueOnButton(QObject *button_group);
-  void clickedAllTorqueOffButton(QObject *button_group);
+  // Manipulation
+//    void updateCurrJointSpinbox( double value );
+//    void updateCurrPosSpinbox( double x , double y , double z  );
+//    void updateCurrOriSpinbox( double x , double y , double z , double w );
+
+  // Walking
+  void updateWalkingParams(op3_walking_module_msgs::WalkingParam params);
+  void walkingCommandShortcut();
+
+ protected Q_SLOTS:
+  void setHeadAngle();
 
  private:
-  void makeUI();
-  void makeTabUI(QGroupBox *joint_widget, QGroupBox *torque_widget, QButtonGroup *button_group,
-                 std::map<int, std::string> &offset_group);
-  void publishTorqueMsgs(std::string &joint_name, bool torque_on);
+  void setUserShortcut();
+  void initModeUnit();
+  void initMotionUnit();
+
+  void updateModuleUI();
+  void setHeadAngle(double pan, double tilt);
+  void applyWalkingParams();
+
+  /******************************************
+   ** Transformation
+   *******************************************/
+  Eigen::MatrixXd rotateX(double s);
+  Eigen::MatrixXd rotateY(double s);
+  Eigen::MatrixXd rotateZ(double s);
+  Eigen::MatrixXd convertRpy2Rotation(double r, double p, double y);
+  Eigen::Quaterniond convertRpy2Quaternion(double r, double p, double y);
 
   Ui::MainWindowDesign ui_;
-  QNode qnode_;
+  QNodeOP3 qnode_op3_;
+  bool debug_;
 
-  bool all_torque_on_;
-
-  QButtonGroup *right_arm_button_group_;
-  QButtonGroup *left_arm_button_group_;
-  QButtonGroup *legs_button_group_;
-  QButtonGroup *body_button_group_;
-  std::vector<std::string> spinBox_list_;
-
-  std::map<std::string, QList<QAbstractSpinBox *> > joint_spinbox_map_;
+  bool is_updating_;
+  bool is_walking_;
+  std::map<std::string, QList<QWidget *> > module_ui_table_;
 };
 
-}  // namespace op3_offset_tuner_client
+}  // namespace robotis_op
 
-#endif // OP3_OFFSET_TUNER_CLIENT_MAIN_WINDOW_H
+#endif // OP3_DEMO_MAIN_WINDOW_H

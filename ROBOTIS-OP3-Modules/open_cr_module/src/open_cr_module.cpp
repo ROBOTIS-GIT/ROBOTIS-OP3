@@ -190,7 +190,7 @@ void OpenCRModule::fusionIMU()
 
   // ROS_INFO("Roll : %3.2f, Pitch : %2.2f", (roll * 180 / M_PI), (pitch * 180 / M_PI));
 
-  Eigen::Quaterniond orientation = robotis_framework::convertRPYToQuaternion(roll, pitch, yaw);
+  Eigen::Quaterniond orientation =  robotis_framework::convertRPYToQuaternion(roll, pitch, yaw);
 
   imu_msg_.orientation.x = orientation.x();
   imu_msg_.orientation.y = orientation.y();

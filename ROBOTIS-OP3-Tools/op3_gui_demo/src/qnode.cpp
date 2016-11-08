@@ -116,11 +116,11 @@ bool QNodeOP3::init()
   demo_command_pub_ = ros_node.advertise<std_msgs::String>("/ball_tracker/command", 0);
 
   // Config
-  std::string default_path = ros::package::getPath("op3_demo") + "/config/demo_config.yaml";
+  std::string default_path = ros::package::getPath("op3_gui_demo") + "/config/demo_config.yaml";
   std::string config_path = ros_node.param<std::string>("demo_config", default_path);
   parseJointNameFromYaml(config_path);
 
-  std::string default_motion_path = ros::package::getPath("op3_demo") + "/config/motion.yaml";
+  std::string default_motion_path = ros::package::getPath("op3_gui_demo") + "/config/motion.yaml";
   parseMotionMapFromYaml(default_motion_path);
 
   // start time

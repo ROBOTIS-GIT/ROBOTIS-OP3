@@ -23,6 +23,6 @@
   <run_depend>qt_build</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>libqt4-dev</run_depend>
-
+  <run_depend>op3_offset_tuner_msgs</run_depend>
  
 </package>

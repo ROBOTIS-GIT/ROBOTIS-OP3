@@ -47,15 +47,19 @@ include_directories(
 ## Declare a C++ executable
 add_executable(op3_manager src/op3_manager.cpp)
 
+add_dependencies(op3_manager ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 ## Specify libraries to link a library or executable target against
 target_link_libraries(op3_manager
   ${catkin_LIBRARIES}
 )
 
 ## Declare a C++ executable
-add_executable(op3_test_manager src/test_manager.cpp)
+#add_executable(op3_test_manager src/test_manager.cpp)
+
+#add_dependencies(op3_test_manager ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(op3_test_manager
-  ${catkin_LIBRARIES}
-)
+#target_link_libraries(op3_test_manager
+#  ${catkin_LIBRARIES}
+#)

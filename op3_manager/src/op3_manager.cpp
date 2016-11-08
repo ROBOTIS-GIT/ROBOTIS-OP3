@@ -35,7 +35,8 @@
 #include "robotis_controller/robotis_controller.h"
 
 /* Sensor Module Header */
-#include "cm_740_module/cm_740_module.h"
+//#include "cm_740_module/cm_740_module.h"
+#include "open_cr_module/open_cr_module.h"
 
 /* Motion Module Header */
 #include "op3_base_module/base_module.h"
@@ -67,13 +68,13 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
 
     // power on
     PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler("/dev/ttyUSB0");
-    bool set_port_result = port_handler->setBaudRate(1000000);
+    bool set_port_result = port_handler->setBaudRate(3000000);
     if (set_port_result == false)
     {
       ROS_ERROR("Error Set port");
       return;
     }
-    PacketHandler *packet_handler = PacketHandler::getPacketHandler(1.0);
+    PacketHandler *packet_handler = PacketHandler::getPacketHandler(2.0);
 
     // check dxls torque.
     uint8_t torque = 0;
@@ -87,7 +88,7 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
       // _port_h->ClosePort();
       usleep(100 * 1000);
 
-      PortHandler *port_handler_2 = (PortHandler *) PortHandler::getPortHandler("/dev/ttyUSB1");
+      PortHandler *port_handler_2 = (PortHandler *) PortHandler::getPortHandler("/dev/ttyUSB0");
       set_port_result = port_handler_2->setBaudRate(3000000);
       if (set_port_result == false)
       {
@@ -132,24 +133,35 @@ int main(int argc, char **argv)
 
   /* Load ROS Parameter */
 
-  nh.param<std::string>("offset_table", g_offset_file, "");
-  nh.param<std::string>("robot_file_path", g_robot_file, "");
-  nh.param<std::string>("init_file_path", g_init_file, "");
+  nh.param < std::string > ("offset_table", g_offset_file, "");
+  nh.param < std::string > ("robot_file_path", g_robot_file, "");
+  nh.param < std::string > ("init_file_path", g_init_file, "");
 
   ros::Subscriber power_on_sub = nh.subscribe("/robotis/cm_740/button", 1, buttonHandlerCallback);
-  g_init_pose_pub = nh.advertise<std_msgs::String>("/robotis/base/ini_pose", 0);
-  g_demo_command_pub = nh.advertise<std_msgs::String>("/ball_tracker/command", 0);
+  g_init_pose_pub = nh.advertise < std_msgs::String > ("/robotis/base/ini_pose", 0);
+  g_demo_command_pub = nh.advertise < std_msgs::String > ("/ball_tracker/command", 0);
 
   PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler("/dev/ttyUSB0");
-  bool set_port_result = port_handler->setBaudRate(1000000);
+  bool set_port_result = port_handler->setBaudRate(3000000);
   if (set_port_result == false)
     ROS_ERROR("Error Set port");
-  PacketHandler *packet_handler = PacketHandler::getPacketHandler(1.0);
 
-  int _return = packet_handler->write1ByteTxRx(port_handler, 200, 24, 1);
-  ROS_INFO("Torque on DXLs! [%d]", _return);
-  packet_handler->printTxRxResult(_return);
+  PacketHandler *packet_handler = PacketHandler::getPacketHandler(2.0);
 
+  int torque_on_count = 0;
+
+  while (torque_on_count < 10)
+  {
+    int _return = packet_handler->write1ByteTxRx(port_handler, 200, 24, 1);
+
+    ROS_INFO("Torque on DXLs! [%d]", _return);
+    packet_handler->printTxRxResult(_return);
+
+    if (_return == 0)
+      break;
+    else
+      torque_on_count++;
+  }
   port_handler->closePort();
 
   usleep(100 * 1000);
@@ -160,7 +172,7 @@ int main(int argc, char **argv)
   {
     ROS_WARN("SET TO GAZEBO MODE!");
     std::string robot_name;
-    nh.param<std::string>("gazebo_robot_name", robot_name, "");
+    nh.param < std::string > ("gazebo_robot_name", robot_name, "");
     if (robot_name != "")
       controller->gazebo_robot_name_ = robot_name;
   }
@@ -183,7 +195,7 @@ int main(int argc, char **argv)
   sleep(1);
 
   /* Add Sensor Module */
-  controller->addSensorModule((SensorModule*) CM740Module::getInstance());
+  controller->addSensorModule((SensorModule*) OpenCRModule::getInstance());
 
   /* Add Motion Module */
   controller->addMotionModule((MotionModule*) ActionModule::getInstance());

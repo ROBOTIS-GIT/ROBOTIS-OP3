@@ -37,3 +37,6 @@ include_directories(
 add_library(open_cr_module
   src/open_cr_module.cpp
 )
+
+## Add cmake target dependencies of the library
+add_dependencies(open_cr_module ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

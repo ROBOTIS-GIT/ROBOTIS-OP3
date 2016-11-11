@@ -37,9 +37,19 @@ int main(int argc, char **argv)
 {
   //init ros
   ros::init(argc, argv, "ball_tracker_node");
+  ros::NodeHandle nh("~");
+  ros::Publisher module_control_pub_ = nh.advertise<std_msgs::String>("/robotis/enable_ctrl_module", 0);
 
   //create ros wrapper object
   robotis_op::BallTracker tracker;
+
+  // set head_control_module
+  std_msgs::String control_msg;
+  control_msg.data = "head_control_module";
+
+  usleep(1000 * 1000);
+
+  module_control_pub_.publish(control_msg);
 
   // start ball tracking
   tracker.startTracking();

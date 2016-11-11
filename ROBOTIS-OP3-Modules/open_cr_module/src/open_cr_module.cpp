@@ -110,8 +110,8 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
   uint16_t present_volt = sensors["open-cr"]->sensor_state_->bulk_read_table_["present_voltage"];
 
   result_["gyro_x"] = - getGyroValue(gyro_y);
-  result_["gyro_y"] = - getGyroValue(gyro_x);
-  result_["gyro_z"] = - getGyroValue(gyro_z);
+  result_["gyro_y"] = getGyroValue(gyro_x);
+  result_["gyro_z"] = getGyroValue(gyro_z);
 
   ROS_INFO_COND(debug_print_, "Gyro Raw =============================================== ");
   ROS_INFO_COND(debug_print_, "Raw : %d, %d, %d", gyro_x, gyro_y, gyro_z);
@@ -119,12 +119,12 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
 
   // align axis of Accelerometer to robot
   result_["acc_x"] = - getAccValue(acc_y);
-  result_["acc_y"] = - getAccValue(acc_x);
-  result_["acc_z"] = - getAccValue(acc_z);
+  result_["acc_y"] = getAccValue(acc_x);
+  result_["acc_z"] = getAccValue(acc_z);
 
-  ROS_INFO_COND(debug_print_, "Acc Raw =============================================== ");
-  ROS_INFO_COND(debug_print_, "Raw : %d, %d, %d", acc_x, acc_y, acc_z);
-  ROS_INFO_COND(debug_print_, "Acc : %f, %f, %f", result_["acc_x"], result_["acc_y"], result_["acc_z"]);
+  //ROS_INFO_COND(debug_print_, "Acc Raw =============================================== ");
+  //ROS_INFO_COND(debug_print_, "Raw : %d, %d, %d", acc_x, acc_y, acc_z);
+  //ROS_INFO_COND(debug_print_, "Acc : %f, %f, %f", result_["acc_x"], result_["acc_y"], result_["acc_z"]);
 
   uint8_t button_flag = sensors["open-cr"]->sensor_state_->bulk_read_table_["button"];
   result_["button_mode"] = button_flag & 0x01;

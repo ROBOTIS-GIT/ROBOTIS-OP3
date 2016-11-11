@@ -200,6 +200,8 @@ void BallDetector::publishCircles()
   circles_msg_.header.frame_id = "detector";  //To do: get frame_id from input image
 
   //fill circle data
+  // top(-1), bottom(+1)
+  // left(-1), right(+1)
   for (int idx = 0; idx < circles_.size(); idx++)
   {
     circles_msg_.circles[idx].x = circles_[idx][0] / in_image_.cols * 2 - 1;    // x (-1 ~ 1)

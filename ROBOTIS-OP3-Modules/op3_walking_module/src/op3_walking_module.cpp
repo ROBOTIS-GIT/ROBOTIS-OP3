@@ -487,6 +487,8 @@ void WalkingModule::process(std::map<std::string, robotis_framework::Dynamixel *
     double rl_gyro_err = sensors["gyro_x"];
     double fb_gyro_err = sensors["gyro_y"];
 
+    // ROS_INFO_STREAM("rl gyro : " << rl_gyro_err << ", fb gyro : " << fb_gyro_err);
+
     sensoryFeedback(rl_gyro_err, fb_gyro_err, balance_angle);
 
     double err_total = 0.0, err_max = 0.0;

@@ -107,6 +107,7 @@ void SoccerDemo::process()
 
   is_tracked = ball_tracker_.processTracking();
 
+  // check to start
   if (start_following_ == true)
   {
     ball_tracker_.startTracking();
@@ -116,8 +117,10 @@ void SoccerDemo::process()
     wait_count_ = 1 * SPIN_RATE;  // wait 1 sec
   }
 
+  // check to stop
   if (stop_following_ == true)
   {
+    //ball_tracker_.stopTracking();
     ball_follower_.stopFollowing();
     stop_following_ = false;
 
@@ -402,13 +405,13 @@ void SoccerDemo::stopSoccerMode()
 
 void SoccerDemo::handleKick(int ball_position)
 {
-  usleep(500 * 1000);
+  usleep(1000 * 1000);
 
   // change to motion module
   // setBodyModuleToDemo("action_module");
   setModuleToDemo("action_module");
 
-  usleep(1000 * 1000);
+  usleep(1500 * 1000);
 
   if (handleFallen(stand_state_) == true)
     return;
@@ -441,7 +444,7 @@ void SoccerDemo::handleKick(int ball_position)
   //std::cout << "Go Ceremony!!!" << std::endl;
   //playMotion(Ceremony);
 
-  restart_soccer_ = true;
+  //restart_soccer_ = true;
 }
 
 bool SoccerDemo::handleFallen(int fallen_status)

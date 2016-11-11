@@ -35,8 +35,8 @@
 #include "robotis_controller/robotis_controller.h"
 
 /* Sensor Module Header */
-//#include "cm_740_module/cm_740_module.h"
-#include "open_cr_module/open_cr_module.h"
+#include "cm_740_module/cm_740_module.h"
+//#include "open_cr_module/open_cr_module.h"
 
 /* Motion Module Header */
 #include "op3_base_module/base_module.h"
@@ -68,13 +68,13 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
 
     // power on
     PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler("/dev/ttyUSB0");
-    bool set_port_result = port_handler->setBaudRate(3000000);
+    bool set_port_result = port_handler->setBaudRate(1000000);
     if (set_port_result == false)
     {
       ROS_ERROR("Error Set port");
       return;
     }
-    PacketHandler *packet_handler = PacketHandler::getPacketHandler(2.0);
+    PacketHandler *packet_handler = PacketHandler::getPacketHandler(1.0);
 
     // check dxls torque.
     uint8_t torque = 0;
@@ -89,13 +89,13 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
       usleep(100 * 1000);
 
       PortHandler *port_handler_2 = (PortHandler *) PortHandler::getPortHandler("/dev/ttyUSB0");
-      set_port_result = port_handler_2->setBaudRate(3000000);
+      set_port_result = port_handler_2->setBaudRate(1000000);
       if (set_port_result == false)
       {
         ROS_ERROR("Error Set port");
         return;
       }
-      PacketHandler *packet_handler_2 = PacketHandler::getPacketHandler(2.0);
+      PacketHandler *packet_handler_2 = PacketHandler::getPacketHandler(1.0);
 
       return_data = packet_handler_2->write1ByteTxRx(port_handler_2, 254, 64, 1);
       ROS_INFO("Torque on DXLs! [%d]", return_data);
@@ -125,7 +125,7 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "OP2_Manager");
+  ros::init(argc, argv, "OP3_Manager");
   ros::NodeHandle nh;
 
   ROS_INFO("manager->init");
@@ -142,11 +142,11 @@ int main(int argc, char **argv)
   g_demo_command_pub = nh.advertise < std_msgs::String > ("/ball_tracker/command", 0);
 
   PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler("/dev/ttyUSB0");
-  bool set_port_result = port_handler->setBaudRate(3000000);
+  bool set_port_result = port_handler->setBaudRate(1000000);
   if (set_port_result == false)
     ROS_ERROR("Error Set port");
 
-  PacketHandler *packet_handler = PacketHandler::getPacketHandler(2.0);
+  PacketHandler *packet_handler = PacketHandler::getPacketHandler(1.0);
 
   int torque_on_count = 0;
 
@@ -195,7 +195,7 @@ int main(int argc, char **argv)
   sleep(1);
 
   /* Add Sensor Module */
-  controller->addSensorModule((SensorModule*) OpenCRModule::getInstance());
+  controller->addSensorModule((SensorModule*) CM740Module::getInstance());
 
   /* Add Motion Module */
   controller->addMotionModule((MotionModule*) ActionModule::getInstance());

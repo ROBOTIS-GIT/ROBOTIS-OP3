@@ -152,9 +152,15 @@ void WalkingModule::initialize(const int control_cycle_msec, robotis_framework::
   real_running_ = false;
   time_ = 0;
 
-  //                     R_HIP_YAW, R_HIP_ROLL, R_HIP_PITCH, R_KNEE, R_ANKLE_PITCH, R_ANKLE_ROLL, L_HIP_YAW, L_HIP_ROLL, L_HIP_PITCH, L_KNEE, L_ANKLE_PITCH, L_ANKLE_ROLL, R_ARM_SWING, L_ARM_SWING
-  joint_axis_direction_ << -1, -1, 1, 1, -1, 1, -1, -1, -1, -1, 1, 1, 1, -1;
-  init_position_ << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, -5.0;
+  //                     R_HIP_YAW, R_HIP_ROLL, R_HIP_PITCH, R_KNEE, R_ANKLE_PITCH, R_ANKLE_ROLL,
+  //                     L_HIP_YAW, L_HIP_ROLL, L_HIP_PITCH, L_KNEE, L_ANKLE_PITCH, L_ANKLE_ROLL,
+  //                     R_ARM_SWING, L_ARM_SWING
+  joint_axis_direction_ <<      -1,         -1,          -1,     -1,             1,            1,
+                                -1,         -1,           1,      1,            -1,            1,
+                                 1,         -1;
+  init_position_        <<     0.0,        0.0,         0.0,    0.0,           0.0,          0.0,
+                               0.0,        0.0,         0.0,    0.0,           0.0,          0.0,
+                               5.0,       -5.0;
   init_position_ *= DEGREE2RADIAN;
 
   ros::NodeHandle ros_node;

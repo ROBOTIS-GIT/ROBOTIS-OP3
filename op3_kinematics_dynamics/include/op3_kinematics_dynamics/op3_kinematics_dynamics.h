@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-/* Author: sch, Jay Song */
+/* Author: sch, Jay Song, Kayman */
 
 #ifndef OP3_KINEMATICS_DYNAMICS_H_
 #define OP3_KINEMATICS_DYNAMICS_H_
@@ -88,6 +88,10 @@ class OP3KinematicsDynamics
                                        double yaw);
 
   LinkData *op3_link_data_[ ALL_JOINT_ID + 1];
+
+  LinkData *getLinkData(const std::string link_name);
+  Eigen::MatrixXd getJointAxis(const std::string link_name);
+  double getJointDirection(const std::string link_name);
 
   double thigh_length_m_;
   double calf_length_m_;

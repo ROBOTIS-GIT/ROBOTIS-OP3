@@ -395,29 +395,35 @@ void BallDetector::filterImage()
 
   inRangeHsv(img_hsv, params_config_.filter_threshold, img_filtered);
 
+  // mophology : open and close
+  mophology(img_filtered, img_filtered, params_config_.ellipse_size);
+
   if (params_config_.use_second_filter == true)
   {
     // mask
     cv::Mat img_mask;
+    //img_mask = cvCreateMat(100, 100, CV_8UC1);
 
     // mophology : open and close
-    int ellipse_size = 5;
-    cv::erode(img_filtered, img_mask, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(ellipse_size, ellipse_size)));
-    cv::dilate(img_mask, img_mask,
-               cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(ellipse_size * 10, ellipse_size * 10)));
+    //int ellipse_size = 30;
+    //int dilate_size = params_config_.max_radius;  // dilate_size = ellipse_size * 10
+    //cv::erode(img_filtered, img_mask, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(ellipse_size, ellipse_size)));
+    //cv::dilate(img_mask, img_mask,
+    //               cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(dilate_size, dilate_size)));
+
+    //makeFilterMask(img_filtered, img_mask, ellipse_size);
 
     // check hsv range
     cv::Mat img_filtered2;
     inRangeHsv(img_hsv, params_config_.filter2_threshold, img_filtered2);
 
-    cv::bitwise_and(img_filtered2, img_mask, img_filtered2);
+    //cv::bitwise_and(img_filtered2, img_mask, img_filtered2);
+
+    mophology(img_filtered2, img_filtered2, params_config_.ellipse_size);
 
     // or
     cv::bitwise_or(img_filtered, img_filtered2, img_filtered);
   }
-
-  // mophology : open and close
-  mophology(img_filtered, img_filtered, params_config_.ellipse_size);
 
   cv::cvtColor(img_filtered, in_image_, cv::COLOR_GRAY2RGB);
 }
@@ -462,6 +468,7 @@ void BallDetector::makeFilterMask(const cv::Mat &source_img, cv::Mat &mask_img, 
 
 void BallDetector::inRangeHsv(const cv::Mat &input_img, const HsvFilter &filter_value, cv::Mat &output_img)
 {
+  // 0-360 -> 0-180
   int scaled_hue_min = static_cast<int>(filter_value.h_min * 0.5);
   int scaled_hue_max = static_cast<int>(filter_value.h_max * 0.5);
 

@@ -10,6 +10,12 @@
         <param name="image_height" type="int" value="600" />
         <param name="framerate " type="int" value="30" />
         <param name="camera_name" type="string" value="camera" />
+        <param name="autofocus" type="bool" value="False" />
+        <param name="autoexposure" type="bool" value="False" />
+        <param name="gain" value="255" />
+        <param name="auto_white_balance" type="bool" value="False" />
+        <param name="brightness" value="64" />
+        <param name="exposure" value="60" />
     </node>
 <!--         <param name="gain" value="255" />
         <param name="auto_exposure" type="bool" value="False" />

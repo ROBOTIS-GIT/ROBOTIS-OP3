@@ -5,6 +5,6 @@
     <include file="$(find ball_detector)/launch/ball_detector_from_usb_cam.launch"/> 
 
     <!-- <node pkg="ball_tracker" type="ball_tracker_node" name="ball_tracker" output="screen"/> -->
-    <node pkg="op3_demo" type="soccer_demo_node" name="soccer_demo" output="screen"/>
+    <node pkg="op3_demo" type="ball_tracker_node" name="ball_tracker" output="screen"/>
 </launch>
 

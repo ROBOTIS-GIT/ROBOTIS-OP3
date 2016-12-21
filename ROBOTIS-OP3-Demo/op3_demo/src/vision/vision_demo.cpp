@@ -37,20 +37,10 @@ namespace robotis_op
 
 VisionDemo::VisionDemo()
     : SPIN_RATE(30)
-//      DEMO_INIT_POSE(8),
-//      play_index_(0),
-//      start_play_(false),
-//      stop_play_(false),
-//      pause_play_(false),
-//      play_status_(StopAction)
 {
   enable_ = false;
 
   ros::NodeHandle nh(ros::this_node::getName());
-
-//  std::string default_path = ros::package::getPath("ball_tracker") + "/script/action_script.yaml";
-//  script_path_ = nh.param<std::string>("action_script", default_path);
-//  parseActionScript (script_path_);
 
   boost::thread queue_thread = boost::thread(boost::bind(&VisionDemo::callbackThread, this));
   boost::thread process_thread = boost::thread(boost::bind(&VisionDemo::processThread, this));
@@ -77,14 +67,13 @@ void VisionDemo::setDemoEnable()
 void VisionDemo::setDemoDisable()
 {
 
-    face_tracker_.stopTracking();
+  face_tracker_.stopTracking();
   enable_ = false;
 }
 
 void VisionDemo::process()
 {
-    bool is_tracked = face_tracker_.processTracking();
-
+  bool is_tracked = face_tracker_.processTracking();
 }
 
 void VisionDemo::processThread()
@@ -108,16 +97,10 @@ void VisionDemo::callbackThread()
   ros::NodeHandle nh(ros::this_node::getName());
 
   // subscriber & publisher
-  //module_control_pub_ = nh.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_joint_ctrl_modules", 0);
   module_control_pub_ = nh.advertise<std_msgs::String>("/robotis/enable_ctrl_module", 0);
-  // motion_index_pub_ = nh.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
-  // play_sound_pub_ = nh.advertise<std_msgs::String>("/play_sound_file", 0);
 
   buttuon_sub_ = nh.subscribe("/robotis/cm_740/button", 1, &VisionDemo::buttonHandlerCallback, this);
   faceCoord_sub_ = nh.subscribe("/faceCoord", 1, &VisionDemo::facePositionCallback, this);
-  // action_script_index_sub_ = nh.subscribe("/action_script/index", 1, &ActionDemo::actionIndexCallback, this);
-
-  // is_running_client_ = nh.serviceClient<op3_action_module_msgs::IsRunning>("/robotis/action/is_running");
 
   while (nh.ok())
   {
@@ -132,8 +115,8 @@ void VisionDemo::buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
   if (enable_ == false)
     return;
 
-//  if (msg->data == "start")
-//  {
+  if (msg->data == "start")
+  {
 //    switch (play_status_)
 //      {
 //        case PlayAction:
@@ -157,11 +140,11 @@ void VisionDemo::buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
 //        default:
 //          break;
 //      }
-//  }
-//  else if (msg->data == "mode")
-//  {
-//
-//  }
+  }
+  else if (msg->data == "mode")
+  {
+
+  }
 }
 
 void VisionDemo::setModuleToDemo(const std::string &module_name)
@@ -175,26 +158,26 @@ void VisionDemo::setModuleToDemo(const std::string &module_name)
 
 void VisionDemo::facePositionCallback(const std_msgs::Int32MultiArray::ConstPtr &msg)
 {
-    if(enable_ == false)
-        return;
+  if (enable_ == false)
+    return;
 
-    // face is detected
-    if(msg->data.size() >= 10)
-    {
-        // center of face
-        face_position_.x = (msg->data[6] + msg->data[8] * 0.5) / msg->data[2] * 2 - 1;
-        face_position_.y = (msg->data[7] + msg->data[9] * 0.5) / msg->data[3] * 2 - 1;
-        face_position_.z = msg->data[8] * 0.5 + msg->data[9] * 0.5;
+  // face is detected
+  if (msg->data.size() >= 10)
+  {
+    // center of face
+    face_position_.x = (msg->data[6] + msg->data[8] * 0.5) / msg->data[2] * 2 - 1;
+    face_position_.y = (msg->data[7] + msg->data[9] * 0.5) / msg->data[3] * 2 - 1;
+    face_position_.z = msg->data[8] * 0.5 + msg->data[9] * 0.5;
 
-        face_tracker_.setFacePosition(face_position_);
-    }
-    else
-    {
-        face_position_.x = 0;
-        face_position_.y = 0;
-        face_position_.z = 0;
-        return;
-    }
+    face_tracker_.setFacePosition(face_position_);
+  }
+  else
+  {
+    face_position_.x = 0;
+    face_position_.y = 0;
+    face_position_.z = 0;
+    return;
+  }
 }
 
 } /* namespace robotis_op */

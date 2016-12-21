@@ -52,7 +52,6 @@ SoccerDemo::SoccerDemo()
       present_pitch_(0)
 {
   //init ros
-  //ros::init(argc, argv, "soccer_demo_node");
   enable_ = false;
 
   ros::NodeHandle nh(ros::this_node::getName());
@@ -77,10 +76,10 @@ void SoccerDemo::setDemoEnable()
   startSoccerMode();
 
   // handle enable procedure
-//  ball_tracker_.startTracking();
-//  ball_follower_.startFollowing();
+  //  ball_tracker_.startTracking();
+  //  ball_follower_.startFollowing();
 
-//  wait_count_ = 1 * SPIN_RATE;
+  //  wait_count_ = 1 * SPIN_RATE;
 }
 
 void SoccerDemo::setDemoDisable()
@@ -202,6 +201,7 @@ void SoccerDemo::callbackThread()
   // subscriber & publisher
   module_control_pub_ = nh.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_joint_ctrl_modules", 0);
   motion_index_pub_ = nh.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
+
   buttuon_sub_ = nh.subscribe("/robotis/cm_740/button", 1, &SoccerDemo::buttonHandlerCallback, this);
   demo_command_sub_ = nh.subscribe("/ball_tracker/command", 1, &SoccerDemo::demoCommandCallback, this);
   imu_data_sub_ = nh.subscribe("/robotis/cm_740/imu", 1, &SoccerDemo::imuDataCallback, this);
@@ -214,28 +214,49 @@ void SoccerDemo::callbackThread()
   }
 }
 
-void SoccerDemo::setBodyModuleToDemo(const std::string &body_module)
+void SoccerDemo::setBodyModuleToDemo(const std::string &body_module, bool with_head_control)
 {
   robotis_controller_msgs::JointCtrlModule control_msg;
 
   //std::string body_module = "action_module";
   std::string head_module = "head_control_module";
+  std::map<int, std::string>::iterator joint_iter;
+
+  for (joint_iter = id_joint_table_.begin(); joint_iter != id_joint_table_.end(); ++joint_iter)
+  {
+    // check joint name(head)
+    if (joint_iter->second.find("head") != std::string::npos)
+    {
+      if (with_head_control == true)
+      {
+        control_msg.joint_name.push_back(joint_iter->second);
+        control_msg.module_name.push_back(head_module);
+      }
+      else
+        continue;
+    }
+    else
+    {
+      control_msg.joint_name.push_back(joint_iter->second);
+      control_msg.module_name.push_back(body_module);
+    }
+  }
 
   // todo : remove hard coding
-  for (int ix = 1; ix <= 20; ix++)
-  {
-    std::string joint_name;
-
-    if (getJointNameFromID(ix, joint_name) == false)
-      continue;
-
-    control_msg.joint_name.push_back(joint_name);
-    if (ix <= 18)
-      control_msg.module_name.push_back(body_module);
-    else
-      control_msg.module_name.push_back(head_module);
-
-  }
+//  for (int ix = 1; ix <= 20; ix++)
+//  {
+//    std::string joint_name;
+//
+//    if (getJointNameFromID(ix, joint_name) == false)
+//      continue;
+//
+//    control_msg.joint_name.push_back(joint_name);
+//    if (ix <= 18)
+//      control_msg.module_name.push_back(body_module);
+//    else
+//      control_msg.module_name.push_back(head_module);
+//
+//  }
 
   // no control
   if (control_msg.joint_name.size() == 0)
@@ -248,18 +269,25 @@ void SoccerDemo::setBodyModuleToDemo(const std::string &body_module)
 void SoccerDemo::setModuleToDemo(const std::string &module_name)
 {
   robotis_controller_msgs::JointCtrlModule control_msg;
+  std::map<int, std::string>::iterator joint_iter;
 
-  // todo : remove hard coding
-  for (int ix = 1; ix <= 20; ix++)
+  for (joint_iter = id_joint_table_.begin(); joint_iter != id_joint_table_.end(); ++joint_iter)
   {
-    std::string joint_name;
-
-    if (getJointNameFromID(ix, joint_name) == false)
-      continue;
-
-    control_msg.joint_name.push_back(joint_name);
+    control_msg.joint_name.push_back(joint_iter->second);
     control_msg.module_name.push_back(module_name);
   }
+
+  // todo : remove hard coding
+  //  for (int ix = 1; ix <= 20; ix++)
+  //  {
+  //    std::string joint_name;
+  //
+  //    if (getJointNameFromID(ix, joint_name) == false)
+  //      continue;
+  //
+  //    control_msg.joint_name.push_back(joint_name);
+  //    control_msg.module_name.push_back(module_name);
+  //  }
 
   // no control
   if (control_msg.joint_name.size() == 0)
@@ -323,6 +351,24 @@ bool SoccerDemo::getIDFromJointName(const std::string &joint_name, int &id)
   return true;
 }
 
+int SoccerDemo::getJointCount()
+{
+  return joint_id_table_.size();
+}
+
+bool SoccerDemo::isHeadJoint(const int &id)
+{
+  std::map<std::string, int>::iterator _iter;
+
+  for (_iter = joint_id_table_.begin(); _iter != joint_id_table_.end(); ++_iter)
+  {
+    if (_iter->first.find("head") != std::string::npos)
+      return true;
+  }
+
+  return false;
+}
+
 void SoccerDemo::buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
 {
   if (enable_ == false)
@@ -372,10 +418,11 @@ void SoccerDemo::imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg)
 
   double pitch = rpy_orientation.coeff(1, 0);
 
+  double alpha = 0.4;
   if (present_pitch_ == 0)
     present_pitch_ = pitch;
   else
-    present_pitch_ = present_pitch_ * 0.5 + pitch * 0.5;
+    present_pitch_ = present_pitch_ * (1 - alpha) + pitch * alpha;
 
   if (present_pitch_ < FALLEN_FORWARD_LIMIT)
     stand_state_ = Fallen_Forward;
@@ -408,7 +455,6 @@ void SoccerDemo::handleKick(int ball_position)
   usleep(1000 * 1000);
 
   // change to motion module
-  // setBodyModuleToDemo("action_module");
   setModuleToDemo("action_module");
 
   usleep(1500 * 1000);

@@ -78,17 +78,12 @@ int main(int argc, char **argv)
 
   ros::NodeHandle nh(ros::this_node::getName());
 
-  std::string _default_path = ros::package::getPath("op3_gui_demo") + "/config/demo_config.yaml";
-  std::string _path = nh.param<std::string>("demo_config", _default_path);
-
   init_pose_pub = nh.advertise<std_msgs::String>("/robotis/base/ini_pose", 0);
   play_sound_pub = nh.advertise<std_msgs::String>("/play_sound_file", 0);
   led_pub = nh.advertise<robotis_controller_msgs::SyncWriteItem>("/robotis/sync_write_item", 0);
   ros::Subscriber buttuon_sub = nh.subscribe("/robotis/cm_740/button", 1, buttonHandlerCallback);
 
   default_mp3_path = ros::package::getPath("op3_demo") + "/Data/mp3/";
-
-  bool result = false;
 
   //set node loop rate
   ros::Rate loop_rate(SPIN_RATE);
@@ -198,6 +193,7 @@ int main(int argc, char **argv)
 
 void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
 {
+  // in the middle of playing demo
   if (current_status != Ready)
   {
     if (msg->data == "mode_long")
@@ -211,9 +207,11 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
     }
     else if (msg->data == "start_long")
     {
-      // ...
+      // it's using in op3_manager
+      // torque on and going to init pose
     }
   }
+  // ready to start demo
   else
   {
     if (msg->data == "start")
@@ -249,7 +247,7 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
       desired_status = (desired_status + 1) % DemoCount;
       desired_status = (desired_status == Ready) ? desired_status + 1 : desired_status;
 
-      // sound out desired status
+      // sound out desired status and changign LED
       switch (desired_status)
       {
         case SoccerDemo:
@@ -294,6 +292,7 @@ void playSound(const std::string &path)
 
 void setLED(int led)
 {
+  // Todo : It will be changed to work with OPEN-CR.
   robotis_controller_msgs::SyncWriteItem syncwrite_msg;
   syncwrite_msg.item_name = "LED";
   syncwrite_msg.joint_name.push_back("cm-740");

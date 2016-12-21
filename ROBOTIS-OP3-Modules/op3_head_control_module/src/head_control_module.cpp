@@ -67,6 +67,8 @@ HeadControlModule::HeadControlModule()
   goal_position_ = Eigen::MatrixXd::Zero(1, result_.size());
   goal_velocity_ = Eigen::MatrixXd::Zero(1, result_.size());
   goal_acceleration_ = Eigen::MatrixXd::Zero(1, result_.size());
+
+  last_msg_time_ = ros::Time::now();
 }
 
 HeadControlModule::~HeadControlModule()
@@ -123,7 +125,7 @@ void HeadControlModule::setHeadJoint(const sensor_msgs::JointState::ConstPtr &ms
 {
   if (enable_ == false)
   {
-    ROS_INFO("Head module is not enable.");
+    ROS_INFO_THROTTLE(1, "Head module is not enable.");
     publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, "Not Enable");
     return;
   }
@@ -200,11 +202,11 @@ void HeadControlModule::setHeadScanCallback(const std_msgs::String::ConstPtr &ms
 {
   if (enable_ == false)
   {
-    ROS_ERROR("Head control module is not enabled, scan command is canceled.");
+    ROS_ERROR_THROTTLE(1, "Head control module is not enabled, scan command is canceled.");
     return;
   }
   else
-    ROS_INFO("Scan command is accepted. [%d]", scan_state_);
+    ROS_INFO_THROTTLE(1, "Scan command is accepted. [%d]", scan_state_);
 
   if (msg->data == "scan" && scan_state_ == NoScan)
   {
@@ -571,12 +573,24 @@ void HeadControlModule::jointTraGeneThread()
 
 void HeadControlModule::publishStatusMsg(unsigned int type, std::string msg)
 {
+  ros::Time now = ros::Time::now();
+
+  if(msg.compare(last_msg_) == 0)
+  {
+    ros::Duration dur = now - last_msg_time_;
+    if(dur.sec < 1)
+      return;
+  }
+
   robotis_controller_msgs::StatusMsg status_msg;
-  status_msg.header.stamp = ros::Time::now();
+  status_msg.header.stamp = now;
   status_msg.type = type;
   status_msg.module_name = "Head Control";
   status_msg.status_msg = msg;
 
   status_msg_pub_.publish(status_msg);
+
+  last_msg_ = msg;
+  last_msg_time_ = now;
 }
 }

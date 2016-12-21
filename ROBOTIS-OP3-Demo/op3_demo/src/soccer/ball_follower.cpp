@@ -37,10 +37,10 @@ namespace robotis_op
 
 BallFollower::BallFollower()
     : nh_(ros::this_node::getName()),
-      FOV_WIDTH(30 * M_PI / 180),
-      FOV_HEIGHT(23 * M_PI / 180),
+      FOV_WIDTH(35.2 * M_PI / 180),
+      FOV_HEIGHT(21.6 * M_PI / 180),
       count_not_found_(0),
-      count_kick_position_(0),
+      count_to_kick(0),
       on_tracking_(false),
       approach_ball_position_(NotFound),
       kick_motion_index_(83),
@@ -57,11 +57,10 @@ BallFollower::BallFollower()
       current_r_angle_(0),
       debug_print_(false)
 {
-  //module_control_pub_  = nh_.advertise<std_msgs::String>("/robotis/enable_ctrl_module", 0);
-  module_control_pub_ = nh_.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_joint_ctrl_modules", 0);
-  head_joint_pub_ = nh_.advertise<sensor_msgs::JointState>("/robotis/head_control/set_joint_states_offset", 0);
-  head_scan_pub_ = nh_.advertise<std_msgs::String>("/robotis/head_control/scan_command", 0);
-  motion_index_pub_ = nh_.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
+  // module_control_pub_ = nh_.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_joint_ctrl_modules", 0);
+  // head_joint_pub_ = nh_.advertise<sensor_msgs::JointState>("/robotis/head_control/set_joint_states_offset", 0);
+  // head_scan_pub_ = nh_.advertise<std_msgs::String>("/robotis/head_control/scan_command", 0);
+  // motion_index_pub_ = nh_.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
 
   //ball_position_sub_ = nh_.subscribe("/ball_detector_node/circle_set", 1, &BallFollower::ballPositionCallback, this);
   //ball_tracking_command_sub_ = nh_.subscribe("/ball_tracker/command", 1, &BallFollower::ballTrackerCommandCallback, this);
@@ -95,7 +94,7 @@ void BallFollower::stopFollowing()
 {
   on_tracking_ = false;
   approach_ball_position_ = NotFound;
-  count_kick_position_ = 0;
+  count_to_kick = 0;
   ROS_INFO("Stop Ball following");
 
   setWalkingCommand("stop");
@@ -177,14 +176,14 @@ bool BallFollower::processFollowing(double x_angle, double y_angle)
   //if (x_offset < 0.3 && (fabs(current_pan_) < 3 * M_PI / 180))
   if ((ball_y_angle < -63) && (fabs(ball_x_angle) < 30))
   {
-    count_kick_position_ += 1;
+    count_to_kick += 1;
 
     ROS_INFO_STREAM("head pan : " << (current_pan_ * 180 / M_PI) << " | ball pan : " << (x_angle * 180 / M_PI));
     ROS_INFO_STREAM("head tilt : " << (current_tilt_ * 180 / M_PI) << " | ball tilt : " << (y_angle * 180 / M_PI));
 
     //if (fabs(x_angle) < 10 * M_PI / 180)
     {
-      if (count_kick_position_ > 15)
+      if (count_to_kick > 15)
       {
 
         //ROS_INFO_STREAM(
@@ -224,7 +223,7 @@ bool BallFollower::processFollowing(double x_angle, double y_angle)
   }
   else
   {
-    count_kick_position_ = 0;
+    count_to_kick = 0;
     ball_position_sum = 0;
   }
 

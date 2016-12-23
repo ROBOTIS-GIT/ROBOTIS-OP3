@@ -57,10 +57,10 @@ HeadControlModule::HeadControlModule()
   using_joint_name_["head_pan"] = 0;
   using_joint_name_["head_tilt"] = 1;
 
-  max_angle_[using_joint_name_["head_pan"]] = 90 * DEGREE2RADIAN;
-  min_angle_[using_joint_name_["head_pan"]] = -90 * DEGREE2RADIAN;
-  max_angle_[using_joint_name_["head_tilt"]] = 10 * DEGREE2RADIAN;
-  min_angle_[using_joint_name_["head_tilt"]] = -70 * DEGREE2RADIAN;
+  max_angle_[using_joint_name_["head_pan"]] = 80 * DEGREE2RADIAN;
+  min_angle_[using_joint_name_["head_pan"]] = -80 * DEGREE2RADIAN;
+  max_angle_[using_joint_name_["head_tilt"]] = 30 * DEGREE2RADIAN;
+  min_angle_[using_joint_name_["head_tilt"]] = -75 * DEGREE2RADIAN;
 
   target_position_ = Eigen::MatrixXd::Zero(1, result_.size());
   current_position_ = Eigen::MatrixXd::Zero(1, result_.size());
@@ -129,14 +129,6 @@ void HeadControlModule::setHeadJoint(const sensor_msgs::JointState::ConstPtr &ms
     publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, "Not Enable");
     return;
   }
-
-  //  if (is_moving_ == true && is_direct_control_ == false)
-  //  {
-  //    ROS_INFO("Head is moving now.");
-  //    PublishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR,
-  //                     "Head is busy.");
-  //    return;
-  //  }
 
   // moving time
   moving_time_ = 1.0;               // default : 1 sec

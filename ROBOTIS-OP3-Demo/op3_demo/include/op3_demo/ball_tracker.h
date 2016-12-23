@@ -66,10 +66,12 @@ class BallTracker
 
   double getPanOfBall()
   {
+    // left (+) ~ right (-)
     return current_ball_pan_;
   }
   double getTiltOfBall()
   {
+    // top (+) ~ bottom (-)
     return current_ball_tilt_;
   }
 
@@ -107,6 +109,7 @@ class BallTracker
   bool on_tracking_;
   double current_head_pan_, current_head_tilt_;
   double current_ball_pan_, current_ball_tilt_;
+  double current_ball_bottom_;
 
 };
 }

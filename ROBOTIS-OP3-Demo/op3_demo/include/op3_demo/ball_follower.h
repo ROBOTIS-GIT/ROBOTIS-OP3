@@ -115,7 +115,8 @@ class BallFollower
   op3_walking_module_msgs::WalkingParam current_walking_param_;
 
   int count_not_found_;
-  int count_to_kick;
+  int count_to_kick_;
+  int accum_ball_position_;
   bool on_tracking_;
   int approach_ball_position_;
   double current_pan_, current_tilt_;

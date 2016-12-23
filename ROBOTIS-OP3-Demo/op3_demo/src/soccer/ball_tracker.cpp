@@ -44,7 +44,10 @@ BallTracker::BallTracker()
       count_not_found_(0),
       on_tracking_(false),
       current_head_pan_(-10),
-      current_head_tilt_(-10)
+      current_head_tilt_(-10),
+      current_ball_pan_(0),
+      current_ball_tilt_(0),
+      current_ball_bottom_(0)
 {
   head_joint_pub_ = nh_.advertise<sensor_msgs::JointState>("/robotis/head_control/set_joint_states_offset", 0);
   head_scan_pub_ = nh_.advertise<std_msgs::String>("/robotis/head_control/scan_command", 0);
@@ -185,9 +188,10 @@ bool BallTracker::processTracking()
   // move head joint
   publishHeadJoint(x_offset_rad, y_offset_rad);
 
-  // todo : remove
+  // args for following ball
   current_ball_pan_ = x_offset_rad;
   current_ball_tilt_ = y_offset_rad;
+  current_ball_bottom_ = -atan(ball_position_.z * tan(FOV_HEIGHT));
 
   return true;
 }

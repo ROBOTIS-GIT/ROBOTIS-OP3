@@ -218,13 +218,12 @@ void SoccerDemo::setBodyModuleToDemo(const std::string &body_module, bool with_h
 {
   robotis_controller_msgs::JointCtrlModule control_msg;
 
-  //std::string body_module = "action_module";
   std::string head_module = "head_control_module";
   std::map<int, std::string>::iterator joint_iter;
 
   for (joint_iter = id_joint_table_.begin(); joint_iter != id_joint_table_.end(); ++joint_iter)
   {
-    // check joint name(head)
+    // check whether joint name contains "head"
     if (joint_iter->second.find("head") != std::string::npos)
     {
       if (with_head_control == true)
@@ -241,22 +240,6 @@ void SoccerDemo::setBodyModuleToDemo(const std::string &body_module, bool with_h
       control_msg.module_name.push_back(body_module);
     }
   }
-
-  // todo : remove hard coding
-//  for (int ix = 1; ix <= 20; ix++)
-//  {
-//    std::string joint_name;
-//
-//    if (getJointNameFromID(ix, joint_name) == false)
-//      continue;
-//
-//    control_msg.joint_name.push_back(joint_name);
-//    if (ix <= 18)
-//      control_msg.module_name.push_back(body_module);
-//    else
-//      control_msg.module_name.push_back(head_module);
-//
-//  }
 
   // no control
   if (control_msg.joint_name.size() == 0)
@@ -276,18 +259,6 @@ void SoccerDemo::setModuleToDemo(const std::string &module_name)
     control_msg.joint_name.push_back(joint_iter->second);
     control_msg.module_name.push_back(module_name);
   }
-
-  // todo : remove hard coding
-  //  for (int ix = 1; ix <= 20; ix++)
-  //  {
-  //    std::string joint_name;
-  //
-  //    if (getJointNameFromID(ix, joint_name) == false)
-  //      continue;
-  //
-  //    control_msg.joint_name.push_back(joint_name);
-  //    control_msg.module_name.push_back(module_name);
-  //  }
 
   // no control
   if (control_msg.joint_name.size() == 0)
@@ -479,6 +450,7 @@ void SoccerDemo::handleKick(int ball_position)
       break;
   }
 
+  // todo : remove this in order to play soccer repeatedly
   on_following_ball_ = false;
 
   usleep(2000 * 1000);

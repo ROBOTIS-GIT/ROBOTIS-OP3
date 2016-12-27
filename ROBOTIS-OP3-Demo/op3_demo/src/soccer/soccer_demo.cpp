@@ -132,7 +132,7 @@ void SoccerDemo::process()
     if (on_following_ball_ == true)
     {
       if (is_tracked)
-        ball_follower_.processFollowing(ball_tracker_.getPanOfBall(), ball_tracker_.getTiltOfBall());
+        ball_follower_.processFollowing(ball_tracker_.getPanOfBall(), ball_tracker_.getTiltOfBall(), ball_tracker_.getBallSize());
       else
         ball_follower_.waitFollowing();
     }
@@ -149,6 +149,7 @@ void SoccerDemo::process()
           startSoccerMode();
           break;
         }
+
         // check states for kick
         int ball_position = ball_follower_.getBallPosition();
         if (ball_position != robotis_op::BallFollower::NotFound)
@@ -436,12 +437,12 @@ void SoccerDemo::handleKick(int ball_position)
   // kick motion
   switch (ball_position)
   {
-    case robotis_op::BallFollower::BallIsRight:
+    case robotis_op::BallFollower::OnRight:
       std::cout << "Kick Motion [R]: " << ball_position << std::endl;
       playMotion(RightKick);
       break;
 
-    case robotis_op::BallFollower::BallIsLeft:
+    case robotis_op::BallFollower::OnLeft:
       std::cout << "Kick Motion [L]: " << ball_position << std::endl;
       playMotion(LeftKick);
       break;
@@ -500,7 +501,6 @@ bool SoccerDemo::handleFallen(int fallen_status)
     restart_soccer_ = true;
 
   // reset state
-  //stand_state = Stand;
   on_following_ball_ = false;
 
   return true;

@@ -162,7 +162,7 @@ int main(int argc, char **argv)
       if (on_following_ball == true)
       {
         if (is_tracked)
-          follower.processFollowing(tracker.getPanOfBall(), tracker.getTiltOfBall());
+          follower.processFollowing(tracker.getPanOfBall(), tracker.getTiltOfBall(), tracker.getBallSize());
         else
           follower.waitFollowing();
       }
@@ -430,12 +430,12 @@ void handleKick(int ball_position)
   // kick motion
   switch (ball_position)
   {
-    case robotis_op::BallFollower::BallIsRight:
+    case robotis_op::BallFollower::OnRight:
       std::cout << "Kick Motion [R]: " << ball_position << std::endl;
       playMotion(RightKick);
       break;
 
-    case robotis_op::BallFollower::BallIsLeft:
+    case robotis_op::BallFollower::OnLeft:
       std::cout << "Kick Motion [L]: " << ball_position << std::endl;
       playMotion(LeftKick);
       break;

@@ -57,14 +57,14 @@ class BallFollower
   enum
   {
     NotFound = 0,
-    BallIsRight = 1,
-    BallIsLeft = 2,
+    OnRight = 1,
+    OnLeft = 2,
   };
 
   BallFollower();
   ~BallFollower();
 
-  bool processFollowing(double x_angle, double y_angle);
+  bool processFollowing(double x_angle, double y_angle, double ball_size);
   void waitFollowing();
   void startFollowing();
   void stopFollowing();
@@ -75,6 +75,7 @@ class BallFollower
   }
 
  protected:
+  const double CAMERA_HEIGHT;
   const int NOT_FOUND_THRESHOLD;
   const double FOV_WIDTH;
   const double FOV_HEIGHT;
@@ -84,6 +85,10 @@ class BallFollower
   const double MIN_RL_TURN;
   const double UNIT_FB_STEP;
   const double UNIT_RL_TURN;
+
+  const double SPOT_FB_OFFSET;
+  const double SPOT_RL_OFFSET;
+  const double SPOT_ANGLE_OFFSET;
 
   void currentJointStatesCallback(const sensor_msgs::JointState::ConstPtr &msg);
   void setWalkingCommand(const std::string &command);

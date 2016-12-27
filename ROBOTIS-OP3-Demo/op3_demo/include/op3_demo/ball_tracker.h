@@ -74,6 +74,10 @@ class BallTracker
     // top (+) ~ bottom (-)
     return current_ball_tilt_;
   }
+  double getBallSize()
+  {
+    return current_ball_bottom_;
+  }
 
  protected:
   const double FOV_WIDTH;

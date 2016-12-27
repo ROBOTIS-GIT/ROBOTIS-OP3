@@ -57,8 +57,8 @@ HeadControlModule::HeadControlModule()
   using_joint_name_["head_pan"] = 0;
   using_joint_name_["head_tilt"] = 1;
 
-  max_angle_[using_joint_name_["head_pan"]] = 80 * DEGREE2RADIAN;
-  min_angle_[using_joint_name_["head_pan"]] = -80 * DEGREE2RADIAN;
+  max_angle_[using_joint_name_["head_pan"]] = 85 * DEGREE2RADIAN;
+  min_angle_[using_joint_name_["head_pan"]] = -85 * DEGREE2RADIAN;
   max_angle_[using_joint_name_["head_tilt"]] = 30 * DEGREE2RADIAN;
   min_angle_[using_joint_name_["head_tilt"]] = -75 * DEGREE2RADIAN;
 
@@ -131,7 +131,7 @@ void HeadControlModule::setHeadJoint(const sensor_msgs::JointState::ConstPtr &ms
   }
 
   // moving time
-  moving_time_ = 1.0;               // default : 1 sec
+  moving_time_ = is_offset ? 0.5 : 1.0;               // default : 1 sec
 
   // set target joint angle
   target_position_ = goal_position_;        // default
@@ -159,8 +159,9 @@ void HeadControlModule::setHeadJoint(const sensor_msgs::JointState::ConstPtr &ms
       target_position_.coeffRef(0, joint_index) = target_position;
 
       // set time
-      double angle_unit = is_offset ? 60 * M_PI / 180 : 35 * M_PI / 180;
-      int calc_moving_time = fabs(goal_position_.coeff(0, joint_index) - target_position_.coeff(0, joint_index))
+      //double angle_unit = is_offset ? 35 * M_PI / 180 : 35 * M_PI / 180;
+      double angle_unit = 35 * M_PI / 180;
+      double calc_moving_time = fabs(goal_position_.coeff(0, joint_index) - target_position_.coeff(0, joint_index))
           / angle_unit;
       if (calc_moving_time > moving_time_)
         moving_time_ = calc_moving_time;
@@ -398,28 +399,28 @@ void HeadControlModule::generateScanTra(const int head_direction)
   {
     case BottomToTop:
     {
-      target_position_.coeffRef(0, using_joint_name_["head_pan"]) = max_angle_[using_joint_name_["head_pan"]] * 0.5;
-      target_position_.coeffRef(0, using_joint_name_["head_tilt"]) = min_angle_[using_joint_name_["head_tilt"]] * 0.2;
+      target_position_.coeffRef(0, using_joint_name_["head_pan"]) = max_angle_[using_joint_name_["head_pan"]] * 0.6;
+      target_position_.coeffRef(0, using_joint_name_["head_tilt"]) = min_angle_[using_joint_name_["head_tilt"]] * 0.25;
       break;
     }
 
     case RightToLeft:
     {
-      target_position_.coeffRef(0, using_joint_name_["head_pan"]) = min_angle_[using_joint_name_["head_pan"]] * 0.5;
-      target_position_.coeffRef(0, using_joint_name_["head_tilt"]) = min_angle_[using_joint_name_["head_tilt"]] * 0.2;
+      target_position_.coeffRef(0, using_joint_name_["head_pan"]) = min_angle_[using_joint_name_["head_pan"]] * 0.6;
+      target_position_.coeffRef(0, using_joint_name_["head_tilt"]) = min_angle_[using_joint_name_["head_tilt"]] * 0.25;
       break;
     }
 
     case TopToBottom:
     {
-      target_position_.coeffRef(0, using_joint_name_["head_pan"]) = min_angle_[using_joint_name_["head_pan"]] * 0.5;
+      target_position_.coeffRef(0, using_joint_name_["head_pan"]) = min_angle_[using_joint_name_["head_pan"]] * 0.6;
       target_position_.coeffRef(0, using_joint_name_["head_tilt"]) = min_angle_[using_joint_name_["head_tilt"]] * 0.8;
       break;
     }
 
     case LeftToRight:
     {
-      target_position_.coeffRef(0, using_joint_name_["head_pan"]) = max_angle_[using_joint_name_["head_pan"]] * 0.5;
+      target_position_.coeffRef(0, using_joint_name_["head_pan"]) = max_angle_[using_joint_name_["head_pan"]] * 0.6;
       target_position_.coeffRef(0, using_joint_name_["head_tilt"]) = min_angle_[using_joint_name_["head_tilt"]] * 0.8;
       break;
     }

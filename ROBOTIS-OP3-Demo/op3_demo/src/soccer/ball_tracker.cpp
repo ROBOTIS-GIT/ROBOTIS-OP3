@@ -37,7 +37,8 @@ namespace robotis_op
 
 BallTracker::BallTracker()
     : nh_(ros::this_node::getName()),
-      FOV_WIDTH(35.2 * M_PI / 180),
+      //FOV_WIDTH(35.2 * M_PI / 180),
+      FOV_WIDTH(26.4 * M_PI / 180),
       FOV_HEIGHT(21.6 * M_PI / 180),
       NOT_FOUND_THRESHOLD(50),
       use_head_scan_(true),
@@ -173,17 +174,18 @@ bool BallTracker::processTracking()
 
   // if ball is found
   // convert ball position to desired angle(rad) of head
-  // top-left is (-1, -1), bottom-right is (+, +)
+  // ball_position : top-left is (-1, -1), bottom-right is (+1, +1)
+  // offset_rad : top-left(+, +), bottom-right(-, -)
   double x_offset_rad = -atan(ball_position_.x * tan(FOV_WIDTH));
   double y_offset_rad = -atan(ball_position_.y * tan(FOV_HEIGHT));
 
   ball_position_.z = 0;
   count_not_found_ = 0;
 
-  std::cout << "=================================================================" << std::endl;
-  std::cout << "Ball position : " << ball_position_.x << " | " << ball_position_.y << std::endl;
-  std::cout << "Target angle : " << (x_offset_rad * 180 / M_PI) << " | " << (y_offset_rad * 180 / M_PI) << std::endl;
-  std::cout << "Head angle : " << (current_head_pan_ * 180 / M_PI) << " | " << (current_head_tilt_ * 180 / M_PI) << std::endl;
+   //std::cout << "--------------------------------------------------------------" << std::endl;
+   //std::cout << "Ball position : " << ball_position_.x << " | " << ball_position_.y << std::endl;
+   //std::cout << "Target angle : " << (x_offset_rad * 180 / M_PI) << " | " << (y_offset_rad * 180 / M_PI) << std::endl;
+   //std::cout << "Head angle : " << (current_head_pan_ * 180 / M_PI) << " | " << (current_head_tilt_ * 180 / M_PI) << std::endl;
 
   // move head joint
   publishHeadJoint(x_offset_rad, y_offset_rad);

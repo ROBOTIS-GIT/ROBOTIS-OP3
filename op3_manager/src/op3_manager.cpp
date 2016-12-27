@@ -67,7 +67,7 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
     controller->stopTimer();
 
     // power on
-    PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler("/dev/ttyUSB1");
+    PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler("/dev/ttyUSB0");
     bool set_port_result = port_handler->setBaudRate(1000000);
     if (set_port_result == false)
     {
@@ -88,7 +88,7 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
       // _port_h->ClosePort();
       usleep(100 * 1000);
 
-      PortHandler *port_handler_2 = (PortHandler *) PortHandler::getPortHandler("/dev/ttyUSB1");
+      PortHandler *port_handler_2 = (PortHandler *) PortHandler::getPortHandler("/dev/ttyUSB0");
       set_port_result = port_handler_2->setBaudRate(1000000);
       if (set_port_result == false)
       {
@@ -141,7 +141,7 @@ int main(int argc, char **argv)
   g_init_pose_pub = nh.advertise < std_msgs::String > ("/robotis/base/ini_pose", 0);
   g_demo_command_pub = nh.advertise < std_msgs::String > ("/ball_tracker/command", 0);
 
-  PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler("/dev/ttyUSB1");
+  PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler("/dev/ttyUSB0");
   bool set_port_result = port_handler->setBaudRate(1000000);
   if (set_port_result == false)
     ROS_ERROR("Error Set port");

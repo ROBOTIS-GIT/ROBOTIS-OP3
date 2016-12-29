@@ -37,7 +37,6 @@ namespace robotis_op
 
 BallFollower::BallFollower()
     : nh_(ros::this_node::getName()),
-      //FOV_WIDTH(35.2 * M_PI / 180),
       FOV_WIDTH(26.4 * M_PI / 180),
       FOV_HEIGHT(21.6 * M_PI / 180),
       count_not_found_(0),
@@ -50,28 +49,19 @@ BallFollower::BallFollower()
       MAX_FB_STEP(35.0 * 0.001),
       MAX_RL_TURN(15.0 * M_PI / 180),
       MIN_FB_STEP(5.0 * 0.001),
-      //MIN_FB_STEP(1.0 * 0.001),
       MIN_RL_TURN(5.0 * M_PI / 180),
-      //UNIT_FB_STEP(1.0 * 0.001),
-      //UNIT_FB_STEP(0.25 * 0.001),
       UNIT_FB_STEP(0.5 * 0.001),
       UNIT_RL_TURN(0.5 * M_PI / 180),
       SPOT_FB_OFFSET(0.0 * 0.001),
       SPOT_RL_OFFSET(0.0 * 0.001),
       SPOT_ANGLE_OFFSET(0.0 * M_PI / 180),
+      hip_pitch_offset_(7.0),
       current_pan_(-10),
       current_tilt_(-10),
       current_x_move_(0.005),
       current_r_angle_(0),
       debug_print_(false)
 {
-  // module_control_pub_ = nh_.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_joint_ctrl_modules", 0);
-  // head_joint_pub_ = nh_.advertise<sensor_msgs::JointState>("/robotis/head_control/set_joint_states_offset", 0);
-  // head_scan_pub_ = nh_.advertise<std_msgs::String>("/robotis/head_control/scan_command", 0);
-  // motion_index_pub_ = nh_.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
-
-  //ball_position_sub_ = nh_.subscribe("/ball_detector_node/circle_set", 1, &BallFollower::ballPositionCallback, this);
-  //ball_tracking_command_sub_ = nh_.subscribe("/ball_tracker/command", 1, &BallFollower::ballTrackerCommandCallback, this);
   current_joint_states_sub_ = nh_.subscribe("/robotis/goal_joint_states", 10, &BallFollower::currentJointStatesCallback,
                                             this);
 
@@ -80,9 +70,6 @@ BallFollower::BallFollower()
   get_walking_param_client_ = nh_.serviceClient<op3_walking_module_msgs::GetWalkingParam>(
       "/robotis/walking/get_params");
 
-  //std::string default_path = ros::package::getPath("op3_demo") + "/config/demo_config.yaml";
-  //std::string config_path = nh_.param<std::string>("demo_config", default_path);
-  //parseJointNameFromYaml(config_path);
 }
 
 BallFollower::~BallFollower()
@@ -96,6 +83,16 @@ void BallFollower::startFollowing()
   ROS_INFO("Start Ball following");
 
   setWalkingCommand("start");
+
+  bool result = getWalkingParam();
+  if (result == true)
+  {
+    hip_pitch_offset_ = current_walking_param_.hip_pitch_offset;
+  }
+  else
+  {
+    hip_pitch_offset_ = 7.0 * M_PI / 180;
+  }
 }
 
 void BallFollower::stopFollowing()
@@ -132,8 +129,6 @@ void BallFollower::currentJointStatesCallback(const sensor_msgs::JointState::Con
   }
 
   // check variation
-  // if(current_pan_ == -10 || fabs(pan - current_pan_) < 5 * M_PI / 180 )
-  // if(current_tilt_ == -10 || fabs(tilt - current_tilt_) < 5 * M_PI / 180 )
   current_pan_ = pan;
   current_tilt_ = tilt;
 }
@@ -164,9 +159,7 @@ bool BallFollower::processFollowing(double x_angle, double y_angle, double ball_
   approach_ball_position_ = NotFound;
 
   // clac fb
-  //double x_offset = CAMERA_HEIGHT * (tan((17 + 70) * M_PI / 180 + current_tilt_) - tan(17 * M_PI / 180));
-  //double x_offset = CAMERA_HEIGHT * tan(M_PI * 0.5 + current_tilt_ + y_angle - 7 * M_PI / 180);
-  double distance_to_ball = CAMERA_HEIGHT * tan(M_PI * 0.5 + current_tilt_ - 7 * M_PI / 180 - ball_size);
+  double distance_to_ball = CAMERA_HEIGHT * tan(M_PI * 0.5 + current_tilt_ - hip_pitch_offset_ - ball_size);
 
   double ball_y_angle = (current_tilt_ + y_angle) * 180 / M_PI;
   double ball_x_angle = (current_pan_ + x_angle) * 180 / M_PI;
@@ -174,24 +167,23 @@ bool BallFollower::processFollowing(double x_angle, double y_angle, double ball_
   if (distance_to_ball < 0)
     distance_to_ball *= (-1);
 
-  //x_offset -= 0.15;
-  // distance_to_ball -= ball_size;
-
   double fb_goal, fb_move;
 
   // check whether ball is correct position.
-  if ((distance_to_ball < 0.15) && (fabs(ball_x_angle) < 25))
+  if ((distance_to_ball < 0.15) && (fabs(ball_x_angle) < 25.0))
   //if ((ball_y_angle < -65) && (fabs(current_pan_) < 25))
   {
     count_to_kick_ += 1;
 
-    ROS_INFO_STREAM("head pan : " << (current_pan_ * 180 / M_PI) << " | ball pan : " << (x_angle * 180 / M_PI));
-    ROS_INFO_STREAM("head tilt : " << (current_tilt_ * 180 / M_PI) << " | ball tilt : " << (y_angle * 180 / M_PI));
-    ROS_INFO_STREAM("foot to kick : " << accum_ball_position_);
+    ROS_INFO_STREAM_COND(debug_print_,
+                         "head pan : " << (current_pan_ * 180 / M_PI) << " | ball pan : " << (x_angle * 180 / M_PI));
+    ROS_INFO_STREAM_COND(debug_print_,
+                         "head tilt : " << (current_tilt_ * 180 / M_PI) << " | ball tilt : " << (y_angle * 180 / M_PI));
+    ROS_INFO_STREAM_COND(debug_print_, "foot to kick : " << accum_ball_position_);
 
     //if (fabs(x_angle) < 10 * M_PI / 180)
     //{
-    if (count_to_kick_ > 15)
+    if (count_to_kick_ > 20)
     {
       setWalkingCommand("stop");
       on_tracking_ = false;
@@ -210,10 +202,10 @@ bool BallFollower::processFollowing(double x_angle, double y_angle, double ball_
 
       return true;
     }
-    else if (count_to_kick_ > 10)
+    else if (count_to_kick_ > 15)
     {
       if (ball_x_angle > 0)
-      //if( current_pan_ > 0)
+        //if( current_pan_ > 0)
         accum_ball_position_ += 1;
       else
         accum_ball_position_ -= 1;
@@ -247,15 +239,18 @@ bool BallFollower::processFollowing(double x_angle, double y_angle, double ball_
   ROS_INFO("==============================================");
 
   // calc rl angle
-  double rl_offset = fabs(current_pan_) * 0.3;
-  //double rl_offset = fabs(current_pan_ + x_angle) * 0.3;
   double rl_goal, rl_angle;
-  rl_goal = fmin(rl_offset, MAX_RL_TURN);
-  rl_goal = fmax(rl_goal, MIN_RL_TURN);
-  rl_angle = fmin(fabs(current_r_angle_) + UNIT_RL_TURN, rl_goal);
+  if (fabs(current_pan_) * 180 / M_PI > 5.0)
+  {
+    double rl_offset = fabs(current_pan_) * 0.3;
+    //double rl_offset = fabs(ball_x_angle) * 0.3;
+    rl_goal = fmin(rl_offset, MAX_RL_TURN);
+    rl_goal = fmax(rl_goal, MIN_RL_TURN);
+    rl_angle = fmin(fabs(current_r_angle_) + UNIT_RL_TURN, rl_goal);
 
-  if (current_pan_ < 0)
-    rl_angle *= (-1);
+    if (current_pan_ < 0)
+      rl_angle *= (-1);
+  }
 
   // send message
   setWalkingParam(fb_move, 0, rl_angle);
@@ -295,13 +290,12 @@ void BallFollower::setWalkingParam(double x_move, double y_move, double rotation
   current_walking_param_.angle_move_amplitude = rotation_angle + SPOT_ANGLE_OFFSET;
 
   set_walking_param_pub_.publish(current_walking_param_);
-  // ROS_INFO("Change walking param");
 
   current_x_move_ = x_move;
   current_r_angle_ = rotation_angle;
 }
 
-void BallFollower::getWalkingParam()
+bool BallFollower::getWalkingParam()
 {
   op3_walking_module_msgs::GetWalkingParam walking_param_msg;
 
@@ -311,9 +305,16 @@ void BallFollower::getWalkingParam()
 
     // update ui
     ROS_INFO("Get walking parameters");
+
+    return true;
   }
   else
+  {
     ROS_ERROR("Fail to get walking parameters.");
+
+    return false;
+  }
+
 }
 
 }

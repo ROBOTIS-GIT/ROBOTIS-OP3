@@ -1,3 +1,6 @@
+[ control info ]
+control_cycle = 8   # milliseconds
+
 [ port info ]
 # PORT NAME  | BAUDRATE  | DEFAULT JOINT
 /dev/ttyUSB1 | 2000000   | r_sho_pitch

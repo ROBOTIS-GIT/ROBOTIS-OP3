@@ -7,7 +7,7 @@ hough_accum_th: 30
 min_radius: 15
 max_radius: 300
 filter_h_min: 350
-filter_h_max: 15
+filter_h_max: 20
 filter_s_min: 230
 filter_s_max: 255
 filter_v_min: 60

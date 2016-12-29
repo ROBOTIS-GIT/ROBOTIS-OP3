@@ -93,7 +93,7 @@ class BallFollower
   void currentJointStatesCallback(const sensor_msgs::JointState::ConstPtr &msg);
   void setWalkingCommand(const std::string &command);
   void setWalkingParam(double x_move, double y_move, double rotation_angle, bool balance = true);
-  void getWalkingParam();
+  bool getWalkingParam();
 
   bool debug_print_;
 
@@ -127,6 +127,7 @@ class BallFollower
   double current_pan_, current_tilt_;
   double current_x_move_, current_r_angle_;
   int kick_motion_index_;
+  double hip_pitch_offset_;
 
 };
 }

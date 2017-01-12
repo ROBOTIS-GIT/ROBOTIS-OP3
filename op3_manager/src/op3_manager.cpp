@@ -48,6 +48,13 @@ using namespace robotis_framework;
 using namespace dynamixel;
 using namespace robotis_op;
 
+const int BAUD_RATE = 1000000;
+const int SUB_CONTROLLER_ID = 200;
+const int DXL_BROADCAST_ID = 254;
+const char *SUB_CONTROLLER_DEVICE = "/dev/ttyUSB0";
+const int POWER_CTRL_TABLE = 24;
+const int TORQUE_ON_CTRL_TABLE = 64;
+
 std::string g_offset_file;
 std::string g_robot_file;
 std::string g_init_file;
@@ -67,8 +74,8 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
     controller->stopTimer();
 
     // power on
-    PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler("/dev/ttyUSB0");
-    bool set_port_result = port_handler->setBaudRate(1000000);
+    PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler(SUB_CONTROLLER_DEVICE);
+    bool set_port_result = port_handler->setBaudRate(BAUD_RATE);
     if (set_port_result == false)
     {
       ROS_ERROR("Error Set port");
@@ -78,30 +85,25 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
 
     // check dxls torque.
     uint8_t torque = 0;
-    packet_handler->read1ByteTxRx(port_handler, 200, 24, &torque);
+    packet_handler->read1ByteTxRx(port_handler, SUB_CONTROLLER_ID, 24, &torque);
 
     if (torque != 1)
     {
-      int return_data = packet_handler->write1ByteTxRx(port_handler, 200, 24, 1);
+      int return_data = packet_handler->write1ByteTxRx(port_handler, SUB_CONTROLLER_ID, POWER_CTRL_TABLE, 1);
       ROS_INFO("Power on DXLs! [%d]", return_data);
 
       // _port_h->ClosePort();
       usleep(100 * 1000);
 
-      PortHandler *port_handler_2 = (PortHandler *) PortHandler::getPortHandler("/dev/ttyUSB0");
-      set_port_result = port_handler_2->setBaudRate(1000000);
+      PortHandler *port_handler_2 = (PortHandler *) PortHandler::getPortHandler(SUB_CONTROLLER_DEVICE);
+      set_port_result = port_handler_2->setBaudRate(BAUD_RATE);
       if (set_port_result == false)
       {
         ROS_ERROR("Error Set port");
         return;
       }
-      PacketHandler *packet_handler_2 = PacketHandler::getPacketHandler(1.0);
 
-      return_data = packet_handler_2->write1ByteTxRx(port_handler_2, 254, 64, 1);
       ROS_INFO("Torque on DXLs! [%d]", return_data);
-
-      // _port_h2->ClosePort();
-      usleep(100 * 1000);
 
       controller->initializeDevice(g_init_file);
     }
@@ -141,8 +143,8 @@ int main(int argc, char **argv)
   g_init_pose_pub = nh.advertise < std_msgs::String > ("/robotis/base/ini_pose", 0);
   g_demo_command_pub = nh.advertise < std_msgs::String > ("/ball_tracker/command", 0);
 
-  PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler("/dev/ttyUSB0");
-  bool set_port_result = port_handler->setBaudRate(1000000);
+  PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler(SUB_CONTROLLER_DEVICE);
+  bool set_port_result = port_handler->setBaudRate(BAUD_RATE);
   if (set_port_result == false)
     ROS_ERROR("Error Set port");
 
@@ -150,9 +152,9 @@ int main(int argc, char **argv)
 
   int torque_on_count = 0;
 
-  while (torque_on_count < 10)
+  while (torque_on_count < 5)
   {
-    int _return = packet_handler->write1ByteTxRx(port_handler, 200, 24, 1);
+    int _return = packet_handler->write1ByteTxRx(port_handler, SUB_CONTROLLER_ID, POWER_CTRL_TABLE, 1);
 
     ROS_INFO("Torque on DXLs! [%d]", _return);
     packet_handler->printTxRxResult(_return);

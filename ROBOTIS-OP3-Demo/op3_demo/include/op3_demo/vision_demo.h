@@ -64,11 +64,7 @@ class VisionDemo : public OPDemo
   void process();
 
   void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg);
-  //void ballPositionCallback(const ball_detector::circleSetStamped::ConstPtr &msg);
-  //void currentJointStatesCallback(const sensor_msgs::JointState::ConstPtr &msg);
   void facePositionCallback(const std_msgs::Int32MultiArray::ConstPtr &msg);
-
-  //void publishHeadJoint(double pan, double tilt);
 
   void setModuleToDemo(const std::string &module_name);
 

@@ -8,8 +8,16 @@
         <param name="video_device" type="string" value="/dev/video0" />
         <param name="image_width" type="int" value="800" />
         <param name="image_height" type="int" value="600" />
+<!--         <param name="image_width" type="int" value="1600" />
+        <param name="image_height" type="int" value="896" /> -->
         <param name="framerate " type="int" value="30" />
         <param name="camera_name" type="string" value="camera" />
+        <param name="autofocus" type="bool" value="False" />
+        <param name="autoexposure" type="bool" value="False" />
+        <param name="auto_white_balance" type="bool" value="False" />
+        <param name="gain" value="255" />
+        <param name="brightness" value="64" />
+        <param name="exposure" value="300" />
     </node>
 <!--         <param name="gain" value="255" />
         <param name="auto_exposure" type="bool" value="False" />

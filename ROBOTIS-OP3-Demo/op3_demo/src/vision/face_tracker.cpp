@@ -37,8 +37,8 @@ namespace robotis_op
 
 FaceTracker::FaceTracker()
     : nh_(ros::this_node::getName()),
-      FOV_WIDTH(30 * M_PI / 180),
-      FOV_HEIGHT(23 * M_PI / 180),
+      FOV_WIDTH(26.4 * M_PI / 180),
+      FOV_HEIGHT(21.6 * M_PI / 180),
       NOT_FOUND_THRESHOLD(50),
       use_head_scan_(false),
       count_not_found_(0),

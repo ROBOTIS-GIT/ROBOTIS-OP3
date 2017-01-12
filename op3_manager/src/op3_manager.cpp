@@ -35,8 +35,8 @@
 #include "robotis_controller/robotis_controller.h"
 
 /* Sensor Module Header */
-#include "cm_740_module/cm_740_module.h"
-//#include "open_cr_module/open_cr_module.h"
+// #include "cm_740_module/cm_740_module.h"
+#include "open_cr_module/open_cr_module.h"
 
 /* Motion Module Header */
 #include "op3_base_module/base_module.h"

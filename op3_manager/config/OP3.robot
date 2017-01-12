@@ -1,7 +1,7 @@
 [ port info ]
 # PORT NAME  | BAUDRATE  | DEFAULT JOINT
-/dev/ttyUSB1 | 2000000   | r_sho_pitch
-/dev/ttyUSB0 | 1000000   | cm-740
+/dev/ttyUSB1 | 1000000   | r_sho_pitch
+/dev/ttyUSB0 | 1000000   | open-cr
 
 [ device info ]
 # TYPE    | PORT NAME    | ID  | MODEL          | PROTOCOL | DEV NAME       | BULK READ ITEMS
@@ -25,4 +25,4 @@ dynamixel | /dev/ttyUSB1 | 17  | XM-430         | 2.0      | r_ank_roll     | pr
 dynamixel | /dev/ttyUSB1 | 18  | XM-430         | 2.0      | l_ank_roll     | present_position
 dynamixel | /dev/ttyUSB1 | 19  | XM-430         | 2.0      | head_pan       | present_position
 dynamixel | /dev/ttyUSB1 | 20  | XM-430         | 2.0      | head_tilt      | present_position
-sensor    | /dev/ttyUSB0 | 200 | CM-740         | 1.0      | cm-740         | button, gyro_z, gyro_y, gyro_x, acc_x, acc_y, acc_z, present_voltage  
+sensor    | /dev/ttyUSB0 | 200 | OPEN-CR        | 2.0      | open-cr        | button, gyro_z, gyro_y, gyro_x, acc_x, acc_y, acc_z, present_voltage  

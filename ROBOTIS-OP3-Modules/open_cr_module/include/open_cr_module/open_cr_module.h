@@ -61,6 +61,8 @@ class OpenCRModule : public robotis_framework::SensorModule, public robotis_fram
 
  private:
   const double G_ACC = 9.80665;
+  const double GYRO_FACTOR = 2000 / 32800;
+  const double ACCEL_FACTOR = 2 / 32768;
 
   void queueThread();
 
@@ -71,6 +73,7 @@ class OpenCRModule : public robotis_framework::SensorModule, public robotis_fram
   void pushedModeButton(bool pushed);
   void pushedStartButton(bool pushed);
   void handleButton(const std::string &button_name);
+  void publishButtonMsg(const std::string &button_name);
   void handleVoltage(double present_volt);
   void publishStatusMsg(unsigned int type, std::string msg);
   double lowPassFilter(double alpha, double x_new, double x_old);
@@ -80,6 +83,8 @@ class OpenCRModule : public robotis_framework::SensorModule, public robotis_fram
   bool debug_print_;
   bool button_mode_;
   bool button_start_;
+  std::map<std::string, bool> buttons_;
+  std::map<std::string, ros::Time> buttons_press_time_;
   ros::Time button_press_time_;
   double previous_volt_;
   double present_volt_;

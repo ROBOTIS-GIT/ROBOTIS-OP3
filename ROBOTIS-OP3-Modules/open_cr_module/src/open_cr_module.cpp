@@ -56,8 +56,17 @@ OpenCRModule::OpenCRModule()
 
   result_["button_mode"] = 0;
   result_["button_start"] = 0;
+  result_["button_user"] = 0;
 
   result_["present_voltage"] = 0.0;
+
+  buttons_["button_mode"] = false;
+  buttons_["button_start"] = false;
+  buttons_["button_user"] = false;
+
+  // buttons_press_time_["button_mode"] = ros::Time::now();
+  // buttons_press_time_["button_start"] = ros::Time::now();
+  // buttons_press_time_["button_user"] = ros::Time::now();
 }
 
 OpenCRModule::~OpenCRModule()
@@ -109,8 +118,8 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
 
   uint16_t present_volt = sensors["open-cr"]->sensor_state_->bulk_read_table_["present_voltage"];
 
-  result_["gyro_x"] = - getGyroValue(gyro_y);
-  result_["gyro_y"] = getGyroValue(gyro_x);
+  result_["gyro_x"] = - getGyroValue(gyro_x);
+  result_["gyro_y"] = - getGyroValue(gyro_y);
   result_["gyro_z"] = getGyroValue(gyro_z);
 
   ROS_INFO_COND(debug_print_, "Gyro Raw =============================================== ");
@@ -118,8 +127,8 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
   ROS_INFO_COND(debug_print_, "Gyro : %f, %f, %f", result_["gyro_x"], result_["gyro_y"], result_["gyro_z"]);
 
   // align axis of Accelerometer to robot
-  result_["acc_x"] = - getAccValue(acc_y);
-  result_["acc_y"] = getAccValue(acc_x);
+  result_["acc_x"] = - getAccValue(acc_x);
+  result_["acc_y"] = - getAccValue(acc_y);
   result_["acc_z"] = getAccValue(acc_z);
 
   //ROS_INFO_COND(debug_print_, "Acc Raw =============================================== ");
@@ -129,9 +138,13 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
   uint8_t button_flag = sensors["open-cr"]->sensor_state_->bulk_read_table_["button"];
   result_["button_mode"] = button_flag & 0x01;
   result_["button_start"] = (button_flag & 0x02) >> 1;
+  result_["button_user"] = (button_flag & 0x04) >> 2;
 
-  pushedModeButton(result_["button_mode"] == 1.0);
-  pushedStartButton(result_["button_start"] == 1.0);
+  // pushedModeButton(result_["button_mode"] == 1.0);
+  // pushedStartButton(result_["button_start"] == 1.0);
+  handleButton("button_mode");
+  handleButton("button_start");
+  handleButton("button_user");
 
   result_["present_voltage"] = present_volt * 0.1;
   handleVoltage(result_["present_voltage"]);
@@ -142,16 +155,13 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
 // -2000 ~ 2000dps(-32800 ~ 32800), scale factor : 16.4, dps -> rps
 double OpenCRModule::getGyroValue(int raw_value)
 {
-  //return (raw_value - 512) * 500.0 * 2.0 / 1023 * DEGREE2RADIAN;
-  return raw_value / 16.4 * DEGREE2RADIAN;
+  return raw_value * GYRO_FACTOR * DEGREE2RADIAN;
 }
 
-// -4.0 ~ 4.0g, 1g = 9.8 m/s^2
-// -8.0 ~ 8.0g(-4096 ~ 4096), scale factor : 512
+// -2.0 ~ 2.0g(-32768 ~ 32768), 1g = 9.8 m/s^2
 double OpenCRModule::getAccValue(int raw_value)
 {
-  //return (raw_value - 512) * 4.0 * 2.0 / 1023;
-  return raw_value / 512.0;
+  return raw_value * ACCEL_FACTOR;
 }
 
 void OpenCRModule::fusionIMU()
@@ -215,10 +225,10 @@ void OpenCRModule::pushedModeButton(bool pushed)
   {
     ros::Duration button_duration = ros::Time::now() - button_press_time_;
     if (button_duration.sec < 2)     // short press
-      handleButton("mode");
+      publishButtonMsg("mode");
     else
       // long press
-      handleButton("mode_long");
+      publishButtonMsg("mode_long");
   }
 }
 
@@ -238,14 +248,39 @@ void OpenCRModule::pushedStartButton(bool pushed)
     ros::Duration button_duration = ros::Time::now() - button_press_time_;
 
     if (button_duration.sec < 2)     // short press
-      handleButton("start");
+      publishButtonMsg("start");
     else
       // long press
-      handleButton("start_long");
+      publishButtonMsg("start_long");
   }
 }
 
 void OpenCRModule::handleButton(const std::string &button_name)
+{
+  bool pushed = (result_[button_name] == 1.0);
+  // same state
+  if (buttons_[button_name] == pushed)
+      return;
+
+  buttons_[button_name] = pushed;
+
+    if (pushed == true)
+    {
+      buttons_press_time_[button_name] = ros::Time::now();
+    }
+    else
+    {
+      ros::Duration button_duration = ros::Time::now() - buttons_press_time_[button_name];
+
+      if (button_duration.sec < 2)     // short press
+        publishButtonMsg(button_name);
+      else
+        // long press
+        publishButtonMsg(button_name + "_long");
+    }
+}
+
+void OpenCRModule::publishButtonMsg(const std::string &button_name)
 {
   std_msgs::String button_msg;
   button_msg.data = button_name;

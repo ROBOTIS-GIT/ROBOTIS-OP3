@@ -52,7 +52,7 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "ball_tracker_node");
   ros::NodeHandle nh("~");
   ros::Publisher module_control_pub_ = nh.advertise<std_msgs::String>("/robotis/enable_ctrl_module", 0);
-  ros::Subscriber buttuon_sub = nh.subscribe("/robotis/cm_740/button", 1, buttonHandlerCallback);
+  ros::Subscriber buttuon_sub = nh.subscribe("/robotis/open_cr/button", 1, buttonHandlerCallback);
 
   //create ros wrapper object
   robotis_op::BallTracker tracker;

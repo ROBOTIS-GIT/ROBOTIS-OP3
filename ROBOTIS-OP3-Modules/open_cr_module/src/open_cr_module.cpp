@@ -38,7 +38,7 @@ namespace robotis_op
 
 OpenCRModule::OpenCRModule()
     : control_cycle_msec_(8),
-      debug_print_(true),
+      debug_print_(false),
       button_mode_(false),
       button_start_(false),
       present_volt_(0.0),
@@ -67,6 +67,8 @@ OpenCRModule::OpenCRModule()
   // buttons_press_time_["button_mode"] = ros::Time::now();
   // buttons_press_time_["button_start"] = ros::Time::now();
   // buttons_press_time_["button_user"] = ros::Time::now();
+
+  last_msg_time_ = ros::Time::now();
 }
 
 OpenCRModule::~OpenCRModule()
@@ -92,6 +94,7 @@ void OpenCRModule::queueThread()
   /* publisher */
   status_msg_pub_ = _ros_node.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 1);
   imu_pub_ = _ros_node.advertise<sensor_msgs::Imu>("/robotis/open_cr/imu", 1);
+  imu_pub_2_ = _ros_node.advertise<sensor_msgs::Imu>("/robotis/open_cr/imu2", 1);
   reset_dxl_pub_ = _ros_node.advertise<std_msgs::String>("/robotis/open_cr/button", 1);
 
   while (_ros_node.ok())
@@ -103,7 +106,7 @@ void OpenCRModule::queueThread()
 }
 
 void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *> dxls,
-                          std::map<std::string, robotis_framework::Sensor *> sensors)
+                           std::map<std::string, robotis_framework::Sensor *> sensors)
 {
   if (sensors["open-cr"] == NULL)
     return;
@@ -131,9 +134,9 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
   result_["acc_y"] = - getAccValue(acc_y);
   result_["acc_z"] = getAccValue(acc_z);
 
-  //ROS_INFO_COND(debug_print_, "Acc Raw =============================================== ");
-  //ROS_INFO_COND(debug_print_, "Raw : %d, %d, %d", acc_x, acc_y, acc_z);
-  //ROS_INFO_COND(debug_print_, "Acc : %f, %f, %f", result_["acc_x"], result_["acc_y"], result_["acc_z"]);
+  ROS_INFO_COND(debug_print_, "Acc Raw =============================================== ");
+  ROS_INFO_COND(debug_print_, "Raw : %d, %d, %d", acc_x, acc_y, acc_z);
+  ROS_INFO_COND(debug_print_, "Acc : %f, %f, %f", result_["acc_x"], result_["acc_y"], result_["acc_z"]);
 
   uint8_t button_flag = sensors["open-cr"]->sensor_state_->bulk_read_table_["button"];
   result_["button_mode"] = button_flag & 0x01;
@@ -142,26 +145,32 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
 
   // pushedModeButton(result_["button_mode"] == 1.0);
   // pushedStartButton(result_["button_start"] == 1.0);
-  handleButton("button_mode");
-  handleButton("button_start");
-  handleButton("button_user");
+  handleButton("mode");
+  handleButton("start");
+  handleButton("user");
 
   result_["present_voltage"] = present_volt * 0.1;
   handleVoltage(result_["present_voltage"]);
 
   fusionIMU();
+
+  double roll = DEGREE2RADIAN * sensors["open-cr"]->sensor_state_->bulk_read_table_["acc_x"];
+  double pitch = DEGREE2RADIAN * sensors["open-cr"]->sensor_state_->bulk_read_table_["acc_y"];
+  double yaw = DEGREE2RADIAN * sensors["open-cr"]->sensor_state_->bulk_read_table_["acc_z"];
+
+  publishIMU(roll, pitch, yaw);
 }
 
 // -2000 ~ 2000dps(-32800 ~ 32800), scale factor : 16.4, dps -> rps
 double OpenCRModule::getGyroValue(int raw_value)
 {
-  return raw_value * GYRO_FACTOR * DEGREE2RADIAN;
+  return (double) raw_value * GYRO_FACTOR * DEGREE2RADIAN;
 }
 
 // -2.0 ~ 2.0g(-32768 ~ 32768), 1g = 9.8 m/s^2
 double OpenCRModule::getAccValue(int raw_value)
 {
-  return raw_value * ACCEL_FACTOR;
+  return (double) raw_value * ACCEL_FACTOR;
 }
 
 void OpenCRModule::fusionIMU()
@@ -200,7 +209,7 @@ void OpenCRModule::fusionIMU()
 
   // ROS_INFO("Roll : %3.2f, Pitch : %2.2f", (roll * 180 / M_PI), (pitch * 180 / M_PI));
 
-  Eigen::Quaterniond orientation =  robotis_framework::convertRPYToQuaternion(roll, pitch, yaw);
+  Eigen::Quaterniond orientation = robotis_framework::convertRPYToQuaternion(roll, pitch, yaw);
 
   imu_msg_.orientation.x = orientation.x();
   imu_msg_.orientation.y = orientation.y();
@@ -208,6 +217,39 @@ void OpenCRModule::fusionIMU()
   imu_msg_.orientation.w = orientation.w();
 
   imu_pub_.publish(imu_msg_);
+}
+
+void OpenCRModule::publishIMU(double roll, double pitch, double yaw)
+{
+  // fusion imu data
+  imu_msg_2_.header.stamp = ros::Time::now();
+  imu_msg_2_.header.frame_id = "body_link";
+
+  double filter_alpha = 0.4;
+
+  //in rad/s
+  long int _value = 0;
+  int _arrd_length = 2;
+  imu_msg_2_.angular_velocity.x = lowPassFilter(filter_alpha, result_["gyro_x"], imu_msg_2_.angular_velocity.x);
+  imu_msg_2_.angular_velocity.y = lowPassFilter(filter_alpha, result_["gyro_y"], imu_msg_2_.angular_velocity.y);
+  imu_msg_2_.angular_velocity.z = lowPassFilter(filter_alpha, result_["gyro_z"], imu_msg_2_.angular_velocity.z);
+
+  //in m/s^2
+  imu_msg_2_.linear_acceleration.x = lowPassFilter(filter_alpha, result_["acc_x"] * G_ACC,
+                                                   imu_msg_2_.linear_acceleration.x);
+  imu_msg_2_.linear_acceleration.y = lowPassFilter(filter_alpha, result_["acc_y"] * G_ACC,
+                                                   imu_msg_2_.linear_acceleration.y);
+  imu_msg_2_.linear_acceleration.z = lowPassFilter(filter_alpha, result_["acc_z"] * G_ACC,
+                                                   imu_msg_2_.linear_acceleration.z);
+
+  Eigen::Quaterniond orientation = robotis_framework::convertRPYToQuaternion(roll, pitch, yaw);
+
+  imu_msg_2_.orientation.x = orientation.x();
+  imu_msg_2_.orientation.y = orientation.y();
+  imu_msg_2_.orientation.z = orientation.z();
+  imu_msg_2_.orientation.w = orientation.w();
+
+  imu_pub_2_.publish(imu_msg_);
 }
 
 void OpenCRModule::pushedModeButton(bool pushed)
@@ -257,27 +299,29 @@ void OpenCRModule::pushedStartButton(bool pushed)
 
 void OpenCRModule::handleButton(const std::string &button_name)
 {
-  bool pushed = (result_[button_name] == 1.0);
+  std::string button_key = "button_" + button_name;
+
+  bool pushed = (result_[button_key] == 1.0);
   // same state
-  if (buttons_[button_name] == pushed)
-      return;
+  if (buttons_[button_key] == pushed)
+    return;
 
-  buttons_[button_name] = pushed;
+  buttons_[button_key] = pushed;
 
-    if (pushed == true)
-    {
-      buttons_press_time_[button_name] = ros::Time::now();
-    }
+  if (pushed == true)
+  {
+    buttons_press_time_[button_name] = ros::Time::now();
+  }
+  else
+  {
+    ros::Duration button_duration = ros::Time::now() - buttons_press_time_[button_name];
+
+    if (button_duration.sec < 2)     // short press
+      publishButtonMsg(button_name);
     else
-    {
-      ros::Duration button_duration = ros::Time::now() - buttons_press_time_[button_name];
-
-      if (button_duration.sec < 2)     // short press
-        publishButtonMsg(button_name);
-      else
-        // long press
-        publishButtonMsg(button_name + "_long");
-    }
+      // long press
+      publishButtonMsg(button_name + "_long");
+  }
 }
 
 void OpenCRModule::publishButtonMsg(const std::string &button_name)
@@ -297,6 +341,14 @@ void OpenCRModule::handleVoltage(double present_volt)
 
   if (fabs(present_volt_ - previous_volt_) >= 0.1)
   {
+    // check last publised time
+    ros::Time now = ros::Time::now();
+    ros::Duration dur = now - last_msg_time_;
+    if (dur.sec < 1)
+      return;
+
+    last_msg_time_ = now;
+
     present_volt_ = previous_volt_;
     std::stringstream log_stream;
     log_stream << "Present Volt : " << present_volt_ << "V";
@@ -305,6 +357,7 @@ void OpenCRModule::handleVoltage(double present_volt)
             robotis_controller_msgs::StatusMsg::STATUS_WARN : robotis_controller_msgs::StatusMsg::STATUS_INFO),
         log_stream.str());
     ROS_INFO_COND(debug_print_, "Present Volt : %fV, Read Volt : %fV", previous_volt_, result_["present_voltage"]);
+    // ROS_INFO_THROTTLE(0.1, "Present Volt : %fV, Read Volt : %fV", previous_volt_, result_["present_voltage"]);
   }
 }
 

@@ -222,9 +222,9 @@ void callbackThread()
   // subscriber & publisher
   module_control_pub = nh.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_joint_ctrl_modules", 0);
   motion_index_pub = nh.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
-  buttuon_sub = nh.subscribe("/robotis/cm_740/button", 1, buttonHandlerCallback);
+  buttuon_sub = nh.subscribe("/robotis/open_cr/button", 1, buttonHandlerCallback);
   demo_command_sub = nh.subscribe("/ball_tracker/command", 1, demoCommandCallback);
-  imu_data_sub = nh.subscribe("/robotis/cm_740/imu", 1, imuDataCallback);
+  imu_data_sub = nh.subscribe("/robotis/open_cr/imu", 1, imuDataCallback);
 
   while (nh.ok())
   {

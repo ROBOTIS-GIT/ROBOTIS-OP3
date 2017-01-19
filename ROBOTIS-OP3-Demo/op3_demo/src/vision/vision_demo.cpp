@@ -53,6 +53,15 @@ VisionDemo::~VisionDemo()
 
 void VisionDemo::setDemoEnable()
 {
+  // change to motion module
+  setModuleToDemo("action_module");
+
+  usleep(100 * 1000);
+
+  playMotion(WalkingReady);
+
+  usleep(1500 * 1000);
+
   setModuleToDemo("head_control_module");
 
   usleep(10 * 1000);
@@ -98,8 +107,9 @@ void VisionDemo::callbackThread()
 
   // subscriber & publisher
   module_control_pub_ = nh.advertise<std_msgs::String>("/robotis/enable_ctrl_module", 0);
+  motion_index_pub_ = nh.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
 
-  buttuon_sub_ = nh.subscribe("/robotis/cm_740/button", 1, &VisionDemo::buttonHandlerCallback, this);
+  buttuon_sub_ = nh.subscribe("/robotis/open_cr/button", 1, &VisionDemo::buttonHandlerCallback, this);
   faceCoord_sub_ = nh.subscribe("/faceCoord", 1, &VisionDemo::facePositionCallback, this);
 
   while (nh.ok())
@@ -178,6 +188,14 @@ void VisionDemo::facePositionCallback(const std_msgs::Int32MultiArray::ConstPtr 
     face_position_.z = 0;
     return;
   }
+}
+
+void VisionDemo::playMotion(int motion_index)
+{
+  std_msgs::Int32 motion_msg;
+  motion_msg.data = motion_index;
+
+  motion_index_pub_.publish(motion_msg);
 }
 
 } /* namespace robotis_op */

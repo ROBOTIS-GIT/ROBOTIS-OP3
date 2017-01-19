@@ -48,7 +48,6 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
   for (int id = 0; id <= ALL_JOINT_ID; id++)
     op3_link_data_[id] = new LinkData();
 
-  // Todo : Make tree for OP3
   if (tree == WholeBody)
   {
     op3_link_data_[0]->name_ = "base";
@@ -1076,13 +1075,18 @@ bool OP3KinematicsDynamics::calcInverseKinematicsForRightLeg(double *out, double
 {
   if (calcInverseKinematicsForLeg(out, x, y, z, roll, pitch, yaw) == true)
   {
+    /*
+    out[0] = out[0] * (op3_link_data_[ID_R_LEG_START + 2 * 0]->joint_axis_.coeff(2, 0));
+    out[1] = out[1] * (op3_link_data_[ID_R_LEG_START + 2 * 1]->joint_axis_.coeff(0, 0));
+    out[2] = out[2] * (op3_link_data_[ID_R_LEG_START + 2 * 2]->joint_axis_.coeff(1, 0));
+    out[3] = out[3] * (op3_link_data_[ID_R_LEG_START + 2 * 3]->joint_axis_.coeff(1, 0));
+    out[4] = out[4] * (op3_link_data_[ID_R_LEG_START + 2 * 4]->joint_axis_.coeff(1, 0));
+    out[5] = out[5] * (op3_link_data_[ID_R_LEG_START + 2 * 5]->joint_axis_.coeff(0, 0));
+    */
 
-    *(out + 0) = out[0] * (op3_link_data_[ID_R_LEG_START + 2 * 0]->joint_axis_.coeff(2, 0));
-    *(out + 1) = out[1] * (op3_link_data_[ID_R_LEG_START + 2 * 1]->joint_axis_.coeff(0, 0));
-    *(out + 2) = out[2] * (op3_link_data_[ID_R_LEG_START + 2 * 2]->joint_axis_.coeff(1, 0));
-    *(out + 3) = out[3] * (op3_link_data_[ID_R_LEG_START + 2 * 3]->joint_axis_.coeff(1, 0));
-    *(out + 4) = out[4] * (op3_link_data_[ID_R_LEG_START + 2 * 4]->joint_axis_.coeff(1, 0));
-    *(out + 5) = out[5] * (op3_link_data_[ID_R_LEG_START + 2 * 5]->joint_axis_.coeff(0, 0));
+    for(int ix = 0 ; ix < 6; ix++)
+      out[ix] *= getJointDirection(ID_R_LEG_START + 2 * ix);
+
     return true;
   }
   else
@@ -1094,13 +1098,17 @@ bool OP3KinematicsDynamics::calcInverseKinematicsForLeftLeg(double *out, double 
 {
   if (calcInverseKinematicsForLeg(out, x, y, z, roll, pitch, yaw) == true)
   {
-
+    /*
     out[0] = out[0] * (op3_link_data_[ID_L_LEG_START + 2 * 0]->joint_axis_.coeff(2, 0));
     out[1] = out[1] * (op3_link_data_[ID_L_LEG_START + 2 * 1]->joint_axis_.coeff(0, 0));
     out[2] = out[2] * (op3_link_data_[ID_L_LEG_START + 2 * 2]->joint_axis_.coeff(1, 0));
     out[3] = out[3] * (op3_link_data_[ID_L_LEG_START + 2 * 3]->joint_axis_.coeff(1, 0));
     out[4] = out[4] * (op3_link_data_[ID_L_LEG_START + 2 * 4]->joint_axis_.coeff(1, 0));
     out[5] = out[5] * (op3_link_data_[ID_L_LEG_START + 2 * 5]->joint_axis_.coeff(0, 0));
+*/
+    for(int ix = 0 ; ix < 6; ix++)
+      out[ix] *= getJointDirection(ID_L_LEG_START + 2 * ix);
+
     return true;
   }
   else
@@ -1109,12 +1117,22 @@ bool OP3KinematicsDynamics::calcInverseKinematicsForLeftLeg(double *out, double 
 
 LinkData *OP3KinematicsDynamics::getLinkData(const std::string link_name)
 {
-  for(int ix = 0; ix <= ALL_JOINT_ID; ix++)
+  for (int ix = 0; ix <= ALL_JOINT_ID; ix++)
   {
-    if(op3_link_data_[ix]->name_ == link_name)
+    if (op3_link_data_[ix]->name_ == link_name)
     {
       return op3_link_data_[ix];
     }
+  }
+
+  return NULL;
+}
+
+LinkData *OP3KinematicsDynamics::getLinkData(const int link_id)
+{
+  if (op3_link_data_[link_id] != NULL)
+  {
+    return op3_link_data_[link_id];
   }
 
   return NULL;
@@ -1126,7 +1144,7 @@ Eigen::MatrixXd OP3KinematicsDynamics::getJointAxis(const std::string link_name)
 
   LinkData *link_data = getLinkData(link_name);
 
-  if(link_data != NULL)
+  if (link_data != NULL)
   {
     joint_axis = link_data->joint_axis_;
   }
@@ -1139,10 +1157,23 @@ double OP3KinematicsDynamics::getJointDirection(const std::string link_name)
   double joint_direction = 0.0;
   LinkData *link_data = getLinkData(link_name);
 
-  if(link_data != NULL)
+  if (link_data != NULL)
   {
-    joint_direction = link_data->joint_axis_.coeff(0, 0)
-        + link_data->joint_axis_.coeff(1, 0)
+    joint_direction = link_data->joint_axis_.coeff(0, 0) + link_data->joint_axis_.coeff(1, 0)
+        + link_data->joint_axis_.coeff(2, 0);
+  }
+
+  return joint_direction;
+}
+
+double OP3KinematicsDynamics::getJointDirection(const int link_id)
+{
+  double joint_direction = 0.0;
+  LinkData *link_data = getLinkData(link_id);
+
+  if (link_data != NULL)
+  {
+    joint_direction = link_data->joint_axis_.coeff(0, 0) + link_data->joint_axis_.coeff(1, 0)
         + link_data->joint_axis_.coeff(2, 0);
   }
 

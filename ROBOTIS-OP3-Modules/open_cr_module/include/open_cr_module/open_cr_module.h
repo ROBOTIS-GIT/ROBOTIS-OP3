@@ -61,14 +61,15 @@ class OpenCRModule : public robotis_framework::SensorModule, public robotis_fram
 
  private:
   const double G_ACC = 9.80665;
-  const double GYRO_FACTOR = 2000 / 32800;
-  const double ACCEL_FACTOR = 2 / 32768;
+  const double GYRO_FACTOR = 2000.0 / 32800;
+  const double ACCEL_FACTOR = 2.0 / 32768;
 
   void queueThread();
 
   double getGyroValue(int raw_value);
   double getAccValue(int raw_value);
   void fusionIMU();
+  void publishIMU(double roll, double pitch, double yaw);
 
   void pushedModeButton(bool pushed);
   void pushedStartButton(bool pushed);
@@ -86,14 +87,17 @@ class OpenCRModule : public robotis_framework::SensorModule, public robotis_fram
   std::map<std::string, bool> buttons_;
   std::map<std::string, ros::Time> buttons_press_time_;
   ros::Time button_press_time_;
+  ros::Time last_msg_time_;
   double previous_volt_;
   double present_volt_;
   int volt_count_;
 
   sensor_msgs::Imu imu_msg_;
+  sensor_msgs::Imu imu_msg_2_;
 
   /* sample subscriber & publisher */
   ros::Publisher imu_pub_;
+  ros::Publisher imu_pub_2_;
   ros::Publisher reset_dxl_pub_;
   ros::Publisher status_msg_pub_;
 };

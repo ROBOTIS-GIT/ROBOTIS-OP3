@@ -92,6 +92,7 @@ bool QNodeOP3::init()
                                                                                      0);
   module_control_preset_pub_ = ros_node.advertise<std_msgs::String>("/robotis/enable_ctrl_module", 0);
   init_pose_pub_ = ros_node.advertise<std_msgs::String>("/robotis/base/ini_pose", 0);
+  init_gyro_pub_ = ros_node.advertise<robotis_controller_msgs::SyncWriteItem>("/robotis/sync_write_item", 0);
   set_head_joint_angle_pub_ = ros_node.advertise<sensor_msgs::JointState>("/robotis/head_control/set_joint_states", 0);
 
   status_msg_sub_ = ros_node.subscribe("/robotis/status", 10, &QNodeOP3::statusMsgCallback, this);
@@ -564,6 +565,18 @@ void QNodeOP3::applyWalkingParam(const op3_walking_module_msgs::WalkingParam &wa
 
   set_walking_param_pub.publish(walking_param_);
   log(Info, "Apply Walking parameters.");
+}
+
+void QNodeOP3::initGyro()
+{
+  robotis_controller_msgs::SyncWriteItem init_gyro_msg;
+  init_gyro_msg.item_name = "imu_control";
+  init_gyro_msg.joint_name.push_back("open-cr");
+  init_gyro_msg.value.push_back(0x08);
+
+  init_gyro_pub_.publish(init_gyro_msg);
+
+  log(Info, "Initialize Gyro");
 }
 
 //void QNodeOP3::setWalkingBalance(bool on_command)

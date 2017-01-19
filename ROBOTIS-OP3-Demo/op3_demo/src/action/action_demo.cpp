@@ -215,7 +215,7 @@ void ActionDemo::callbackThread()
   motion_index_pub_ = nh.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
   play_sound_pub_ = nh.advertise<std_msgs::String>("/play_sound_file", 0);
 
-  buttuon_sub_ = nh.subscribe("/robotis/cm_740/button", 1, &ActionDemo::buttonHandlerCallback, this);
+  buttuon_sub_ = nh.subscribe("/robotis/open_cr/button", 1, &ActionDemo::buttonHandlerCallback, this);
   action_script_index_sub_ = nh.subscribe("/action_script/index", 1, &ActionDemo::actionIndexCallback, this);
 
   is_running_client_ = nh.serviceClient<op3_action_module_msgs::IsRunning>("/robotis/action/is_running");

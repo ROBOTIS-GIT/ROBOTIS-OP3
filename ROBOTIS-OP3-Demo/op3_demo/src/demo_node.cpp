@@ -52,6 +52,7 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg);
 void goInitPose();
 void playSound(const std::string &path);
 void setLED(int led);
+bool checkManagerRunning(std::string& manager_name);
 
 const int SPIN_RATE = 30;
 
@@ -81,15 +82,32 @@ int main(int argc, char **argv)
   init_pose_pub = nh.advertise<std_msgs::String>("/robotis/base/ini_pose", 0);
   play_sound_pub = nh.advertise<std_msgs::String>("/play_sound_file", 0);
   led_pub = nh.advertise<robotis_controller_msgs::SyncWriteItem>("/robotis/sync_write_item", 0);
-  ros::Subscriber buttuon_sub = nh.subscribe("/robotis/cm_740/button", 1, buttonHandlerCallback);
+  ros::Subscriber buttuon_sub = nh.subscribe("/robotis/open_cr/button", 1, buttonHandlerCallback);
 
   default_mp3_path = ros::package::getPath("op3_demo") + "/Data/mp3/";
+
+  ros::start();
 
   //set node loop rate
   ros::Rate loop_rate(SPIN_RATE);
 
+  // wait for starting of manager
+  std::string manager_name = "/op3_manager";
+  while (ros::ok())
+  {
+    ros::Duration(1.0).sleep();
+    //ROS_INFO("Waiting for connection with manager or something like that");
+    if (checkManagerRunning(manager_name) == true)
+    {
+      break;
+      ROS_INFO("Succeed to connect");
+    }
+    ROS_WARN("Wait for manager");
+  }
+
   // init procedure
-  // ...
+  playSound(default_mp3_path + "Demonstration ready mode.mp3");
+  setLED(0x01 | 0x02 | 0x04);
 
   //node loop
   while (ros::ok())
@@ -203,7 +221,7 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
       apply_desired = true;
 
       playSound(default_mp3_path + "Demonstration ready mode.mp3");
-      setLED(0x01|0x02|0x04);
+      setLED(0x01 | 0x02 | 0x04);
     }
     else if (msg->data == "start_long")
     {
@@ -292,11 +310,25 @@ void playSound(const std::string &path)
 
 void setLED(int led)
 {
-  // Todo : It will be changed to work with OPEN-CR.
   robotis_controller_msgs::SyncWriteItem syncwrite_msg;
   syncwrite_msg.item_name = "LED";
-  syncwrite_msg.joint_name.push_back("cm-740");
+  syncwrite_msg.joint_name.push_back("open-cr");
   syncwrite_msg.value.push_back(led);
 
   led_pub.publish(syncwrite_msg);
+}
+
+bool checkManagerRunning(std::string& manager_name)
+{
+  std::vector<std::string> node_list;
+  ros::master::getNodes(node_list);
+
+  for (unsigned int node_list_idx = 0; node_list_idx < node_list.size(); node_list_idx++)
+  {
+    if (node_list[node_list_idx] == manager_name)
+      return true;
+  }
+
+  ROS_ERROR("Can't find op3_manager");
+  return false;
 }

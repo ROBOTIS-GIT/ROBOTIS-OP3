@@ -48,24 +48,26 @@ using namespace robotis_framework;
 using namespace dynamixel;
 using namespace robotis_op;
 
-const int BAUD_RATE = 1000000;
+const int BAUD_RATE = 2000000;
+const double PROTOCOL_VERSION = 2.0;
 const int SUB_CONTROLLER_ID = 200;
 const int DXL_BROADCAST_ID = 254;
 const char *SUB_CONTROLLER_DEVICE = "/dev/ttyUSB0";
 const int POWER_CTRL_TABLE = 24;
+const int RGB_LED_CTRL_TABLE = 26;
 const int TORQUE_ON_CTRL_TABLE = 64;
 
 std::string g_offset_file;
 std::string g_robot_file;
 std::string g_init_file;
+std::string g_device_name;
 
 ros::Publisher g_init_pose_pub;
 ros::Publisher g_demo_command_pub;
 
 void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
 {
-  //if (msg->data == "mode")
-  if (msg->data == "start_long")
+  if (msg->data == "user_long")
   {
     RobotisController *controller = RobotisController::getInstance();
 
@@ -74,14 +76,14 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
     controller->stopTimer();
 
     // power on
-    PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler(SUB_CONTROLLER_DEVICE);
+    PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler(g_device_name.c_str());
     bool set_port_result = port_handler->setBaudRate(BAUD_RATE);
     if (set_port_result == false)
     {
       ROS_ERROR("Error Set port");
       return;
     }
-    PacketHandler *packet_handler = PacketHandler::getPacketHandler(1.0);
+    PacketHandler *packet_handler = PacketHandler::getPacketHandler(PROTOCOL_VERSION);
 
     // check dxls torque.
     uint8_t torque = 0;
@@ -95,7 +97,7 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
       // _port_h->ClosePort();
       usleep(100 * 1000);
 
-      PortHandler *port_handler_2 = (PortHandler *) PortHandler::getPortHandler(SUB_CONTROLLER_DEVICE);
+      PortHandler *port_handler_2 = (PortHandler *) PortHandler::getPortHandler(g_device_name.c_str());
       set_port_result = port_handler_2->setBaudRate(BAUD_RATE);
       if (set_port_result == false)
       {
@@ -135,46 +137,61 @@ int main(int argc, char **argv)
 
   /* Load ROS Parameter */
 
-  nh.param < std::string > ("offset_table", g_offset_file, "");
-  nh.param < std::string > ("robot_file_path", g_robot_file, "");
-  nh.param < std::string > ("init_file_path", g_init_file, "");
+  nh.param<std::string>("offset_table", g_offset_file, "");
+  nh.param<std::string>("robot_file_path", g_robot_file, "");
+  nh.param<std::string>("init_file_path", g_init_file, "");
+  nh.param<std::string>("device_name", g_device_name, "/dev/ttyUSB0");
 
-  ros::Subscriber power_on_sub = nh.subscribe("/robotis/cm_740/button", 1, buttonHandlerCallback);
-  g_init_pose_pub = nh.advertise < std_msgs::String > ("/robotis/base/ini_pose", 0);
-  g_demo_command_pub = nh.advertise < std_msgs::String > ("/ball_tracker/command", 0);
+  ros::Subscriber power_on_sub = nh.subscribe("/robotis/open_cr/button", 1, buttonHandlerCallback);
+  g_init_pose_pub = nh.advertise<std_msgs::String>("/robotis/base/ini_pose", 0);
+  g_demo_command_pub = nh.advertise<std_msgs::String>("/ball_tracker/command", 0);
 
-  PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler(SUB_CONTROLLER_DEVICE);
-  bool set_port_result = port_handler->setBaudRate(BAUD_RATE);
-  if (set_port_result == false)
-    ROS_ERROR("Error Set port");
+  nh.param<bool>("gazebo", controller->gazebo_mode_, false);
 
-  PacketHandler *packet_handler = PacketHandler::getPacketHandler(1.0);
-
-  int torque_on_count = 0;
-
-  while (torque_on_count < 5)
+  /* real robot */
+  if (controller->gazebo_mode_ == false)
   {
-    int _return = packet_handler->write1ByteTxRx(port_handler, SUB_CONTROLLER_ID, POWER_CTRL_TABLE, 1);
+    // open port
+    PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler(g_device_name.c_str());
+    bool set_port_result = port_handler->setBaudRate(BAUD_RATE);
+    if (set_port_result == false)
+      ROS_ERROR("Error Set port");
 
-    ROS_INFO("Torque on DXLs! [%d]", _return);
+    PacketHandler *packet_handler = PacketHandler::getPacketHandler(PROTOCOL_VERSION);
+
+    // power on dxls
+    int torque_on_count = 0;
+
+    while (torque_on_count < 5)
+    {
+      int _return = packet_handler->write1ByteTxRx(port_handler, SUB_CONTROLLER_ID, POWER_CTRL_TABLE, 1);
+
+      ROS_INFO("Torque on DXLs! [%d]", _return);
+      packet_handler->printTxRxResult(_return);
+
+      if (_return == 0)
+        break;
+      else
+        torque_on_count++;
+    }
+
+    usleep(100 * 1000);
+
+    // set RGB-LED to GREEN
+    int led_full_unit = 0x1F;
+    int led_range =5;
+    int led_value = led_full_unit << led_range;
+    int _return = packet_handler->write2ByteTxRx(port_handler, SUB_CONTROLLER_ID, RGB_LED_CTRL_TABLE, led_value);
     packet_handler->printTxRxResult(_return);
 
-    if (_return == 0)
-      break;
-    else
-      torque_on_count++;
+    port_handler->closePort();
   }
-  port_handler->closePort();
-
-  usleep(100 * 1000);
-
   /* gazebo simulation */
-  nh.param<bool>("gazebo", controller->gazebo_mode_, false);
-  if (controller->gazebo_mode_ == true)
+  else
   {
     ROS_WARN("SET TO GAZEBO MODE!");
     std::string robot_name;
-    nh.param < std::string > ("gazebo_robot_name", robot_name, "");
+    nh.param<std::string>("gazebo_robot_name", robot_name, "");
     if (robot_name != "")
       controller->gazebo_robot_name_ = robot_name;
   }
@@ -185,19 +202,21 @@ int main(int argc, char **argv)
     return -1;
   }
 
+  // initialize robot
   if (controller->initialize(g_robot_file, g_init_file) == false)
   {
     ROS_ERROR("ROBOTIS Controller Initialize Fail!");
     return -1;
   }
 
+  // load offset
   if (g_offset_file != "")
     controller->loadOffset(g_offset_file);
 
   sleep(1);
 
   /* Add Sensor Module */
-  controller->addSensorModule((SensorModule*) CM740Module::getInstance());
+  controller->addSensorModule((SensorModule*) OpenCRModule::getInstance());
 
   /* Add Motion Module */
   controller->addMotionModule((MotionModule*) ActionModule::getInstance());
@@ -205,6 +224,7 @@ int main(int argc, char **argv)
   controller->addMotionModule((MotionModule*) HeadControlModule::getInstance());
   controller->addMotionModule((MotionModule*) WalkingModule::getInstance());
 
+  // start timer
   controller->startTimer();
 
   // go to init pose

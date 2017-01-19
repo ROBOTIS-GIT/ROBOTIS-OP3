@@ -90,8 +90,10 @@ class OP3KinematicsDynamics
   LinkData *op3_link_data_[ ALL_JOINT_ID + 1];
 
   LinkData *getLinkData(const std::string link_name);
+  LinkData *getLinkData(const int link_id);
   Eigen::MatrixXd getJointAxis(const std::string link_name);
   double getJointDirection(const std::string link_name);
+  double getJointDirection(const int link_id);
 
   double thigh_length_m_;
   double calf_length_m_;

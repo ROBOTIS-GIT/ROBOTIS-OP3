@@ -63,6 +63,8 @@ class VisionDemo : public OPDemo
 
   void process();
 
+  void playMotion(int motion_index);
+
   void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg);
   void facePositionCallback(const std_msgs::Int32MultiArray::ConstPtr &msg);
 
@@ -71,6 +73,7 @@ class VisionDemo : public OPDemo
   FaceTracker face_tracker_;
 
   ros::Publisher module_control_pub_;
+  ros::Publisher motion_index_pub_;
   ros::Subscriber buttuon_sub_;
   ros::Subscriber faceCoord_sub_;
   geometry_msgs::Point face_position_;

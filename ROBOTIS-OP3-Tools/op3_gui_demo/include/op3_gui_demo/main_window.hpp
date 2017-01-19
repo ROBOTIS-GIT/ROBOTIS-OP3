@@ -83,6 +83,7 @@ Q_OBJECT
   void on_button_init_pose_clicked(bool check);
 
   // Walking
+  void on_button_init_gyro_clicked(bool check);
   void on_button_walking_start_clicked(bool check);
   void on_button_walking_stop_clicked(bool check);
 

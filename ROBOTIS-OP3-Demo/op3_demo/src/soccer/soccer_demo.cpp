@@ -36,8 +36,8 @@ namespace robotis_op
 {
 
 SoccerDemo::SoccerDemo()
-    : FALLEN_FORWARD_LIMIT(-60),
-      FALLEN_BEHIND_LIMIT(60),
+    : FALLEN_FORWARD_LIMIT(60),
+      FALLEN_BEHIND_LIMIT(-60),
       SPIN_RATE(30),
       debug_code_(false),
       //enable_(false),
@@ -203,9 +203,9 @@ void SoccerDemo::callbackThread()
   module_control_pub_ = nh.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_joint_ctrl_modules", 0);
   motion_index_pub_ = nh.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
 
-  buttuon_sub_ = nh.subscribe("/robotis/cm_740/button", 1, &SoccerDemo::buttonHandlerCallback, this);
+  buttuon_sub_ = nh.subscribe("/robotis/open_cr/button", 1, &SoccerDemo::buttonHandlerCallback, this);
   demo_command_sub_ = nh.subscribe("/ball_tracker/command", 1, &SoccerDemo::demoCommandCallback, this);
-  imu_data_sub_ = nh.subscribe("/robotis/cm_740/imu", 1, &SoccerDemo::imuDataCallback, this);
+  imu_data_sub_ = nh.subscribe("/robotis/open_cr/imu", 1, &SoccerDemo::imuDataCallback, this);
 
   while (nh.ok())
   {
@@ -386,7 +386,7 @@ void SoccerDemo::imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg)
   Eigen::MatrixXd rpy_orientation = robotis_framework::convertQuaternionToRPY(orientation);
   rpy_orientation *= (180 / M_PI);
 
-  // ROS_INFO("Roll : %3.2f, Pitch : %2.2f", rpy_orientation.coeff(0, 0), rpy_orientation.coeff(1, 0));
+  ROS_INFO("Roll : %3.2f, Pitch : %2.2f", rpy_orientation.coeff(0, 0), rpy_orientation.coeff(1, 0));
 
   double pitch = rpy_orientation.coeff(1, 0);
 
@@ -396,9 +396,9 @@ void SoccerDemo::imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg)
   else
     present_pitch_ = present_pitch_ * (1 - alpha) + pitch * alpha;
 
-  if (present_pitch_ < FALLEN_FORWARD_LIMIT)
+  if (present_pitch_ > FALLEN_FORWARD_LIMIT)
     stand_state_ = Fallen_Forward;
-  else if (present_pitch_ > FALLEN_BEHIND_LIMIT)
+  else if (present_pitch_ < FALLEN_BEHIND_LIMIT)
     stand_state_ = Fallen_Behind;
   else
     stand_state_ = Stand;

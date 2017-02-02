@@ -35,7 +35,6 @@
 #include "robotis_controller/robotis_controller.h"
 
 /* Sensor Module Header */
-// #include "cm_740_module/cm_740_module.h"
 #include "open_cr_module/open_cr_module.h"
 
 /* Motion Module Header */
@@ -52,11 +51,13 @@ const int BAUD_RATE = 2000000;
 const double PROTOCOL_VERSION = 2.0;
 const int SUB_CONTROLLER_ID = 200;
 const int DXL_BROADCAST_ID = 254;
-const char *SUB_CONTROLLER_DEVICE = "/dev/ttyUSB0";
+const std::string SUB_CONTROLLER_DEVICE = "/dev/ttyUSB0";
 const int POWER_CTRL_TABLE = 24;
 const int RGB_LED_CTRL_TABLE = 26;
 const int TORQUE_ON_CTRL_TABLE = 64;
 
+bool g_is_simulation = false;
+int g_baudrate;
 std::string g_offset_file;
 std::string g_robot_file;
 std::string g_init_file;
@@ -75,43 +76,47 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
 
     controller->stopTimer();
 
-    // power on
-    PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler(g_device_name.c_str());
-    bool set_port_result = port_handler->setBaudRate(BAUD_RATE);
-    if (set_port_result == false)
+    if (g_is_simulation == false)
     {
-      ROS_ERROR("Error Set port");
-      return;
-    }
-    PacketHandler *packet_handler = PacketHandler::getPacketHandler(PROTOCOL_VERSION);
-
-    // check dxls torque.
-    uint8_t torque = 0;
-    packet_handler->read1ByteTxRx(port_handler, SUB_CONTROLLER_ID, 24, &torque);
-
-    if (torque != 1)
-    {
-      int return_data = packet_handler->write1ByteTxRx(port_handler, SUB_CONTROLLER_ID, POWER_CTRL_TABLE, 1);
-      ROS_INFO("Power on DXLs! [%d]", return_data);
-
-      // _port_h->ClosePort();
-      usleep(100 * 1000);
-
-      PortHandler *port_handler_2 = (PortHandler *) PortHandler::getPortHandler(g_device_name.c_str());
-      set_port_result = port_handler_2->setBaudRate(BAUD_RATE);
+      // power and torque on
+      PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler(g_device_name.c_str());
+      bool set_port_result = port_handler->setBaudRate(g_baudrate);
       if (set_port_result == false)
       {
         ROS_ERROR("Error Set port");
         return;
       }
+      PacketHandler *packet_handler = PacketHandler::getPacketHandler(PROTOCOL_VERSION);
 
-      ROS_INFO("Torque on DXLs! [%d]", return_data);
+      // check dxls torque.
+      uint8_t torque = 0;
+      packet_handler->read1ByteTxRx(port_handler, SUB_CONTROLLER_ID, 24, &torque);
 
-      controller->initializeDevice(g_init_file);
-    }
-    else
-    {
-      ROS_INFO("Torque is already on!!");
+      if (torque != 1)
+      {
+        // power on
+        int return_data = packet_handler->write1ByteTxRx(port_handler, SUB_CONTROLLER_ID, POWER_CTRL_TABLE, 1);
+        ROS_INFO("Power on DXLs! [%d]", return_data);
+
+        // _port_h->ClosePort();
+        usleep(100 * 1000);
+
+        //PortHandler *port_handler_2 = (PortHandler *) PortHandler::getPortHandler(g_device_name.c_str());
+        //set_port_result = port_handler_2->setBaudRate(BAUD_RATE);
+        //if (set_port_result == false)
+        //{
+        //  ROS_ERROR("Error Set port");
+        //  return;
+        //}
+
+        ROS_INFO("Torque on DXLs! [%d]", return_data);
+
+        controller->initializeDevice(g_init_file);
+      }
+      else
+      {
+        ROS_INFO("Torque is already on!!");
+      }
     }
 
     controller->startTimer();
@@ -137,19 +142,21 @@ int main(int argc, char **argv)
 
   /* Load ROS Parameter */
 
-  nh.param<std::string>("offset_table", g_offset_file, "");
+  nh.param<std::string>("offset_file_path", g_offset_file, "");
   nh.param<std::string>("robot_file_path", g_robot_file, "");
   nh.param<std::string>("init_file_path", g_init_file, "");
-  nh.param<std::string>("device_name", g_device_name, "/dev/ttyUSB0");
+  nh.param<std::string>("device_name", g_device_name, SUB_CONTROLLER_DEVICE);
+  nh.param<int>("baud_rate", g_baudrate, BAUD_RATE);
 
   ros::Subscriber power_on_sub = nh.subscribe("/robotis/open_cr/button", 1, buttonHandlerCallback);
   g_init_pose_pub = nh.advertise<std_msgs::String>("/robotis/base/ini_pose", 0);
   g_demo_command_pub = nh.advertise<std_msgs::String>("/ball_tracker/command", 0);
 
   nh.param<bool>("gazebo", controller->gazebo_mode_, false);
+  g_is_simulation = controller->gazebo_mode_;
 
   /* real robot */
-  if (controller->gazebo_mode_ == false)
+  if (g_is_simulation == false)
   {
     // open port
     PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler(g_device_name.c_str());
@@ -179,7 +186,7 @@ int main(int argc, char **argv)
 
     // set RGB-LED to GREEN
     int led_full_unit = 0x1F;
-    int led_range =5;
+    int led_range = 5;
     int led_value = led_full_unit << led_range;
     int _return = packet_handler->write2ByteTxRx(port_handler, SUB_CONTROLLER_ID, RGB_LED_CTRL_TABLE, led_value);
     packet_handler->printTxRxResult(_return);

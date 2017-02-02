@@ -36,7 +36,8 @@ namespace robotis_op
 {
 
 VisionDemo::VisionDemo()
-    : SPIN_RATE(30)
+    : SPIN_RATE(30),
+      is_tracking_(false)
 {
   enable_ = false;
 
@@ -58,7 +59,7 @@ void VisionDemo::setDemoEnable()
 
   usleep(100 * 1000);
 
-  playMotion(WalkingReady);
+  playMotion(InitPose);
 
   usleep(1500 * 1000);
 
@@ -77,12 +78,23 @@ void VisionDemo::setDemoDisable()
 {
 
   face_tracker_.stopTracking();
+  is_tracking_ = false;
   enable_ = false;
 }
 
 void VisionDemo::process()
 {
   bool is_tracked = face_tracker_.processTracking();
+
+  if(is_tracking_ != is_tracked)
+  {
+    if(is_tracked == true)
+      setRGBLED(0x1F, 0, 0);
+    else
+      setRGBLED(0x1F, 0x1F, 0);
+  }
+
+  is_tracking_ = is_tracked;
 }
 
 void VisionDemo::processThread()
@@ -108,6 +120,7 @@ void VisionDemo::callbackThread()
   // subscriber & publisher
   module_control_pub_ = nh.advertise<std_msgs::String>("/robotis/enable_ctrl_module", 0);
   motion_index_pub_ = nh.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
+  rgb_led_pub_ = nh.advertise<robotis_controller_msgs::SyncWriteItem>("/robotis/sync_write_item", 0);
 
   buttuon_sub_ = nh.subscribe("/robotis/open_cr/button", 1, &VisionDemo::buttonHandlerCallback, this);
   faceCoord_sub_ = nh.subscribe("/faceCoord", 1, &VisionDemo::facePositionCallback, this);
@@ -116,7 +129,7 @@ void VisionDemo::callbackThread()
   {
     ros::spinOnce();
 
-    usleep(1000);
+    usleep(1 * 1000);
   }
 }
 
@@ -196,6 +209,18 @@ void VisionDemo::playMotion(int motion_index)
   motion_msg.data = motion_index;
 
   motion_index_pub_.publish(motion_msg);
+}
+
+void VisionDemo::setRGBLED(int blue, int green, int red)
+{
+  int led_full_unit = 0x1F;
+  int led_value = (blue & led_full_unit) << 10 | (green & led_full_unit) << 5 | (red & led_full_unit);
+  robotis_controller_msgs::SyncWriteItem syncwrite_msg;
+  syncwrite_msg.item_name = "LED_RGB";
+  syncwrite_msg.joint_name.push_back("open-cr");
+  syncwrite_msg.value.push_back(led_value);
+
+  rgb_led_pub_.publish(syncwrite_msg);
 }
 
 } /* namespace robotis_op */

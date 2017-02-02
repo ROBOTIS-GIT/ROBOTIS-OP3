@@ -96,13 +96,13 @@ int main(int argc, char **argv)
   while (ros::ok())
   {
     ros::Duration(1.0).sleep();
-    //ROS_INFO("Waiting for connection with manager or something like that");
+
     if (checkManagerRunning(manager_name) == true)
     {
       break;
       ROS_INFO("Succeed to connect");
     }
-    ROS_WARN("Wait for manager");
+    ROS_WARN("Waiting for op3 manager");
   }
 
   // init procedure
@@ -223,7 +223,7 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
       playSound(default_mp3_path + "Demonstration ready mode.mp3");
       setLED(0x01 | 0x02 | 0x04);
     }
-    else if (msg->data == "start_long")
+    else if (msg->data == "user_long")
     {
       // it's using in op3_manager
       // torque on and going to init pose

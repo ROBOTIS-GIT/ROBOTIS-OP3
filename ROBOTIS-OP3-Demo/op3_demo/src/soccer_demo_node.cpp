@@ -64,8 +64,8 @@ enum Robot_Status
   ReadyToGetup = 4,
 };
 
-const double FALLEN_FORWARD_LIMIT = -60;
-const double FALLEN_BEHIND_LIMIT = 60;
+const double FALLEN_FORWARD_LIMIT = 60;
+const double FALLEN_BEHIND_LIMIT = -60;
 const int SPIN_RATE = 30;
 
 void callbackThread();
@@ -379,8 +379,6 @@ void imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg)
   Eigen::MatrixXd rpy_orientation = robotis_framework::convertQuaternionToRPY(orientation);
   rpy_orientation *= (180 / M_PI);
 
-  // ROS_INFO("Roll : %3.2f, Pitch : %2.2f", rpy_orientation.coeff(0, 0), rpy_orientation.coeff(1, 0));
-
   double pitch = rpy_orientation.coeff(1, 0);
 
   if (present_pitch == 0)
@@ -388,9 +386,9 @@ void imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg)
   else
     present_pitch = present_pitch * 0.5 + pitch * 0.5;
 
-  if (present_pitch < FALLEN_FORWARD_LIMIT)
+  if (present_pitch > FALLEN_FORWARD_LIMIT)
     stand_state = Fallen_Forward;
-  else if (present_pitch > FALLEN_BEHIND_LIMIT)
+  else if (present_pitch < FALLEN_BEHIND_LIMIT)
     stand_state = Fallen_Behind;
   else
     stand_state = Stand;

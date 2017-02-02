@@ -41,6 +41,7 @@ class OPDemo
  public:
   enum Motion_Index
   {
+    InitPose = 1,
     WalkingReady = 9,
     GetUpFront = 81,
     GetUpBack = 82,

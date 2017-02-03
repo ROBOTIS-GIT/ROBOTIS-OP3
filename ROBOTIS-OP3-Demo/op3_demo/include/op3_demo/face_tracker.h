@@ -50,10 +50,18 @@ namespace robotis_op
 class FaceTracker
 {
  public:
+  enum TrackingStatus
+  {
+    NotFound = -1,
+    Waiting = 0,
+    Found = 1,
+
+  };
+
   FaceTracker();
   ~FaceTracker();
 
-  bool processTracking();
+  int processTracking();
 
   void startTracking();
   void stopTracking();
@@ -102,6 +110,8 @@ class FaceTracker
   bool on_tracking_;
   double current_head_pan_, current_head_tilt_;
   double current_face_pan_, current_face_tilt_;
+
+  int dismissed_count_;
 
 };
 }

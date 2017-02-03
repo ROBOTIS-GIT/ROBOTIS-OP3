@@ -143,7 +143,7 @@ void FaceTracker::currentJointStatesCallback(const sensor_msgs::JointState::Cons
     current_head_tilt_ = tilt;
 }
 
-bool FaceTracker::processTracking()
+int FaceTracker::processTracking()
 {
   if (on_tracking_ == false)
   {
@@ -151,7 +151,8 @@ bool FaceTracker::processTracking()
     count_not_found_ = 0;
     current_head_pan_ = -10;
     current_head_tilt_ = -10;
-    return false;
+    //return false;
+    return Waiting;
   }
 
   // check ball position
@@ -159,13 +160,22 @@ bool FaceTracker::processTracking()
   {
     count_not_found_++;
 
-    if (count_not_found_ > NOT_FOUND_THRESHOLD)
+    if (count_not_found_ == NOT_FOUND_THRESHOLD)
     {
       scanFace();
-      count_not_found_ = 0;
+      //count_not_found_ = 0;
+      return NotFound;
+    }
+    else if (count_not_found_ > NOT_FOUND_THRESHOLD)
+    {
+      return NotFound;
+    }
+    else
+    {
+      return Waiting;
     }
 
-    return false;
+    //return false;
   }
 
   // if face is detected
@@ -175,22 +185,27 @@ bool FaceTracker::processTracking()
   face_position_.z = 0;
   count_not_found_ = 0;
 
-  std::cout << "Target angle : " << x_offset_rad << " | " << y_offset_rad << std::endl;
-
   // move head joint
   publishHeadJoint(x_offset_rad, y_offset_rad);
 
   current_face_pan_ = x_offset_rad;
   current_face_tilt_ = y_offset_rad;
 
-  return true;
+  // return true;
+  return Found;
 }
 
 void FaceTracker::publishHeadJoint(double pan, double tilt)
 {
   double min_angle = 1 * M_PI / 180;
   if (fabs(pan) < min_angle && fabs(tilt) < min_angle)
+  {
+    dismissed_count_ += 1;
     return;
+  }
+  std::cout << "Target angle[" << dismissed_count_ << "] : " << pan << " | " << tilt << std::endl;
+
+  dismissed_count_ = 0;
 
   sensor_msgs::JointState head_angle_msg;
 

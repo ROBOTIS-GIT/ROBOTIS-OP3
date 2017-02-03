@@ -49,15 +49,6 @@ namespace robotis_op
 class SoccerDemo : public OPDemo
 {
  public:
-  enum Motion_Index
-  {
-    GetUpFront = 81,
-    GetUpBack = 82,
-    RightKick = 83,
-    LeftKick = 84,
-    Ceremony = 85,
-  };
-
   enum Stand_Status
   {
     Stand = 0,
@@ -88,11 +79,13 @@ class SoccerDemo : public OPDemo
   void processThread();
   void callbackThread();
 
-  void setBodyModuleToDemo(const std::string &body_module);
+  void setBodyModuleToDemo(const std::string &body_module, bool with_head_control = true);
   void setModuleToDemo(const std::string &module_name);
   void parseJointNameFromYaml(const std::string &path);
   bool getJointNameFromID(const int &id, std::string &joint_name);
   bool getIDFromJointName(const std::string &joint_name, int &id);
+  int getJointCount();
+  bool isHeadJoint(const int &id);
   void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg);
   void demoCommandCallback(const std_msgs::String::ConstPtr& msg);
   void imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg);

@@ -37,14 +37,18 @@ namespace robotis_op
 
 BallTracker::BallTracker()
     : nh_(ros::this_node::getName()),
-      FOV_WIDTH(30 * M_PI / 180),
-      FOV_HEIGHT(23 * M_PI / 180),
+      //FOV_WIDTH(35.2 * M_PI / 180),
+      FOV_WIDTH(26.4 * M_PI / 180),
+      FOV_HEIGHT(21.6 * M_PI / 180),
       NOT_FOUND_THRESHOLD(50),
       use_head_scan_(true),
       count_not_found_(0),
       on_tracking_(false),
       current_head_pan_(-10),
-      current_head_tilt_(-10)
+      current_head_tilt_(-10),
+      current_ball_pan_(0),
+      current_ball_tilt_(0),
+      current_ball_bottom_(0)
 {
   head_joint_pub_ = nh_.advertise<sensor_msgs::JointState>("/robotis/head_control/set_joint_states_offset", 0);
   head_scan_pub_ = nh_.advertise<std_msgs::String>("/robotis/head_control/scan_command", 0);
@@ -52,6 +56,7 @@ BallTracker::BallTracker()
   ball_position_sub_ = nh_.subscribe("/ball_detector_node/circle_set", 1, &BallTracker::ballPositionCallback, this);
   ball_tracking_command_sub_ = nh_.subscribe("/ball_tracker/command", 1, &BallTracker::ballTrackerCommandCallback,
                                              this);
+  // todo : remove
   current_joint_states_sub_ = nh_.subscribe("/robotis/goal_joint_states", 10, &BallTracker::currentJointStatesCallback,
                                             this);
 
@@ -106,18 +111,22 @@ void BallTracker::stopTracking()
 
 void BallTracker::setUsingHeadScan(bool use_scan)
 {
-    use_head_scan_ = use_scan;
+  use_head_scan_ = use_scan;
 }
 
+// todo : remove
 void BallTracker::currentJointStatesCallback(const sensor_msgs::JointState::ConstPtr &msg)
 {
   double pan, tilt;
   int get_count = 0;
 
+  // pan : right (-) , left (+)
+  // tilt : top (+), bottom (-)
   for (int ix = 0; ix < msg->name.size(); ix++)
   {
     if (msg->name[ix] == "head_pan")
     {
+      // convert direction for internal variable(x / pan)
       pan = -msg->position[ix];
       get_count += 1;
     }
@@ -164,19 +173,27 @@ bool BallTracker::processTracking()
   }
 
   // if ball is found
+  // convert ball position to desired angle(rad) of head
+  // ball_position : top-left is (-1, -1), bottom-right is (+1, +1)
+  // offset_rad : top-left(+, +), bottom-right(-, -)
   double x_offset_rad = -atan(ball_position_.x * tan(FOV_WIDTH));
   double y_offset_rad = -atan(ball_position_.y * tan(FOV_HEIGHT));
 
   ball_position_.z = 0;
   count_not_found_ = 0;
 
-  // std::cout << "Target angle : " << x_offset_rad << " | " << y_offset_rad << std::endl;
+   //std::cout << "--------------------------------------------------------------" << std::endl;
+   //std::cout << "Ball position : " << ball_position_.x << " | " << ball_position_.y << std::endl;
+   //std::cout << "Target angle : " << (x_offset_rad * 180 / M_PI) << " | " << (y_offset_rad * 180 / M_PI) << std::endl;
+   //std::cout << "Head angle : " << (current_head_pan_ * 180 / M_PI) << " | " << (current_head_tilt_ * 180 / M_PI) << std::endl;
 
   // move head joint
   publishHeadJoint(x_offset_rad, y_offset_rad);
 
+  // args for following ball
   current_ball_pan_ = x_offset_rad;
   current_ball_tilt_ = y_offset_rad;
+  current_ball_bottom_ = -atan(ball_position_.z * tan(FOV_HEIGHT));
 
   return true;
 }
@@ -200,7 +217,7 @@ void BallTracker::publishHeadJoint(double pan, double tilt)
 
 void BallTracker::scanBall()
 {
-  if(use_head_scan_ == false)
+  if (use_head_scan_ == false)
     return;
 
   // check head control module enabled

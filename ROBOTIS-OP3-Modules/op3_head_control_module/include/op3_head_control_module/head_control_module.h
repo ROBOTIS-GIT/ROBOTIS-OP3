@@ -118,6 +118,9 @@ class HeadControlModule : public robotis_framework::MotionModule, public robotis
   std::map<std::string, int> using_joint_name_;
   std::map<int, double> max_angle_;
   std::map<int, double> min_angle_;
+
+  ros::Time last_msg_time_;
+  std::string last_msg_;
 };
 
 }

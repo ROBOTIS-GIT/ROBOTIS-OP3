@@ -136,7 +136,7 @@ include_directories(
 ## Declare a C++ executable
 add_executable(ball_tracker_node 
   src/ball_tracker_node.cpp
-  src/ball_tracker.cpp
+  src/soccer/ball_tracker.cpp
 )
 
 ## Add cmake target dependencies of the executable
@@ -151,8 +151,8 @@ target_link_libraries(ball_tracker_node
 
 add_executable(soccer_demo_node 
   src/soccer_demo_node.cpp
-  src/ball_tracker.cpp
-  src/ball_follower.cpp
+  src/soccer/ball_tracker.cpp
+  src/soccer/ball_follower.cpp
 )
 
 ## Add cmake target dependencies of the executable
@@ -167,12 +167,12 @@ target_link_libraries(soccer_demo_node
 
 add_executable(op_demo_node 
   src/demo_node.cpp
-  src/soccer_demo.cpp
-  src/action_demo.cpp
-  src/vision_demo.cpp
-  src/ball_tracker.cpp
-  src/ball_follower.cpp
-  src/face_tracker.cpp
+  src/soccer/soccer_demo.cpp
+  src/soccer/ball_tracker.cpp
+  src/soccer/ball_follower.cpp
+  src/action/action_demo.cpp
+  src/vision/vision_demo.cpp
+  src/vision/face_tracker.cpp
 )
 
 ## Add cmake target dependencies of the executable

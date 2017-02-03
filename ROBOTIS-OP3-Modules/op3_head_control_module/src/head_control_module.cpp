@@ -57,16 +57,18 @@ HeadControlModule::HeadControlModule()
   using_joint_name_["head_pan"] = 0;
   using_joint_name_["head_tilt"] = 1;
 
-  max_angle_[using_joint_name_["head_pan"]] = 90 * DEGREE2RADIAN;
-  min_angle_[using_joint_name_["head_pan"]] = -90 * DEGREE2RADIAN;
-  max_angle_[using_joint_name_["head_tilt"]] = 10 * DEGREE2RADIAN;
-  min_angle_[using_joint_name_["head_tilt"]] = -70 * DEGREE2RADIAN;
+  max_angle_[using_joint_name_["head_pan"]] = 85 * DEGREE2RADIAN;
+  min_angle_[using_joint_name_["head_pan"]] = -85 * DEGREE2RADIAN;
+  max_angle_[using_joint_name_["head_tilt"]] = 30 * DEGREE2RADIAN;
+  min_angle_[using_joint_name_["head_tilt"]] = -75 * DEGREE2RADIAN;
 
   target_position_ = Eigen::MatrixXd::Zero(1, result_.size());
   current_position_ = Eigen::MatrixXd::Zero(1, result_.size());
   goal_position_ = Eigen::MatrixXd::Zero(1, result_.size());
   goal_velocity_ = Eigen::MatrixXd::Zero(1, result_.size());
   goal_acceleration_ = Eigen::MatrixXd::Zero(1, result_.size());
+
+  last_msg_time_ = ros::Time::now();
 }
 
 HeadControlModule::~HeadControlModule()
@@ -123,21 +125,13 @@ void HeadControlModule::setHeadJoint(const sensor_msgs::JointState::ConstPtr &ms
 {
   if (enable_ == false)
   {
-    ROS_INFO("Head module is not enable.");
+    ROS_INFO_THROTTLE(1, "Head module is not enable.");
     publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, "Not Enable");
     return;
   }
 
-  //  if (is_moving_ == true && is_direct_control_ == false)
-  //  {
-  //    ROS_INFO("Head is moving now.");
-  //    PublishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR,
-  //                     "Head is busy.");
-  //    return;
-  //  }
-
   // moving time
-  moving_time_ = 1.0;               // default : 1 sec
+  moving_time_ = is_offset ? 0.5 : 1.0;               // default : 1 sec
 
   // set target joint angle
   target_position_ = goal_position_;        // default
@@ -165,8 +159,9 @@ void HeadControlModule::setHeadJoint(const sensor_msgs::JointState::ConstPtr &ms
       target_position_.coeffRef(0, joint_index) = target_position;
 
       // set time
-      double angle_unit = is_offset ? 50 * M_PI / 180 : 25 * M_PI / 180;
-      int calc_moving_time = fabs(goal_position_.coeff(0, joint_index) - target_position_.coeff(0, joint_index))
+      //double angle_unit = is_offset ? 35 * M_PI / 180 : 35 * M_PI / 180;
+      double angle_unit = 35 * M_PI / 180;
+      double calc_moving_time = fabs(goal_position_.coeff(0, joint_index) - target_position_.coeff(0, joint_index))
           / angle_unit;
       if (calc_moving_time > moving_time_)
         moving_time_ = calc_moving_time;
@@ -200,11 +195,11 @@ void HeadControlModule::setHeadScanCallback(const std_msgs::String::ConstPtr &ms
 {
   if (enable_ == false)
   {
-    ROS_ERROR("Head control module is not enabled, scan command is canceled.");
+    ROS_ERROR_THROTTLE(1, "Head control module is not enabled, scan command is canceled.");
     return;
   }
   else
-    ROS_INFO("Scan command is accepted. [%d]", scan_state_);
+    ROS_INFO_THROTTLE(1, "Scan command is accepted. [%d]", scan_state_);
 
   if (msg->data == "scan" && scan_state_ == NoScan)
   {
@@ -404,28 +399,28 @@ void HeadControlModule::generateScanTra(const int head_direction)
   {
     case BottomToTop:
     {
-      target_position_.coeffRef(0, using_joint_name_["head_pan"]) = max_angle_[using_joint_name_["head_pan"]] * 0.5;
-      target_position_.coeffRef(0, using_joint_name_["head_tilt"]) = min_angle_[using_joint_name_["head_tilt"]] * 0.2;
+      target_position_.coeffRef(0, using_joint_name_["head_pan"]) = max_angle_[using_joint_name_["head_pan"]] * 0.6;
+      target_position_.coeffRef(0, using_joint_name_["head_tilt"]) = min_angle_[using_joint_name_["head_tilt"]] * 0.25;
       break;
     }
 
     case RightToLeft:
     {
-      target_position_.coeffRef(0, using_joint_name_["head_pan"]) = min_angle_[using_joint_name_["head_pan"]] * 0.5;
-      target_position_.coeffRef(0, using_joint_name_["head_tilt"]) = min_angle_[using_joint_name_["head_tilt"]] * 0.2;
+      target_position_.coeffRef(0, using_joint_name_["head_pan"]) = min_angle_[using_joint_name_["head_pan"]] * 0.6;
+      target_position_.coeffRef(0, using_joint_name_["head_tilt"]) = min_angle_[using_joint_name_["head_tilt"]] * 0.25;
       break;
     }
 
     case TopToBottom:
     {
-      target_position_.coeffRef(0, using_joint_name_["head_pan"]) = min_angle_[using_joint_name_["head_pan"]] * 0.5;
+      target_position_.coeffRef(0, using_joint_name_["head_pan"]) = min_angle_[using_joint_name_["head_pan"]] * 0.6;
       target_position_.coeffRef(0, using_joint_name_["head_tilt"]) = min_angle_[using_joint_name_["head_tilt"]] * 0.8;
       break;
     }
 
     case LeftToRight:
     {
-      target_position_.coeffRef(0, using_joint_name_["head_pan"]) = max_angle_[using_joint_name_["head_pan"]] * 0.5;
+      target_position_.coeffRef(0, using_joint_name_["head_pan"]) = max_angle_[using_joint_name_["head_pan"]] * 0.6;
       target_position_.coeffRef(0, using_joint_name_["head_tilt"]) = min_angle_[using_joint_name_["head_tilt"]] * 0.8;
       break;
     }
@@ -571,12 +566,24 @@ void HeadControlModule::jointTraGeneThread()
 
 void HeadControlModule::publishStatusMsg(unsigned int type, std::string msg)
 {
+  ros::Time now = ros::Time::now();
+
+  if(msg.compare(last_msg_) == 0)
+  {
+    ros::Duration dur = now - last_msg_time_;
+    if(dur.sec < 1)
+      return;
+  }
+
   robotis_controller_msgs::StatusMsg status_msg;
-  status_msg.header.stamp = ros::Time::now();
+  status_msg.header.stamp = now;
   status_msg.type = type;
   status_msg.module_name = "Head Control";
   status_msg.status_msg = msg;
 
   status_msg_pub_.publish(status_msg);
+
+  last_msg_ = msg;
+  last_msg_time_ = now;
 }
 }

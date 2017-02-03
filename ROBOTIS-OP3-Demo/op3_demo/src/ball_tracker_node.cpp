@@ -32,17 +32,42 @@
 
 #include "op3_demo/ball_tracker.h"
 
+enum Demo_Status
+{
+  Ready = 0,
+  DesireToTrack = 1,
+  DesireToStop = 2,
+  Tracking = 3,
+  DemoCount = 4,
+};
+int current_status = Ready;
+
+void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg);
+
+
 //node main
 int main(int argc, char **argv)
 {
   //init ros
   ros::init(argc, argv, "ball_tracker_node");
+  ros::NodeHandle nh("~");
+  ros::Publisher module_control_pub_ = nh.advertise<std_msgs::String>("/robotis/enable_ctrl_module", 0);
+  ros::Subscriber buttuon_sub = nh.subscribe("/robotis/open_cr/button", 1, buttonHandlerCallback);
 
   //create ros wrapper object
   robotis_op::BallTracker tracker;
 
+  // set head_control_module
+  std_msgs::String control_msg;
+  control_msg.data = "head_control_module";
+
+  usleep(1000 * 1000);
+
+  module_control_pub_.publish(control_msg);
+
   // start ball tracking
   tracker.startTracking();
+  current_status = Tracking;
 
   //set node loop rate
   ros::Rate loop_rate(30);
@@ -50,7 +75,25 @@ int main(int argc, char **argv)
   //node loop
   while (ros::ok())
   {
-    tracker.processTracking();
+    switch (current_status)
+    {
+      case DesireToTrack:
+        tracker.startTracking();
+        current_status = Tracking;
+        break;
+
+      case DesireToStop:
+        tracker.stopTracking();
+        current_status = Ready;
+        break;
+
+      case Tracking:
+        tracker.processTracking();
+        break;
+
+      default:
+        break;
+    }
 
     //execute pending callback
     ros::spinOnce();
@@ -63,3 +106,28 @@ int main(int argc, char **argv)
   return 0;
 }
 
+void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
+{
+  if (msg->data == "mode_long")
+  {
+
+  }
+  else if (msg->data == "start_long")
+  {
+    // it's using in op3_manager
+    // torque on and going to init pose
+  }
+
+  if (msg->data == "start")
+  {
+    if (current_status == Ready)
+      current_status = DesireToTrack;
+    else if (current_status == Tracking)
+      current_status = DesireToStop;
+  }
+  else if (msg->data == "mode")
+  {
+
+  }
+
+}

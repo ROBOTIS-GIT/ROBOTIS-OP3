@@ -68,13 +68,13 @@ bool OffsetTunerServer::initialize()
   controller_ = robotis_framework::RobotisController::getInstance();
 
   dynamixel::PortHandler *port_handler = (dynamixel::PortHandler *) dynamixel::PortHandler::getPortHandler(
-      "/dev/ttyUSB0");
-  bool set_port = port_handler->setBaudRate(1000000);
+      SUB_CONTROLLER_DEVICE);
+  bool set_port = port_handler->setBaudRate(BAUD_RATE);
   if (set_port == false)
     ROS_ERROR("Error Set port");
-  dynamixel::PacketHandler *packet_handler = dynamixel::PacketHandler::getPacketHandler(1.0);
+  dynamixel::PacketHandler *packet_handler = dynamixel::PacketHandler::getPacketHandler(PROTOCOL_VERSION);
 
-  int return_data = packet_handler->write1ByteTxRx(port_handler, 200, 24, 1);
+  int return_data = packet_handler->write1ByteTxRx(port_handler, SUB_CONTROLLER_ID, POWER_CTRL_TABLE, 1);
   ROS_INFO("Torque on DXLs! [%d]", return_data);
   packet_handler->printTxRxResult(return_data);
 

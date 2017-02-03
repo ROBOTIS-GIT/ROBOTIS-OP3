@@ -152,9 +152,15 @@ void WalkingModule::initialize(const int control_cycle_msec, robotis_framework::
   real_running_ = false;
   time_ = 0;
 
-  //                     R_HIP_YAW, R_HIP_ROLL, R_HIP_PITCH, R_KNEE, R_ANKLE_PITCH, R_ANKLE_ROLL, L_HIP_YAW, L_HIP_ROLL, L_HIP_PITCH, L_KNEE, L_ANKLE_PITCH, L_ANKLE_ROLL, R_ARM_SWING, L_ARM_SWING
-  joint_axis_direction_ << -1, -1, 1, 1, -1, 1, -1, -1, -1, -1, 1, 1, 1, -1;
-  init_position_ << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, -5.0;
+  //                     R_HIP_YAW, R_HIP_ROLL, R_HIP_PITCH, R_KNEE, R_ANKLE_PITCH, R_ANKLE_ROLL,
+  //                     L_HIP_YAW, L_HIP_ROLL, L_HIP_PITCH, L_KNEE, L_ANKLE_PITCH, L_ANKLE_ROLL,
+  //                     R_ARM_SWING, L_ARM_SWING
+  joint_axis_direction_ <<      -1,         -1,          -1,     -1,             1,            1,
+                                -1,         -1,           1,      1,            -1,            1,
+                                 1,         -1;
+  init_position_        <<     0.0,        0.0,         0.0,    0.0,           0.0,          0.0,
+                               0.0,        0.0,         0.0,    0.0,           0.0,          0.0,
+                               5.0,       -5.0;
   init_position_ *= DEGREE2RADIAN;
 
   ros::NodeHandle ros_node;
@@ -484,8 +490,10 @@ void WalkingModule::process(std::map<std::string, robotis_framework::Dynamixel *
 
     computeArmAngle(&angle[12]);
 
-    double rl_gyro_err = sensors["gyro_x"];
-    double fb_gyro_err = sensors["gyro_y"];
+    double rl_gyro_err = 0.0 - sensors["gyro_x"];
+    double fb_gyro_err = 0.0 - sensors["gyro_y"];
+
+    // ROS_INFO_STREAM("rl gyro : " << rl_gyro_err << ", fb gyro : " << fb_gyro_err);
 
     sensoryFeedback(rl_gyro_err, fb_gyro_err, balance_angle);
 
@@ -506,6 +514,7 @@ void WalkingModule::process(std::map<std::string, robotis_framework::Dynamixel *
         err_max = err;
       err_total += err;
     }
+
     // head joint
     //goal_position_.coeffRef(0, joint_table_["head_pan"]) = A_MOVE_AMPLITUDE;
 
@@ -869,11 +878,20 @@ bool WalkingModule::computeLegAngle(double *leg_angle)
     double offset = 0;
 
     if (i == joint_table_["r_hip_roll"])  // R_HIP_ROLL
-      offset += joint_axis_direction_(0, i) * pelvis_offset_r;
+      offset += op3_kd_->getJointDirection("r_hip_roll") * pelvis_offset_r;
     else if (i == joint_table_["l_hip_roll"])  // L_HIP_ROLL
-      offset += joint_axis_direction_(0, i) * pelvis_offset_l;
-    else if (i == joint_table_["r_hip_pitch"] || i == joint_table_["l_hip_pitch"])  // R_HIP_PITCH or L_HIP_PITCH
-      offset -= joint_axis_direction_(0, i) * hit_pitch_offset_;
+      offset += op3_kd_->getJointDirection("l_hip_roll") * pelvis_offset_l;
+    else if (i == joint_table_["r_hip_pitch"])
+      offset -= op3_kd_->getJointDirection("r_hip_pitch") * hit_pitch_offset_;
+    else if (i == joint_table_["l_hip_pitch"])  // R_HIP_PITCH or L_HIP_PITCH
+      offset -= op3_kd_->getJointDirection("l_hip_pitch") * hit_pitch_offset_;
+
+//    if (i == joint_table_["r_hip_roll"])  // R_HIP_ROLL
+//      offset += joint_axis_direction_(0, i) * pelvis_offset_r;
+//    else if (i == joint_table_["l_hip_roll"])  // L_HIP_ROLL
+//      offset += joint_axis_direction_(0, i) * pelvis_offset_l;
+//    else if (i == joint_table_["r_hip_pitch"] || i == joint_table_["l_hip_pitch"])  // R_HIP_PITCH or L_HIP_PITCH
+//      offset -= joint_axis_direction_(0, i) * hit_pitch_offset_;
 
     leg_angle[i] += offset;
   }
@@ -892,9 +910,14 @@ void WalkingModule::computeArmAngle(double *arm_angle)
   else
   {
     arm_angle[0] = wSin(time_, period_time_, M_PI * 1.5, -x_move_amplitude_ * arm_swing_gain_ * 1000,
-                        0) * joint_axis_direction_(0, joint_table_["r_sho_pitch"]) * DEGREE2RADIAN;
+                        0) * op3_kd_->getJointDirection("r_sho_pitch") * DEGREE2RADIAN;
     arm_angle[1] = wSin(time_, period_time_, M_PI * 1.5, x_move_amplitude_ * arm_swing_gain_ * 1000,
-                        0) * joint_axis_direction_(0, joint_table_["l_sho_pitch"]) * DEGREE2RADIAN;
+                        0) * op3_kd_->getJointDirection("l_sho_pitch") * DEGREE2RADIAN;
+
+//    arm_angle[0] = wSin(time_, period_time_, M_PI * 1.5, -x_move_amplitude_ * arm_swing_gain_ * 1000,
+//                        0) * joint_axis_direction_(0, joint_table_["r_sho_pitch"]) * DEGREE2RADIAN;
+//    arm_angle[1] = wSin(time_, period_time_, M_PI * 1.5, x_move_amplitude_ * arm_swing_gain_ * 1000,
+//                        0) * joint_axis_direction_(0, joint_table_["l_sho_pitch"]) * DEGREE2RADIAN;
   }
 }
 
@@ -904,34 +927,55 @@ void WalkingModule::sensoryFeedback(const double &rlGyroErr, const double &fbGyr
   if (walking_param_.balance_enable == false)
     return;
 
-  double balance_gain = 0.36;
+  // double internal_gain = 0.36;
+  double internal_gain = 0.05;
 
-  balance_angle[joint_table_["r_hip_roll"]] = joint_axis_direction_.coeff(0, joint_table_["r_hip_roll"]) * balance_gain
+  balance_angle[joint_table_["r_hip_roll"]] =  op3_kd_->getJointDirection("r_hip_roll") * internal_gain
       * rlGyroErr * walking_param_.balance_hip_roll_gain;  // R_HIP_ROLL
-  balance_angle[joint_table_["l_hip_roll"]] = joint_axis_direction_.coeff(0, joint_table_["l_hip_roll"]) * balance_gain
+  balance_angle[joint_table_["l_hip_roll"]] =  op3_kd_->getJointDirection("l_hip_roll") * internal_gain
       * rlGyroErr * walking_param_.balance_hip_roll_gain;  // L_HIP_ROLL
 
-  balance_angle[joint_table_["r_knee"]] = -joint_axis_direction_.coeff(0, joint_table_["r_knee"]) * balance_gain
+  balance_angle[joint_table_["r_knee"]] = - op3_kd_->getJointDirection("r_knee") * internal_gain
       * fbGyroErr * walking_param_.balance_knee_gain;  // R_KNEE
-  balance_angle[joint_table_["l_knee"]] = -joint_axis_direction_.coeff(0, joint_table_["l_knee"]) * balance_gain
+  balance_angle[joint_table_["l_knee"]] = - op3_kd_->getJointDirection("l_knee") * internal_gain
       * fbGyroErr * walking_param_.balance_knee_gain;  // L_KNEE
 
-  balance_angle[joint_table_["r_ank_pitch"]] = -joint_axis_direction_.coeff(0, joint_table_["r_ank_pitch"])
-      * balance_gain * fbGyroErr * walking_param_.balance_ankle_pitch_gain;  // R_ANKLE_PITCH
-  balance_angle[joint_table_["l_ank_pitch"]] = -joint_axis_direction_.coeff(0, joint_table_["l_ank_pitch"])
-      * balance_gain * fbGyroErr * walking_param_.balance_ankle_pitch_gain;  // L_ANKLE_PITCH
+  balance_angle[joint_table_["r_ank_pitch"]] = - op3_kd_->getJointDirection("r_ank_pitch")
+      * internal_gain * fbGyroErr * walking_param_.balance_ankle_pitch_gain;  // R_ANKLE_PITCH
+  balance_angle[joint_table_["l_ank_pitch"]] = - op3_kd_->getJointDirection("l_ank_pitch")
+      * internal_gain * fbGyroErr * walking_param_.balance_ankle_pitch_gain;  // L_ANKLE_PITCH
 
-  balance_angle[joint_table_["r_ank_roll"]] = -joint_axis_direction_.coeff(0, joint_table_["r_ank_roll"]) * balance_gain
+  balance_angle[joint_table_["r_ank_roll"]] = - op3_kd_->getJointDirection("r_ank_roll") * internal_gain
       * rlGyroErr * walking_param_.balance_ankle_roll_gain;  // R_ANKLE_ROLL
-  balance_angle[joint_table_["l_ank_roll"]] = -joint_axis_direction_.coeff(0, joint_table_["l_ank_roll"]) * balance_gain
+  balance_angle[joint_table_["l_ank_roll"]] = - op3_kd_->getJointDirection("l_ank_roll") * internal_gain
       * rlGyroErr * walking_param_.balance_ankle_roll_gain;  // L_ANKLE_ROLL
 
-//  std::cout << "Balance =====================================" << std::endl;
-//  std::cout << "Gyro : " << rlGyroErr * RADIAN2DEGREE << " | " << fbGyroErr * RADIAN2DEGREE << std::endl;
-//  std::cout << "Hip roll : " << balance_angle[joint_table_["l_hip_roll"]] * RADIAN2DEGREE << " | " << balance_angle[joint_table_["r_hip_roll"]] * RADIAN2DEGREE << std::endl;
-//  std::cout << "Knee : " << balance_angle[joint_table_["l_knee"]] * RADIAN2DEGREE << " | " << balance_angle[joint_table_["r_knee"]] * RADIAN2DEGREE << std::endl;
-//  std::cout << "Ankle pitch : " << balance_angle[joint_table_["l_ank_pitch"]] * RADIAN2DEGREE << " | " << balance_angle[joint_table_["r_ank_pitch"]] * RADIAN2DEGREE << std::endl;
-//  std::cout << "Ankle roll : " << balance_angle[joint_table_["l_ank_roll"]] * RADIAN2DEGREE << " | " << balance_angle[joint_table_["r_ank_roll"]] * RADIAN2DEGREE << std::endl;
+//  balance_angle[joint_table_["r_hip_roll"]] = joint_axis_direction_.coeff(0, joint_table_["r_hip_roll"]) * balance_gain
+//      * rlGyroErr * walking_param_.balance_hip_roll_gain;  // R_HIP_ROLL
+//  balance_angle[joint_table_["l_hip_roll"]] = joint_axis_direction_.coeff(0, joint_table_["l_hip_roll"]) * balance_gain
+//      * rlGyroErr * walking_param_.balance_hip_roll_gain;  // L_HIP_ROLL
+//
+//  balance_angle[joint_table_["r_knee"]] = -joint_axis_direction_.coeff(0, joint_table_["r_knee"]) * balance_gain
+//      * fbGyroErr * walking_param_.balance_knee_gain;  // R_KNEE
+//  balance_angle[joint_table_["l_knee"]] = -joint_axis_direction_.coeff(0, joint_table_["l_knee"]) * balance_gain
+//      * fbGyroErr * walking_param_.balance_knee_gain;  // L_KNEE
+//
+//  balance_angle[joint_table_["r_ank_pitch"]] = -joint_axis_direction_.coeff(0, joint_table_["r_ank_pitch"])
+//      * balance_gain * fbGyroErr * walking_param_.balance_ankle_pitch_gain;  // R_ANKLE_PITCH
+//  balance_angle[joint_table_["l_ank_pitch"]] = -joint_axis_direction_.coeff(0, joint_table_["l_ank_pitch"])
+//      * balance_gain * fbGyroErr * walking_param_.balance_ankle_pitch_gain;  // L_ANKLE_PITCH
+//
+//  balance_angle[joint_table_["r_ank_roll"]] = -joint_axis_direction_.coeff(0, joint_table_["r_ank_roll"]) * balance_gain
+//      * rlGyroErr * walking_param_.balance_ankle_roll_gain;  // R_ANKLE_ROLL
+//  balance_angle[joint_table_["l_ank_roll"]] = -joint_axis_direction_.coeff(0, joint_table_["l_ank_roll"]) * balance_gain
+//      * rlGyroErr * walking_param_.balance_ankle_roll_gain;  // L_ANKLE_ROLL
+
+  //std::cout << "Balance =====================================" << std::endl;
+  //std::cout << "Gyro Err: " << rlGyroErr * RADIAN2DEGREE << " | " << fbGyroErr * RADIAN2DEGREE << std::endl;
+  //std::cout << "Hip roll : " << balance_angle[joint_table_["l_hip_roll"]] * RADIAN2DEGREE << " | " << balance_angle[joint_table_["r_hip_roll"]] * RADIAN2DEGREE << std::endl;
+  //std::cout << "Knee : " << balance_angle[joint_table_["l_knee"]] * RADIAN2DEGREE << " | " << balance_angle[joint_table_["r_knee"]] * RADIAN2DEGREE << std::endl;
+  //std::cout << "Ankle pitch : " << balance_angle[joint_table_["l_ank_pitch"]] * RADIAN2DEGREE << " | " << balance_angle[joint_table_["r_ank_pitch"]] * RADIAN2DEGREE << std::endl;
+  //std::cout << "Ankle roll : " << balance_angle[joint_table_["l_ank_roll"]] * RADIAN2DEGREE << " | " << balance_angle[joint_table_["r_ank_roll"]] * RADIAN2DEGREE << std::endl;
 }
 
 void WalkingModule::loadWalkingParam(const std::string &path)

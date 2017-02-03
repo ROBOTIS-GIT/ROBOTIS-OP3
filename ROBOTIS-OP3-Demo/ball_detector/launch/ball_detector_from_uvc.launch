@@ -1,8 +1,6 @@
 <?xml version="1.0"?>
 <!-- Launches an UVC camera, the ball detector and its visualization  -->
-<launch>
-    <arg  name="config_path" default="$(find ball_detector)/launch/ball_detector_params.yaml"/>
-    
+<launch>    
     <!-- UVC camera -->
     <node pkg="uvc_camera" type="uvc_camera_node" name="uvc_camera_node" output="screen">
         <param name="device" type="string" value="/dev/video0" />
@@ -13,7 +11,7 @@
         <param name="gain" type="int" value="120" />
         <param name="exposure" value="0" />
     </node>
-<!--         <param name="gain" value="255" />
+<!--    <param name="gain" value="255" />
         <param name="auto_exposure" type="bool" value="False" />
         <param name="exposure_absolute" value="1000" />
         <param name="brightness" value="127" />
@@ -24,18 +22,9 @@
         <!-- <param name="exposure_absolute" value="1000" /> -->
         <!-- <param name="brightness" value="64" /> -->
         <!-- <param name="auto_white_balance" type="bool" value="False" /> -->
-        <!-- <param name="white_balance_temperature" value="2800" /> -->
-
+        <!-- <param name="white_balance_temperature" value="2800" /> -->       
+        
     <!-- ball detector -->
-    <node pkg="ball_detector" type="ball_detector_node" name="ball_detector_node" args="" output="screen">
-        <rosparam command="load" file="$(arg config_path)"/>  
-        <param name="yaml_path" type="string" value="$(arg config_path)"/>
-        <remap from="/ball_detector_node/image_in" to="/image_raw" />
-        <remap from="/ball_detector_node/cameraInfo_in" to="/camera_info" />
-    </node>
-
-    <!-- rviz -->
-    <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find ball_detector)/launch/ball_detector.rviz"/>    -->
-
+    <include file="$(find ball_detector)/launch/ball_detector.launch" />
 </launch>
 

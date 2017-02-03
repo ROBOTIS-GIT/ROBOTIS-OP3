@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-/* Author: Jay Song */
+/* Author: Jay Song, Kayman */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,6 +45,14 @@
 #include "dynamixel_sdk/port_handler.h"
 #include "dynamixel_sdk/packet_handler.h"
 #include "op3_action_editor/cmd_process.h"
+
+const int BAUD_RATE = 2000000;
+const double PROTOCOL_VERSION = 2.0;
+const int SUB_CONTROLLER_ID = 200;
+const int DXL_BROADCAST_ID = 254;
+const std::string SUB_CONTROLLER_DEVICE = "/dev/ttyUSB0";
+const int POWER_CTRL_TABLE = 24;
+const int TORQUE_ON_CTRL_TABLE = 64;
 
 void change_current_dir()
 {
@@ -63,41 +71,25 @@ void sighandler(int sig)
   exit(0);
 }
 
-void initDXL()
+void initDXL(const std::string &device_name, const int &baud_rate)
 {
   // power on
-  dynamixel::PortHandler *_port_h = (dynamixel::PortHandler *) dynamixel::PortHandler::getPortHandler("/dev/ttyUSB0");
-  bool _set_port = _port_h->setBaudRate(1000000);
+  dynamixel::PortHandler *_port_h = (dynamixel::PortHandler *) dynamixel::PortHandler::getPortHandler(device_name.c_str());
+  bool _set_port = _port_h->setBaudRate(baud_rate);
   if (_set_port == false)
   {
     ROS_ERROR("Error Set port");
     return;
   }
-  dynamixel::PacketHandler *_packet_h = dynamixel::PacketHandler::getPacketHandler(1.0);
+  dynamixel::PacketHandler *_packet_h = dynamixel::PacketHandler::getPacketHandler(PROTOCOL_VERSION);
 
-  int _return = _packet_h->write1ByteTxRx(_port_h, 200, 24, 1);
+  int _return = _packet_h->write1ByteTxRx(_port_h, SUB_CONTROLLER_ID, POWER_CTRL_TABLE, 1);
   ROS_INFO("Power on DXLs! [%d]", _return);
 
-  // _port_h->ClosePort();
   usleep(100 * 1000);
 
-  dynamixel::PortHandler *_port_h2 = (dynamixel::PortHandler *) dynamixel::PortHandler::getPortHandler("/dev/ttyUSB1");
-  _set_port = _port_h2->setBaudRate(3000000);
-  if (_set_port == false)
-  {
-    ROS_ERROR("Error Set port");
-    return;
-  }
-  dynamixel::PacketHandler *_packet_h2 = dynamixel::PacketHandler::getPacketHandler(2.0);
-
-  _return = _packet_h2->write1ByteTxRx(_port_h2, 254, 64, 1);
+  _return = _packet_h->write1ByteTxRx(_port_h, DXL_BROADCAST_ID, TORQUE_ON_CTRL_TABLE, 1);
   ROS_INFO("Torque on DXLs! [%d]", _return);
-
-  // _port_h2->ClosePort();
-  //usleep(100 * 1000);
-
-  //_controller->InitDevice(_init_file);
-
 }
 
 int main(int argc, char **argv)
@@ -110,12 +102,15 @@ int main(int argc, char **argv)
 
   std::string _init_file = _nh.param<std::string>("init_file_path", "");
 
+  std::string _device_name = _nh.param<std::string>("device_name", SUB_CONTROLLER_DEVICE);
+  int _baud_rate = _nh.param<int>("baudrate", BAUD_RATE);
+
   signal(SIGABRT, &sighandler);
   signal(SIGTERM, &sighandler);
   signal(SIGQUIT, &sighandler);
   signal(SIGINT, &sighandler);
 
-  initDXL();
+  initDXL(_device_name, _baud_rate);
 
   int ch;
 

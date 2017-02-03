@@ -136,6 +136,11 @@ void MainWindow::on_button_init_pose_clicked(bool check)
 }
 
 // Walking
+void MainWindow::on_button_init_gyro_clicked(bool check)
+{
+  qnode_op3_.initGyro();
+}
+
 void MainWindow::on_button_walking_start_clicked(bool check)
 {
   is_walking_ = true;

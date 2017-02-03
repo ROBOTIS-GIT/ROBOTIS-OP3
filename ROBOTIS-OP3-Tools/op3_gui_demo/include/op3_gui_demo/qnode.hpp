@@ -59,13 +59,12 @@
 #include "robotis_controller_msgs/JointCtrlModule.h"
 #include "robotis_controller_msgs/GetJointModule.h"
 #include "robotis_controller_msgs/StatusMsg.h"
+#include "robotis_controller_msgs/SyncWriteItem.h"
 
 // walking demo
 #include "op3_walking_module_msgs/WalkingParam.h"
 #include "op3_walking_module_msgs/GetWalkingParam.h"
 #include "op3_walking_module_msgs/SetWalkingParam.h"
-//#include "thormang3_foot_step_generator/FootStepCommand.h"
-//#include <std_msgs/Bool.h>
 
 #endif
 /*****************************************************************************
@@ -134,6 +133,7 @@ Q_OBJECT
   void refreshWalkingParam();
   void saveWalkingParam();
   void applyWalkingParam(const op3_walking_module_msgs::WalkingParam &walking_param);
+  void initGyro();
   //        void setWalkingBalance(bool on_command);
 
   // Demo
@@ -181,6 +181,7 @@ Q_SIGNALS:
   ros::Publisher init_pose_pub_;
   ros::Publisher module_control_pub_;
   ros::Publisher module_control_preset_pub_;
+  ros::Publisher init_gyro_pub_;
   ros::Subscriber status_msg_sub_;
   ros::Subscriber init_ft_foot_sub_;
   ros::Subscriber both_ft_foot_sub_;

@@ -97,6 +97,12 @@ class OffsetTunerServer : public robotis_framework::Singleton<OffsetTunerServer>
                                                 op3_offset_tuner_msgs::GetPresentJointOffsetData::Response &res);
 
  private:
+  const int BAUD_RATE = 2000000;
+  const double PROTOCOL_VERSION = 2.0;
+  const int SUB_CONTROLLER_ID = 200;
+  const char *SUB_CONTROLLER_DEVICE = "/dev/ttyUSB0";
+  const int POWER_CTRL_TABLE = 24;
+
   void setCtrlModule(std::string module);
 
   robotis_framework::RobotisController* controller_;

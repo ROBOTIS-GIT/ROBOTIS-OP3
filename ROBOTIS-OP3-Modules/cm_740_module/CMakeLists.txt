@@ -37,3 +37,6 @@ include_directories(
 add_library(cm_740_module
   src/cm_740_module.cpp
 )
+
+## Add cmake target dependencies of the library
+add_dependencies(cm_740_module ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

@@ -36,21 +36,12 @@ namespace robotis_op
 {
 
 VisionDemo::VisionDemo()
-    : SPIN_RATE(30)
-//      DEMO_INIT_POSE(8),
-//      play_index_(0),
-//      start_play_(false),
-//      stop_play_(false),
-//      pause_play_(false),
-//      play_status_(StopAction)
+    : SPIN_RATE(30),
+      is_tracking_(false)
 {
   enable_ = false;
 
   ros::NodeHandle nh(ros::this_node::getName());
-
-//  std::string default_path = ros::package::getPath("ball_tracker") + "/script/action_script.yaml";
-//  script_path_ = nh.param<std::string>("action_script", default_path);
-//  parseActionScript (script_path_);
 
   boost::thread queue_thread = boost::thread(boost::bind(&VisionDemo::callbackThread, this));
   boost::thread process_thread = boost::thread(boost::bind(&VisionDemo::processThread, this));
@@ -63,6 +54,15 @@ VisionDemo::~VisionDemo()
 
 void VisionDemo::setDemoEnable()
 {
+  // change to motion module
+  setModuleToDemo("action_module");
+
+  usleep(100 * 1000);
+
+  playMotion(InitPose);
+
+  usleep(1500 * 1000);
+
   setModuleToDemo("head_control_module");
 
   usleep(10 * 1000);
@@ -77,14 +77,24 @@ void VisionDemo::setDemoEnable()
 void VisionDemo::setDemoDisable()
 {
 
-    face_tracker_.stopTracking();
+  face_tracker_.stopTracking();
+  is_tracking_ = false;
   enable_ = false;
 }
 
 void VisionDemo::process()
 {
-    bool is_tracked = face_tracker_.processTracking();
+  bool is_tracked = face_tracker_.processTracking();
 
+  if(is_tracking_ != is_tracked)
+  {
+    if(is_tracked == true)
+      setRGBLED(0x1F, 0, 0);
+    else
+      setRGBLED(0x1F, 0x1F, 0);
+  }
+
+  is_tracking_ = is_tracked;
 }
 
 void VisionDemo::processThread()
@@ -108,22 +118,18 @@ void VisionDemo::callbackThread()
   ros::NodeHandle nh(ros::this_node::getName());
 
   // subscriber & publisher
-  //module_control_pub_ = nh.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_joint_ctrl_modules", 0);
   module_control_pub_ = nh.advertise<std_msgs::String>("/robotis/enable_ctrl_module", 0);
-  // motion_index_pub_ = nh.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
-  // play_sound_pub_ = nh.advertise<std_msgs::String>("/play_sound_file", 0);
+  motion_index_pub_ = nh.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
+  rgb_led_pub_ = nh.advertise<robotis_controller_msgs::SyncWriteItem>("/robotis/sync_write_item", 0);
 
-  buttuon_sub_ = nh.subscribe("/robotis/cm_740/button", 1, &VisionDemo::buttonHandlerCallback, this);
+  buttuon_sub_ = nh.subscribe("/robotis/open_cr/button", 1, &VisionDemo::buttonHandlerCallback, this);
   faceCoord_sub_ = nh.subscribe("/faceCoord", 1, &VisionDemo::facePositionCallback, this);
-  // action_script_index_sub_ = nh.subscribe("/action_script/index", 1, &ActionDemo::actionIndexCallback, this);
-
-  // is_running_client_ = nh.serviceClient<op3_action_module_msgs::IsRunning>("/robotis/action/is_running");
 
   while (nh.ok())
   {
     ros::spinOnce();
 
-    usleep(1000);
+    usleep(1 * 1000);
   }
 }
 
@@ -132,8 +138,8 @@ void VisionDemo::buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
   if (enable_ == false)
     return;
 
-//  if (msg->data == "start")
-//  {
+  if (msg->data == "start")
+  {
 //    switch (play_status_)
 //      {
 //        case PlayAction:
@@ -157,11 +163,11 @@ void VisionDemo::buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
 //        default:
 //          break;
 //      }
-//  }
-//  else if (msg->data == "mode")
-//  {
-//
-//  }
+  }
+  else if (msg->data == "mode")
+  {
+
+  }
 }
 
 void VisionDemo::setModuleToDemo(const std::string &module_name)
@@ -175,26 +181,46 @@ void VisionDemo::setModuleToDemo(const std::string &module_name)
 
 void VisionDemo::facePositionCallback(const std_msgs::Int32MultiArray::ConstPtr &msg)
 {
-    if(enable_ == false)
-        return;
+  if (enable_ == false)
+    return;
 
-    // face is detected
-    if(msg->data.size() >= 10)
-    {
-        // center of face
-        face_position_.x = (msg->data[6] + msg->data[8] * 0.5) / msg->data[2] * 2 - 1;
-        face_position_.y = (msg->data[7] + msg->data[9] * 0.5) / msg->data[3] * 2 - 1;
-        face_position_.z = msg->data[8] * 0.5 + msg->data[9] * 0.5;
+  // face is detected
+  if (msg->data.size() >= 10)
+  {
+    // center of face
+    face_position_.x = (msg->data[6] + msg->data[8] * 0.5) / msg->data[2] * 2 - 1;
+    face_position_.y = (msg->data[7] + msg->data[9] * 0.5) / msg->data[3] * 2 - 1;
+    face_position_.z = msg->data[8] * 0.5 + msg->data[9] * 0.5;
 
-        face_tracker_.setFacePosition(face_position_);
-    }
-    else
-    {
-        face_position_.x = 0;
-        face_position_.y = 0;
-        face_position_.z = 0;
-        return;
-    }
+    face_tracker_.setFacePosition(face_position_);
+  }
+  else
+  {
+    face_position_.x = 0;
+    face_position_.y = 0;
+    face_position_.z = 0;
+    return;
+  }
+}
+
+void VisionDemo::playMotion(int motion_index)
+{
+  std_msgs::Int32 motion_msg;
+  motion_msg.data = motion_index;
+
+  motion_index_pub_.publish(motion_msg);
+}
+
+void VisionDemo::setRGBLED(int blue, int green, int red)
+{
+  int led_full_unit = 0x1F;
+  int led_value = (blue & led_full_unit) << 10 | (green & led_full_unit) << 5 | (red & led_full_unit);
+  robotis_controller_msgs::SyncWriteItem syncwrite_msg;
+  syncwrite_msg.item_name = "LED_RGB";
+  syncwrite_msg.joint_name.push_back("open-cr");
+  syncwrite_msg.value.push_back(led_value);
+
+  rgb_led_pub_.publish(syncwrite_msg);
 }
 
 } /* namespace robotis_op */

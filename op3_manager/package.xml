@@ -18,12 +18,14 @@
   <build_depend>robotis_device</build_depend>
   <build_depend>robotis_controller</build_depend>
   <build_depend>robotis_controller_msgs</build_depend>
+  <build_depend>robotis_math</build_depend>
   <build_depend>op3_kinematics_dynamics</build_depend>
   <build_depend>op3_base_module</build_depend>
   <build_depend>op3_head_control_module</build_depend>
   <build_depend>op3_action_module</build_depend>
   <build_depend>op3_walking_module</build_depend>
   <build_depend>cm_740_module</build_depend>
+  <build_depend>open_cr_module</build_depend>
   <build_depend>cmake_modules</build_depend>
 
   <run_depend>roscpp</run_depend>
@@ -32,12 +34,14 @@
   <run_depend>robotis_device</run_depend>
   <run_depend>robotis_controller</run_depend>
   <run_depend>robotis_controller_msgs</run_depend>
+  <run_depend>robotis_math</run_depend>
   <run_depend>op3_kinematics_dynamics</run_depend>
   <run_depend>op3_base_module</run_depend>
   <run_depend>op3_head_control_module</run_depend>
   <run_depend>op3_action_module</run_depend>
   <run_depend>op3_walking_module</run_depend>
   <run_depend>cm_740_module</run_depend>
+  <run_depend>open_cr_module</run_depend>
   <run_depend>cmake_modules</run_depend>
   
 </package>

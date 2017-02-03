@@ -57,14 +57,14 @@ class BallFollower
   enum
   {
     NotFound = 0,
-    BallIsRight = 1,
-    BallIsLeft = 2,
+    OnRight = 1,
+    OnLeft = 2,
   };
 
   BallFollower();
   ~BallFollower();
 
-  bool processFollowing(double x_angle, double y_angle);
+  bool processFollowing(double x_angle, double y_angle, double ball_size);
   void waitFollowing();
   void startFollowing();
   void stopFollowing();
@@ -75,6 +75,7 @@ class BallFollower
   }
 
  protected:
+  const double CAMERA_HEIGHT;
   const int NOT_FOUND_THRESHOLD;
   const double FOV_WIDTH;
   const double FOV_HEIGHT;
@@ -85,10 +86,16 @@ class BallFollower
   const double UNIT_FB_STEP;
   const double UNIT_RL_TURN;
 
+  const double SPOT_FB_OFFSET;
+  const double SPOT_RL_OFFSET;
+  const double SPOT_ANGLE_OFFSET;
+
   void currentJointStatesCallback(const sensor_msgs::JointState::ConstPtr &msg);
   void setWalkingCommand(const std::string &command);
   void setWalkingParam(double x_move, double y_move, double rotation_angle, bool balance = true);
-  void getWalkingParam();
+  bool getWalkingParam();
+
+  bool debug_print_;
 
   //ros node handle
   ros::NodeHandle nh_;
@@ -113,11 +120,14 @@ class BallFollower
   op3_walking_module_msgs::WalkingParam current_walking_param_;
 
   int count_not_found_;
+  int count_to_kick_;
+  int accum_ball_position_;
   bool on_tracking_;
   int approach_ball_position_;
   double current_pan_, current_tilt_;
   double current_x_move_, current_r_angle_;
   int kick_motion_index_;
+  double hip_pitch_offset_;
 
 };
 }

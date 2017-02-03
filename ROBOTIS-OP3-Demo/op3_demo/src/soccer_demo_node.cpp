@@ -64,8 +64,8 @@ enum Robot_Status
   ReadyToGetup = 4,
 };
 
-const double FALLEN_FORWARD_LIMIT = -60;
-const double FALLEN_BEHIND_LIMIT = 60;
+const double FALLEN_FORWARD_LIMIT = 60;
+const double FALLEN_BEHIND_LIMIT = -60;
 const int SPIN_RATE = 30;
 
 void callbackThread();
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
       if (on_following_ball == true)
       {
         if (is_tracked)
-          follower.processFollowing(tracker.getPanOfBall(), tracker.getTiltOfBall());
+          follower.processFollowing(tracker.getPanOfBall(), tracker.getTiltOfBall(), tracker.getBallSize());
         else
           follower.waitFollowing();
       }
@@ -222,9 +222,9 @@ void callbackThread()
   // subscriber & publisher
   module_control_pub = nh.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_joint_ctrl_modules", 0);
   motion_index_pub = nh.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
-  buttuon_sub = nh.subscribe("/robotis/cm_740/button", 1, buttonHandlerCallback);
+  buttuon_sub = nh.subscribe("/robotis/open_cr/button", 1, buttonHandlerCallback);
   demo_command_sub = nh.subscribe("/ball_tracker/command", 1, demoCommandCallback);
-  imu_data_sub = nh.subscribe("/robotis/cm_740/imu", 1, imuDataCallback);
+  imu_data_sub = nh.subscribe("/robotis/open_cr/imu", 1, imuDataCallback);
 
   while (nh.ok())
   {
@@ -379,8 +379,6 @@ void imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg)
   Eigen::MatrixXd rpy_orientation = robotis_framework::convertQuaternionToRPY(orientation);
   rpy_orientation *= (180 / M_PI);
 
-  // ROS_INFO("Roll : %3.2f, Pitch : %2.2f", rpy_orientation.coeff(0, 0), rpy_orientation.coeff(1, 0));
-
   double pitch = rpy_orientation.coeff(1, 0);
 
   if (present_pitch == 0)
@@ -388,9 +386,9 @@ void imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg)
   else
     present_pitch = present_pitch * 0.5 + pitch * 0.5;
 
-  if (present_pitch < FALLEN_FORWARD_LIMIT)
+  if (present_pitch > FALLEN_FORWARD_LIMIT)
     stand_state = Fallen_Forward;
-  else if (present_pitch > FALLEN_BEHIND_LIMIT)
+  else if (present_pitch < FALLEN_BEHIND_LIMIT)
     stand_state = Fallen_Behind;
   else
     stand_state = Stand;
@@ -430,12 +428,12 @@ void handleKick(int ball_position)
   // kick motion
   switch (ball_position)
   {
-    case robotis_op::BallFollower::BallIsRight:
+    case robotis_op::BallFollower::OnRight:
       std::cout << "Kick Motion [R]: " << ball_position << std::endl;
       playMotion(RightKick);
       break;
 
-    case robotis_op::BallFollower::BallIsLeft:
+    case robotis_op::BallFollower::OnLeft:
       std::cout << "Kick Motion [L]: " << ball_position << std::endl;
       playMotion(LeftKick);
       break;

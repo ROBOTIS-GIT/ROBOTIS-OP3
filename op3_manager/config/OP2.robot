@@ -1,3 +1,6 @@
+[ control info ]
+control_cycle = 8   # milliseconds
+
 [ port info ]
 # PORT NAME  | BAUDRATE
 /dev/ttyUSB0 | 1000000

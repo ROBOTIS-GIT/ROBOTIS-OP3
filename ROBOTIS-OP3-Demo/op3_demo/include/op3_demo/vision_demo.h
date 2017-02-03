@@ -43,6 +43,8 @@
 #include "op3_demo/op_demo.h"
 #include "op3_demo/face_tracker.h"
 
+#include "robotis_controller_msgs/SyncWriteItem.h"
+
 namespace robotis_op
 {
 
@@ -63,21 +65,26 @@ class VisionDemo : public OPDemo
 
   void process();
 
-  void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg);
-  //void ballPositionCallback(const ball_detector::circleSetStamped::ConstPtr &msg);
-  //void currentJointStatesCallback(const sensor_msgs::JointState::ConstPtr &msg);
-  void facePositionCallback(const std_msgs::Int32MultiArray::ConstPtr &msg);
+  void playMotion(int motion_index);
+  void setRGBLED(int blue, int green, int red);
 
-  //void publishHeadJoint(double pan, double tilt);
+  void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg);
+  void facePositionCallback(const std_msgs::Int32MultiArray::ConstPtr &msg);
 
   void setModuleToDemo(const std::string &module_name);
 
   FaceTracker face_tracker_;
 
   ros::Publisher module_control_pub_;
+  ros::Publisher motion_index_pub_;
+  ros::Publisher rgb_led_pub_;
+
   ros::Subscriber buttuon_sub_;
   ros::Subscriber faceCoord_sub_;
+
   geometry_msgs::Point face_position_;
+
+  bool is_tracking_;
 };
 
 } /* namespace robotis_op */

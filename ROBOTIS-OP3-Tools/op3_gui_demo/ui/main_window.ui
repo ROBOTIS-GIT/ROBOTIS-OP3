@@ -757,28 +757,28 @@
                  <enum>QFrame::Raised</enum>
                 </property>
                 <layout class="QGridLayout" name="gridLayout_13">
-                 <item row="3" column="0">
+                 <item row="4" column="0">
                   <widget class="QLabel" name="label_31">
                    <property name="text">
                     <string>Arm Swing Gain</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="4" column="0">
+                 <item row="5" column="0">
                   <widget class="QLabel" name="label_32">
                    <property name="text">
                     <string>Pelvis Offset</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="1" column="0">
+                 <item row="2" column="0">
                   <widget class="QLabel" name="label_29">
                    <property name="text">
                     <string>Y Swap Amplitude</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="2" column="1">
+                 <item row="3" column="1">
                   <widget class="QDoubleSpinBox" name="dSpinBox_z_swap_amplitude">
                    <property name="suffix">
                     <string> ｍ</string>
@@ -800,7 +800,7 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="3" column="1">
+                 <item row="4" column="1">
                   <widget class="QDoubleSpinBox" name="dSpinBox_arm_swing_gain">
                    <property name="maximum">
                     <double>2.000000000000000</double>
@@ -813,14 +813,14 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="2" column="0">
+                 <item row="3" column="0">
                   <widget class="QLabel" name="label_30">
                    <property name="text">
                     <string>Z Swap Amplitude</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="1" column="1">
+                 <item row="2" column="1">
                   <widget class="QDoubleSpinBox" name="dSpinBox_y_swap_amplitude">
                    <property name="suffix">
                     <string> ｍ</string>
@@ -842,7 +842,7 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="4" column="1">
+                 <item row="5" column="1">
                   <widget class="QDoubleSpinBox" name="dSpinBox_pelvis_offset">
                    <property name="suffix">
                     <string>  ﾟ</string>
@@ -862,9 +862,9 @@
                   </widget>
                  </item>
                  <item row="0" column="0">
-                  <widget class="QLabel" name="label_35">
+                  <widget class="QPushButton" name="button_init_gyro">
                    <property name="text">
-                    <string/>
+                    <string>Init Gyro</string>
                    </property>
                   </widget>
                  </item>
@@ -1133,8 +1133,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>684</width>
-                <height>714</height>
+                <width>80</width>
+                <height>16</height>
                </rect>
               </property>
              </widget>
@@ -1250,7 +1250,7 @@
      <x>0</x>
      <y>0</y>
      <width>1477</width>
-     <height>25</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -1424,7 +1424,7 @@
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="buttonGroup_balance"/>
   <buttongroup name="buttonGroup_move_aim_on"/>
+  <buttongroup name="buttonGroup_balance"/>
  </buttongroups>
 </ui>

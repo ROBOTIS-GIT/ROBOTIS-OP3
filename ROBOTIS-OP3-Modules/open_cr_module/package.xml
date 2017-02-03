@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<package>
+  <name>open_cr_module</name>
+  <version>0.1.0</version>
+  <description>The open_cr_module package</description>
+ 
+  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
+  <maintainer email="kmjung@robotis.com">kayman</maintainer>
+
+  <license>BSD</license>
+
+  <!-- <url type="website">http://wiki.ros.org/cm_740_module</url> -->
+
+  <author email="kmjung@robotis.com">kayman</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <build_depend>cmake_modules</build_depend>
+  <build_depend>dynamixel_sdk</build_depend>
+  <build_depend>robotis_device</build_depend>
+  <build_depend>robotis_framework_common</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>robotis_controller_msgs</build_depend>
+  <build_depend>robotis_math</build_depend>
+  
+  <run_depend>cmake_modules</run_depend>
+  <run_depend>dynamixel_sdk</run_depend>
+  <run_depend>robotis_device</run_depend>
+  <run_depend>robotis_framework_common</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>robotis_controller_msgs</run_depend>
+  <run_depend>robotis_math</run_depend>
+
+  <export>
+
+  </export>
+</package>

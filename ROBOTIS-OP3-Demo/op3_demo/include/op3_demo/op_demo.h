@@ -39,6 +39,17 @@ namespace robotis_op
 class OPDemo
 {
  public:
+  enum Motion_Index
+  {
+    InitPose = 1,
+    WalkingReady = 9,
+    GetUpFront = 81,
+    GetUpBack = 82,
+    RightKick = 83,
+    LeftKick = 84,
+    Ceremony = 85,
+  };
+
   OPDemo()
   {
   }

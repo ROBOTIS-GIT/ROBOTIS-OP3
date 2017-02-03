@@ -15,6 +15,7 @@
       output="screen">      
         <param name="imageInput" type="string" value="/usb_cam_node/image_raw" />
         <param name="displayed_Image" type="int" value="0" />
-        <param name="publish" type="int" value="2" />
+        <!-- <param name="publish" type="int" value="2" /> -->
+        <param name="publish" type="int" value="3" />
   </node>
 </launch>

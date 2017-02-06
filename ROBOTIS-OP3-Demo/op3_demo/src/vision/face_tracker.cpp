@@ -42,9 +42,7 @@ FaceTracker::FaceTracker()
       NOT_FOUND_THRESHOLD(50),
       use_head_scan_(false),
       count_not_found_(0),
-      on_tracking_(false),
-      current_head_pan_(-10),
-      current_head_tilt_(-10)
+      on_tracking_(false)
 {
   head_joint_pub_ = nh_.advertise<sensor_msgs::JointState>("/robotis/head_control/set_joint_states_offset", 0);
   head_scan_pub_ = nh_.advertise<std_msgs::String>("/robotis/head_control/scan_command", 0);
@@ -52,9 +50,6 @@ FaceTracker::FaceTracker()
   face_position_sub_ = nh_.subscribe("/face_position", 1, &FaceTracker::facePositionCallback, this);
   face_tracking_command_sub_ = nh_.subscribe("/face_tracker/command", 1, &FaceTracker::faceTrackerCommandCallback,
                                              this);
-  current_joint_states_sub_ = nh_.subscribe("/robotis/goal_joint_states", 10, &FaceTracker::currentJointStatesCallback,
-                                            this);
-
 }
 
 FaceTracker::~FaceTracker()
@@ -114,43 +109,12 @@ void FaceTracker::setFacePosition(geometry_msgs::Point &face_position)
   }
 }
 
-void FaceTracker::currentJointStatesCallback(const sensor_msgs::JointState::ConstPtr &msg)
-{
-  double pan, tilt;
-  int get_count = 0;
-
-  for (int ix = 0; ix < msg->name.size(); ix++)
-  {
-    if (msg->name[ix] == "head_pan")
-    {
-      pan = -msg->position[ix];
-      get_count += 1;
-    }
-    else if (msg->name[ix] == "head_tilt")
-    {
-      tilt = msg->position[ix];
-      get_count += 1;
-    }
-
-    if (get_count == 2)
-      break;
-  }
-
-  // check variation
-  if (current_head_pan_ == -10 || fabs(pan - current_head_pan_) < 5 * M_PI / 180)
-    current_head_pan_ = pan;
-  if (current_head_tilt_ == -10 || fabs(tilt - current_head_tilt_) < 5 * M_PI / 180)
-    current_head_tilt_ = tilt;
-}
-
 int FaceTracker::processTracking()
 {
   if (on_tracking_ == false)
   {
     face_position_.z = 0;
     count_not_found_ = 0;
-    current_head_pan_ = -10;
-    current_head_tilt_ = -10;
     //return false;
     return Waiting;
   }

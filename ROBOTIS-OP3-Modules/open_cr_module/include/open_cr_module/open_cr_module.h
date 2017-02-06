@@ -90,7 +90,7 @@ class OpenCRModule : public robotis_framework::SensorModule, public robotis_fram
   ros::Time last_msg_time_;
   double previous_volt_;
   double present_volt_;
-  int volt_count_;
+  int button_count_for_debug_;
 
   sensor_msgs::Imu imu_msg_;
   sensor_msgs::Imu imu_msg_2_;

@@ -37,7 +37,8 @@ namespace robotis_op
 
 VisionDemo::VisionDemo()
     : SPIN_RATE(30),
-      is_tracking_(false)
+      is_tracking_(false),
+      tracking_status_(FaceTracker::Waiting)
 {
   enable_ = false;
 
@@ -79,22 +80,42 @@ void VisionDemo::setDemoDisable()
 
   face_tracker_.stopTracking();
   is_tracking_ = false;
+  tracking_status_ = FaceTracker::Waiting;
   enable_ = false;
 }
 
 void VisionDemo::process()
 {
-  bool is_tracked = face_tracker_.processTracking();
+  //bool is_tracked = face_tracker_.processTracking();
+  int tracking_status = face_tracker_.processTracking();
 
-  if(is_tracking_ != is_tracked)
+  //if(is_tracking_ != is_tracked)
+  if(tracking_status_ != tracking_status)
   {
-    if(is_tracked == true)
-      setRGBLED(0x1F, 0, 0);
-    else
-      setRGBLED(0x1F, 0x1F, 0);
+//    if(is_tracked == true)
+//      setRGBLED(0x1F, 0, 0);
+//    else
+//      setRGBLED(0x1F, 0x1F, 0);
+    switch(tracking_status)
+    {
+      case FaceTracker::Found:
+        setRGBLED(0x1F, 0x1F, 0x1F);
+        break;
+
+      case FaceTracker::NotFound:
+        setRGBLED(0, 0, 0);
+        break;
+
+      default:
+        break;
+    }
   }
 
-  is_tracking_ = is_tracked;
+  if(tracking_status != FaceTracker::Waiting)
+    tracking_status_ = tracking_status;
+
+  //is_tracking_ = is_tracked;
+  std::cout << "Tracking : " << tracking_status << std::endl;
 }
 
 void VisionDemo::processThread()

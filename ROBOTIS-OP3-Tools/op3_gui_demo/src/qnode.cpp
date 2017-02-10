@@ -76,7 +76,7 @@ QNodeOP3::~QNodeOP3()
 
 bool QNodeOP3::init()
 {
-  ros::init(init_argc_, init_argv_, "op3_demo");
+  ros::init(init_argc_, init_argv_, "op3_gui_demo");
 
   if (!ros::master::check())
   {

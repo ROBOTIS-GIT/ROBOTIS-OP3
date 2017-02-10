@@ -42,7 +42,7 @@ OpenCRModule::OpenCRModule()
       button_mode_(false),
       button_start_(false),
       present_volt_(0.0),
-      volt_count_(0)
+      button_count_for_debug_(0)
 {
   module_name_ = "open_cr_module";  // set unique module name
 
@@ -316,11 +316,18 @@ void OpenCRModule::handleButton(const std::string &button_name)
   {
     ros::Duration button_duration = ros::Time::now() - buttons_press_time_[button_name];
 
-    if (button_duration.sec < 2)     // short press
+    // for debug
+    if(button_duration.toSec() < 0.01)
+      return;
+
+    if (button_duration.toSec() < 2)     // short press
       publishButtonMsg(button_name);
     else
       // long press
       publishButtonMsg(button_name + "_long");
+
+    // for debug
+    std::cout << "Button Pressed : " << button_name << ", time : " << button_duration.toSec() << std::endl;
   }
 }
 

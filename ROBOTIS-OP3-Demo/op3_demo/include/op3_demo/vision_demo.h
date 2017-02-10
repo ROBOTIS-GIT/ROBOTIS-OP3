@@ -85,6 +85,7 @@ class VisionDemo : public OPDemo
   geometry_msgs::Point face_position_;
 
   bool is_tracking_;
+  int tracking_status_;
 };
 
 } /* namespace robotis_op */

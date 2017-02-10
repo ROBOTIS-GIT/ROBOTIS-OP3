@@ -50,10 +50,18 @@ namespace robotis_op
 class FaceTracker
 {
  public:
+  enum TrackingStatus
+  {
+    NotFound = -1,
+    Waiting = 0,
+    Found = 1,
+
+  };
+
   FaceTracker();
   ~FaceTracker();
 
-  bool processTracking();
+  int processTracking();
 
   void startTracking();
   void stopTracking();
@@ -77,7 +85,6 @@ class FaceTracker
 
   void facePositionCallback(const geometry_msgs::Point::ConstPtr &msg);
   void faceTrackerCommandCallback(const std_msgs::String::ConstPtr &msg);
-  void currentJointStatesCallback(const sensor_msgs::JointState::ConstPtr &msg);
   void publishHeadJoint(double pan, double tilt);
   void scanFace();
 
@@ -91,7 +98,6 @@ class FaceTracker
 
   ros::Subscriber face_position_sub_;
   ros::Subscriber face_tracking_command_sub_;
-  ros::Subscriber current_joint_states_sub_;
 
   // (x, y) is the center position of the ball in image coordinates
   // z is the face size
@@ -100,8 +106,9 @@ class FaceTracker
   bool use_head_scan_;
   int count_not_found_;
   bool on_tracking_;
-  double current_head_pan_, current_head_tilt_;
   double current_face_pan_, current_face_tilt_;
+
+  int dismissed_count_;
 
 };
 }

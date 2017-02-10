@@ -1,3 +1,4 @@
+# combination action page number and mp3 file path
 action_and_sound: 
   4 : "/home/robotis/catkin_ws/src/ROBOTIS-OP3/ROBOTIS-OP3-Demo/op3_demo/Data/mp3/Thank you.mp3"
   41: "/home/robotis/catkin_ws/src/ROBOTIS-OP3/ROBOTIS-OP3-Demo/op3_demo/Data/mp3/Introduction.mp3"
@@ -9,6 +10,8 @@ action_and_sound:
   27: "/home/robotis/catkin_ws/src/ROBOTIS-OP3/ROBOTIS-OP3-Demo/op3_demo/Data/mp3/Oops.mp3"
   38: "/home/robotis/catkin_ws/src/ROBOTIS-OP3/ROBOTIS-OP3-Demo/op3_demo/Data/mp3/Bye bye.mp3"
 
+# play list
 default: [4, 41, 24, 23, 15, 1, 54, 27, 38]
 
+# example of play list
 #demo1: [4, 41, 24]

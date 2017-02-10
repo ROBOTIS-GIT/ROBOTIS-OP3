@@ -1,18 +1,17 @@
 <launch>
-  <!-- <param name="robot_description"
-    command="$(find xacro)/xacro.py '$(find robotis_op3_description)/urdf/robotis_op3.xacro'" /> -->
+  <param name="robot_description"
+    command="$(find xacro)/xacro.py '$(find robotis_op3_description)/urdf/robotis_op3.urdf.xacro'" />
 
-  <!-- send joint values -->
+  <!-- Send fake joint values -->
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
     <param name="use_gui" value="TRUE"/>
-    <rosparam param="source_list">["/robotis/goal_joint_states"]</rosparam>
+    <!--<rosparam param="/source_list">[/robot_joint_states]</rosparam>-->
   </node>
 
   <!-- Combine joint values -->
-  <!-- <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher"/> -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher"/>
 
-  <!-- Show in Rviz -->
-  <!--<node name="rviz" pkg="rviz" type="rviz" />-->
-  <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robotis_op3_description)/launch/robotis_op3.rviz"/> -->
-  
+  <!-- Show in Rviz   -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robotis_op3_description)/launch/op.rviz"/>
+
 </launch>

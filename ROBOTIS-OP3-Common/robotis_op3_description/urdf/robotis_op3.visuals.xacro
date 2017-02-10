@@ -1,0 +1,236 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:property name="pi" value="3.141592654" />
+
+  <!-- body link -->
+  <xacro:macro name="insert_mesh_body_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh filename="package://robotis_op3_description/stl/body.stl"  scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.60 0.60 0.60 1.0"/>
+    </material>
+  </xacro:macro>
+
+  <!-- right hip yaw link -->
+  <xacro:macro name="insert_mesh_r_hip_yaw_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh filename="package://robotis_op3_description/stl/rl1.stl"  scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.60 0.60 0.60 1.0"/>
+    </material>
+  </xacro:macro>
+
+  <!-- right hip roll link -->
+  <xacro:macro name="insert_mesh_r_hip_roll_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh filename="package://robotis_op3_description/stl/rl2.stl"  scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.60 0.60 0.60 1.0"/>
+    </material>
+  </xacro:macro>
+
+  <!-- right hip pitch link -->
+  <xacro:macro name="insert_mesh_r_hip_pitch_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh filename="package://robotis_op3_description/stl/rl3.stl"  scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.60 0.60 0.60 1.0"/>
+    </material>
+  </xacro:macro>
+
+  <!-- right knee link -->
+  <xacro:macro name="insert_mesh_r_knee_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh filename="package://robotis_op3_description/stl/rl4.stl"  scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.60 0.60 0.60 1.0"/>
+    </material>
+  </xacro:macro>
+
+  <!-- right ankle pitch link -->
+  <xacro:macro name="insert_mesh_r_ank_pitch_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh filename="package://robotis_op3_description/stl/rl5.stl"  scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.60 0.60 0.60 1.0"/>
+    </material>
+  </xacro:macro>
+
+  <!-- right ankle roll link -->
+  <xacro:macro name="insert_mesh_r_ank_roll_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh filename="package://robotis_op3_description/stl/rl6.stl"  scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.60 0.60 0.60 1.0"/>
+    </material>
+  </xacro:macro>
+
+  <!-- left hip yaw link -->
+  <xacro:macro name="insert_mesh_l_hip_yaw_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh filename="package://robotis_op3_description/stl/ll1.stl"  scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.60 0.60 0.60 1.0"/>
+    </material>
+  </xacro:macro>
+
+  <!-- left hip roll link -->
+  <xacro:macro name="insert_mesh_l_hip_roll_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh filename="package://robotis_op3_description/stl/ll2.stl"  scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.60 0.60 0.60 1.0"/>
+    </material>
+  </xacro:macro>
+
+  <!-- left hip pitch link -->
+  <xacro:macro name="insert_mesh_l_hip_pitch_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh filename="package://robotis_op3_description/stl/ll3.stl"  scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.60 0.60 0.60 1.0"/>
+    </material>
+  </xacro:macro>
+
+  <!-- left knee link -->
+  <xacro:macro name="insert_mesh_l_knee_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh filename="package://robotis_op3_description/stl/ll4.stl"  scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.60 0.60 0.60 1.0"/>
+    </material>
+  </xacro:macro>
+
+  <!-- left ankle pitch link -->
+  <xacro:macro name="insert_mesh_l_ank_pitch_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh filename="package://robotis_op3_description/stl/ll5.stl"  scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.60 0.60 0.60 1.0"/>
+    </material>
+  </xacro:macro>
+
+  <!-- left ankle roll link -->
+  <xacro:macro name="insert_mesh_l_ank_roll_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh filename="package://robotis_op3_description/stl/ll6.stl"  scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.60 0.60 0.60 1.0"/>
+    </material>
+  </xacro:macro>
+
+  <!-- right shoulder pitch joint -->
+  <xacro:macro name="insert_mesh_r_sho_pitch_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh filename="package://robotis_op3_description/stl/ra1.stl"  scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.60 0.60 0.60 1.0"/>
+    </material>
+  </xacro:macro>
+
+  <!-- right shoulder pitch joint -->
+  <xacro:macro name="insert_mesh_r_sho_roll_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh filename="package://robotis_op3_description/stl/ra2.stl"  scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.60 0.60 0.60 1.0"/>
+    </material>
+  </xacro:macro>
+
+  <!-- right elbow joint -->
+  <xacro:macro name="insert_mesh_r_el_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh filename="package://robotis_op3_description/stl/ra3.stl"  scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.60 0.60 0.60 1.0"/>
+    </material>
+  </xacro:macro>
+
+  <!-- left shoulder pitch joint -->
+  <xacro:macro name="insert_mesh_l_sho_pitch_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh filename="package://robotis_op3_description/stl/la1.stl"  scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.60 0.60 0.60 1.0"/>
+    </material>
+  </xacro:macro>
+
+  <!-- left shoulder pitch joint -->
+  <xacro:macro name="insert_mesh_l_sho_roll_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh filename="package://robotis_op3_description/stl/la2.stl"  scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.60 0.60 0.60 1.0"/>
+    </material>
+  </xacro:macro>
+
+  <!-- left elbow joint -->
+  <xacro:macro name="insert_mesh_l_el_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh filename="package://robotis_op3_description/stl/la3.stl"  scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.60 0.60 0.60 1.0"/>
+    </material>
+  </xacro:macro>
+
+  <!-- head yaw joint -->
+  <xacro:macro name="insert_mesh_head_pan_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh filename="package://robotis_op3_description/stl/h1.stl"  scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.60 0.60 0.60 1.0"/>
+    </material>
+  </xacro:macro>
+
+  <!-- head yaw joint -->
+  <xacro:macro name="insert_mesh_head_tilt_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh filename="package://robotis_op3_description/stl/h2.stl"  scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.60 0.60 0.60 1.0"/>
+    </material>
+  </xacro:macro>
+
+</robot>

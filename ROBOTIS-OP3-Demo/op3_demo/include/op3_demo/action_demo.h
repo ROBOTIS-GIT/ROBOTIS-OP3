@@ -86,7 +86,7 @@ class ActionDemo : public OPDemo
   void handleStatus();
 
   void parseActionScript(const std::string &path);
-  bool parseActoinScriptSetName(const std::string &path, const std::string &set_name);
+  bool parseActionScriptSetName(const std::string &path, const std::string &set_name);
 
   bool playActionWithSound(int motion_index);
 
@@ -100,7 +100,6 @@ class ActionDemo : public OPDemo
 
   void setModuleToDemo(const std::string &module_name);
 
-  void actionIndexCallback(const std_msgs::Int32::ConstPtr& msg);
   void actionSetNameCallback(const std_msgs::String::ConstPtr& msg);
   void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg);
 
@@ -109,8 +108,6 @@ class ActionDemo : public OPDemo
   ros::Publisher play_sound_pub_;
 
   ros::Subscriber buttuon_sub_;
-  // ros::Subscriber demo_command_sub_;
-  ros::Subscriber action_script_index_sub_;
 
   ros::ServiceClient is_running_client_;
 

@@ -164,7 +164,7 @@ void ActionDemo::handleStatus()
 
 void ActionDemo::startProcess(const std::string &set_name)
 {
-  parseActoinScriptSetName(script_path_, set_name);
+  parseActionScriptSetName(script_path_, set_name);
 
   start_play_ = true;
   play_status_ = PlayAction;
@@ -210,13 +210,11 @@ void ActionDemo::callbackThread()
   ros::NodeHandle nh(ros::this_node::getName());
 
   // subscriber & publisher
-  //module_control_pub_ = nh.advertise<robotis_controller_msgs::JointCtrlModule>("/robotis/set_joint_ctrl_modules", 0);
   module_control_pub_ = nh.advertise<std_msgs::String>("/robotis/enable_ctrl_module", 0);
   motion_index_pub_ = nh.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
   play_sound_pub_ = nh.advertise<std_msgs::String>("/play_sound_file", 0);
 
   buttuon_sub_ = nh.subscribe("/robotis/open_cr/button", 1, &ActionDemo::buttonHandlerCallback, this);
-  action_script_index_sub_ = nh.subscribe("/action_script/index", 1, &ActionDemo::actionIndexCallback, this);
 
   is_running_client_ = nh.serviceClient<op3_action_module_msgs::IsRunning>("/robotis/action/is_running");
 
@@ -258,7 +256,7 @@ void ActionDemo::parseActionScript(const std::string &path)
     play_list_ = doc["default"].as<std::vector<int> >();
 }
 
-bool ActionDemo::parseActoinScriptSetName(const std::string &path, const std::string &set_name)
+bool ActionDemo::parseActionScriptSetName(const std::string &path, const std::string &set_name)
 {
 
   YAML::Node doc;
@@ -356,11 +354,6 @@ bool ActionDemo::isActionRunning()
   }
 
   return false;
-}
-
-void ActionDemo::actionIndexCallback(const std_msgs::Int32::ConstPtr& msg)
-{
-
 }
 
 void ActionDemo::buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)

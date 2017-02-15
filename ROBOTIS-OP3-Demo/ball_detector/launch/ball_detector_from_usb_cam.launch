@@ -15,7 +15,7 @@
         <param name="auto_white_balance" type="bool" value="False" />
         <param name="gain" value="255" />
         <param name="brightness" value="64" />
-        <param name="exposure" value="300" />
+        <param name="exposure" value="100" />
     </node>
 <!--         <param name="gain" value="255" />
         <param name="auto_exposure" type="bool" value="False" />

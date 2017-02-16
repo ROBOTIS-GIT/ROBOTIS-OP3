@@ -50,7 +50,7 @@ include_directories(
 ## Declare a C++ executable
 add_executable(op3_action_editor 
   src/main.cpp
-  src/cmd_process.cpp)
+  src/action_editor.cpp)
 
 
 ## Specify libraries to link a library or executable target against

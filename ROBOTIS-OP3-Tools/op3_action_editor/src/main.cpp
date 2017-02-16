@@ -28,38 +28,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-/* Author: Jay Song, Kayman */
+/*
+ * main.cpp
+ *
+ *  Created on: 2016. 12. 16.
+ *      Author: JaySong
+ */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <termios.h>
-#include <term.h>
-#include <ncurses.h>
-#include <libgen.h>
-#include <signal.h>
-
-#include <ros/ros.h>
-
-#include "dynamixel_sdk/port_handler.h"
-#include "dynamixel_sdk/packet_handler.h"
-#include "op3_action_editor/cmd_process.h"
+#include "op3_action_editor/action_editor.h"
 
 const int BAUD_RATE = 2000000;
 const double PROTOCOL_VERSION = 2.0;
 const int SUB_CONTROLLER_ID = 200;
-const int DXL_BROADCAST_ID = 254;
 const std::string SUB_CONTROLLER_DEVICE = "/dev/ttyUSB0";
 const int POWER_CTRL_TABLE = 24;
-const int TORQUE_ON_CTRL_TABLE = 64;
-
-void change_current_dir()
-{
-  char exepath[1024] = { 0 };
-  if (readlink("/proc/self/exe", exepath, sizeof(exepath)) != -1)
-    chdir(dirname(exepath));
-}
 
 void sighandler(int sig)
 {
@@ -71,7 +53,7 @@ void sighandler(int sig)
   exit(0);
 }
 
-void initDXL(const std::string &device_name, const int &baud_rate)
+bool turnOnDynamixelPower(const std::string &device_name, const int &baud_rate)
 {
   // power on
   dynamixel::PortHandler *_port_h = (dynamixel::PortHandler *) dynamixel::PortHandler::getPortHandler(device_name.c_str());
@@ -79,290 +61,240 @@ void initDXL(const std::string &device_name, const int &baud_rate)
   if (_set_port == false)
   {
     ROS_ERROR("Error Set port");
-    return;
+    return false;
   }
   dynamixel::PacketHandler *_packet_h = dynamixel::PacketHandler::getPacketHandler(PROTOCOL_VERSION);
 
   int _return = _packet_h->write1ByteTxRx(_port_h, SUB_CONTROLLER_ID, POWER_CTRL_TABLE, 1);
-  ROS_INFO("Power on DXLs! [%d]", _return);
+
+  if(_return != COMM_SUCCESS)
+  {
+    ROS_ERROR("Failed to turn on the Power of DXLs!");
+    return false;
+  }
+  else
+  {
+    ROS_INFO("Power on DXLs!");
+  }
+
 
   usleep(100 * 1000);
 
-  _return = _packet_h->write1ByteTxRx(_port_h, DXL_BROADCAST_ID, TORQUE_ON_CTRL_TABLE, 1);
-  ROS_INFO("Torque on DXLs! [%d]", _return);
+  return true;
 }
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "OP3 Test Action Editor");
-  ros::NodeHandle _nh;
+  ros::init(argc, argv, "THORMANG3 Action Editor");
+  ros::NodeHandle nh;
 
-  std::string _offset_file = _nh.param<std::string>("offset_table", "");
-  std::string _robot_file = _nh.param<std::string>("robot_file_path", "");
-
-  std::string _init_file = _nh.param<std::string>("init_file_path", "");
-
-  std::string _device_name = _nh.param<std::string>("device_name", SUB_CONTROLLER_DEVICE);
-  int _baud_rate = _nh.param<int>("baudrate", BAUD_RATE);
+  std::string offset_file   = nh.param<std::string>("offset_table", "");
+  std::string robot_file    = nh.param<std::string>("robot_file_path", "");
+  std::string dxl_init_file = nh.param<std::string>("init_file_path", "");
+  std::string _device_name = nh.param<std::string>("device_name", SUB_CONTROLLER_DEVICE);
+  int _baud_rate = nh.param<int>("baudrate", BAUD_RATE);
 
   signal(SIGABRT, &sighandler);
   signal(SIGTERM, &sighandler);
   signal(SIGQUIT, &sighandler);
   signal(SIGINT, &sighandler);
 
-  initDXL(_device_name, _baud_rate);
-
   int ch;
 
-  if (InitializeActionEditor(_robot_file, _init_file, _offset_file) == false)
+  if(turnOnDynamixelPower(_device_name, _baud_rate) == false)
+    return 0;
+
+  robotis_op::ActionEditor editor;
+  if (editor.initializeActionEditor(robot_file, dxl_init_file, offset_file) == false)
   {
     ROS_ERROR("Failed to Initialize");
     return 0;
   }
 
-  DrawIntro();
+  editor.drawIntro();
 
   while (1)
-  {
-    ch = _getch();
+   {
+     ch = editor._getch();
 
-    if (ch == 0x1b)
-    {
-      ch = _getch();
-      if (ch == 0x5b)
-      {
-        ch = _getch();
-        if (ch == 0x41)      // Up arrow key
-          MoveUpCursor();
-        else if (ch == 0x42)  // Down arrow key
-          MoveDownCursor();
-        else if (ch == 0x44)  // Left arrow key
-          MoveLeftCursor();
-        else if (ch == 0x43)  // Right arrow key
-          MoveRightCursor();
-      }
-    }
-    else if (ch == '[')
-      UpDownValue(-1);
-    else if (ch == ']')
-      UpDownValue(1);
-    else if (ch == '{')
-      UpDownValue(-10);
-    else if (ch == '}')
-      UpDownValue(10);
-    else if (ch == ' ')
-      ToggleTorque();
-    //        else if( ch == ';') {
-    //        	UnFoldRightHand();
-    //        }
-    //        else if( ch == '\'') {
-    //        	FoldRightHand();
-    //        }
-    //        else if( ch == ',') {
-    //        	UnFoldLeftHand();
-    //        }
-    //        else if( ch == '.') {
-    //        	FoldLeftHand();
-    //        }
-    else if (ch >= 'A' && ch <= 'z')
-    {
-      char input[128] = { 0, };
-      char *token;
-      int input_len;
-      char cmd[80];
-      int num_param;
-      int iparam[30];
+     if (ch == 0x1b)
+     {
+       ch = editor._getch();
+       if (ch == 0x5b)
+       {
+         ch = editor._getch();
+         if (ch == 0x41)      // Up arrow key
+           editor.moveUpCursor();
+         else if (ch == 0x42)  // Down arrow key
+           editor.moveDownCursor();
+         else if (ch == 0x44)  // Left arrow key
+           editor.moveLeftCursor();
+         else if (ch == 0x43)  // Right arrow key
+           editor.moveRightCursor();
+       }
+     }
+     else if (ch == '[')
+       editor.setValueUpDown(-1);
+     else if (ch == ']')
+       editor.setValueUpDown(1);
+     else if (ch == '{')
+       editor.setValueUpDown(-10);
+     else if (ch == '}')
+       editor.setValueUpDown(10);
+     else if (ch == ' ')
+       editor.toggleTorque();
+     else if (ch >= 'A' && ch <= 'z')
+     {
+       char input[128] = { 0, };
+       char *token;
+       int input_len;
+       char cmd[80];
+       int num_param;
+       int iparam[30];
 
-      int idx = 0;
+       int idx = 0;
 
-      BeginCommandMode();
+       editor.beginCommandMode();
 
-      printf("%c", ch);
-      input[idx++] = (char) ch;
+       printf("%c", ch);
+       input[idx++] = (char) ch;
 
-      while (1)
-      {
-        ch = _getch();
-        if (ch == 0x0A)
-          break;
-        else if (ch == 0x7F)
-        {
-          if (idx > 0)
-          {
-            ch = 0x08;
-            printf("%c", ch);
-            ch = ' ';
-            printf("%c", ch);
-            ch = 0x08;
-            printf("%c", ch);
-            input[--idx] = 0;
-          }
-        }
-        else if ((ch >= 'A' && ch <= 'z') || ch == ' ' || (ch >= '0' && ch <= '9'))
-        {
-          if (idx < 127)
-          {
-            printf("%c", ch);
-            input[idx++] = (char) ch;
-          }
-        }
-      }
+       while (1)
+       {
+         ch = editor._getch();
+         if (ch == 0x0A)
+           break;
+         else if (ch == 0x7F)
+         {
+           if (idx > 0)
+           {
+             ch = 0x08;
+             printf("%c", ch);
+             ch = ' ';
+             printf("%c", ch);
+             ch = 0x08;
+             printf("%c", ch);
+             input[--idx] = 0;
+           }
+         }
+         else if ((ch >= 'A' && ch <= 'z') || ch == ' ' || (ch >= '0' && ch <= '9'))
+         {
+           if (idx < 127)
+           {
+             printf("%c", ch);
+             input[idx++] = (char) ch;
+           }
+         }
+       }
 
-      fflush(stdin);
-      input_len = strlen(input);
-      if (input_len > 0)
-      {
-        token = strtok(input, " ");
-        if (token != 0)
-        {
-          strcpy(cmd, token);
-          token = strtok(0, " ");
-          num_param = 0;
-          while (token != 0)
-          {
-            iparam[num_param++] = atoi(token);
-            token = strtok(0, " ");
-          }
+       fflush(stdin);
+       input_len = strlen(input);
+       if (input_len > 0)
+       {
+         token = strtok(input, " ");
+         if (token != 0)
+         {
+           strcpy(cmd, token);
+           token = strtok(0, " ");
+           num_param = 0;
+           while (token != 0)
+           {
+             iparam[num_param++] = atoi(token);
+             token = strtok(0, " ");
+           }
 
-          if (strcmp(cmd, "exit") == 0)
-          {
-            if (AskSave() == false)
-              break;
-          }
-          else if (strcmp(cmd, "re") == 0)
-            DrawPage();
-          else if (strcmp(cmd, "help") == 0)
-            HelpCmd();
-          else if (strcmp(cmd, "n") == 0)
-            NextCmd();
-          else if (strcmp(cmd, "b") == 0)
-            PrevCmd();
-          else if (strcmp(cmd, "time") == 0)
-            TimeCmd();
-          else if (strcmp(cmd, "speed") == 0)
-            SpeedCmd();
-          else if (strcmp(cmd, "page") == 0)
-          {
-            if (num_param > 0)
-              PageCmd(iparam[0]);
-            else
-              PrintCmd("Need parameter");
-          }
-          else if (strcmp(cmd, "play") == 0)
-          {
-            PlayCmd();
-          }
-          //                    else if(strcmp(cmd, "playwith") == 0)
-          //                    {
-          //                    	PlayWithCmd(manager);
-          //                    }
-          else if (strcmp(cmd, "set") == 0)
-          {
-            if (num_param > 0)
-              SetValue(iparam[0]);
-            else
-              PrintCmd("Need parameter");
-          }
-          else if (strcmp(cmd, "list") == 0)
-            ListCmd();
-          else if (strcmp(cmd, "on") == 0)
-            OnOffCmd(true, num_param, iparam);
-          else if (strcmp(cmd, "off") == 0)
-            OnOffCmd(false, num_param, iparam);
-          else if (strcmp(cmd, "w") == 0)
-          {
-            if (num_param > 0)
-              WriteStepCmd(iparam[0]);
-            else
-              PrintCmd("Need parameter");
-          }
-          else if (strcmp(cmd, "d") == 0)
-          {
-            if (num_param > 0)
-              DeleteStepCmd(iparam[0]);
-            else
-              PrintCmd("Need parameter");
-          }
-          else if (strcmp(cmd, "i") == 0)
-          {
-            if (num_param == 0)
-              InsertStepCmd(0);
-            else
-              InsertStepCmd(iparam[0]);
-          }
-          //                    else if(strcmp(cmd, "m") == 0)
-          //                    {
-          //                        if(num_param > 1)
-          //                            MoveStepCmd(iparam[0], iparam[1]);
-          //                        else
-          //                            PrintCmd("Need parameter");
-          //                    }
-          else if (strcmp(cmd, "mrl") == 0)
-          {
-            if (num_param >= 1)
-            {
-              MirrorRight2LeftCmd(num_param, iparam);
-            }
-            else
-              PrintCmd("Need parameter");
-          }
-          else if (strcmp(cmd, "mlr") == 0)
-          {
-            if (num_param >= 1)
-            {
-              MirrorLeft2RightCmd(num_param, iparam);
-            }
-            else
-              PrintCmd("Need parameter");
-          }
-          else if (strcmp(cmd, "mm") == 0)
-          {
-            if (num_param >= 1)
-            {
-              MirrorCmd(num_param, iparam);
-            }
-            else
-              PrintCmd("Need parameter");
-          }
-          //                    else if(strcmp(cmd, "cs") == 0)
-          //                    {
-          //                    	if(num_param >= 2) {
-          //                    		StepCopyCmd(iparam[0], iparam[1]);
-          //                    	}
-          //                    	else
-          //                    		PrintCmd("Need parameter");
-          //                    }
-          else if (strcmp(cmd, "copy") == 0)
-          {
-            if (num_param > 0)
-              CopyCmd(iparam[0]);
-            else
-              PrintCmd("Need parameter");
-          }
-          else if (strcmp(cmd, "new") == 0)
-            NewCmd();
-          else if (strcmp(cmd, "g") == 0)
-          {
-            if (num_param > 0)
-              GoCmd(iparam[0]);
-            else
-              PrintCmd("Need parameter");
-          }
-          else if (strcmp(cmd, "save") == 0)
-            SaveCmd();
-          else if (strcmp(cmd, "name") == 0)
-            NameCmd();
-          else
-            PrintCmd("Bad command! please input 'help'");
-        }
-      }
+           if (strcmp(cmd, "exit") == 0)
+           {
+             if (editor.askSave() == false)
+               break;
+           }
+           else if (strcmp(cmd, "re") == 0)
+             editor.drawPage();
+           else if (strcmp(cmd, "help") == 0)
+             editor.helpCmd();
+           else if (strcmp(cmd, "n") == 0)
+             editor.nextCmd();
+           else if (strcmp(cmd, "b") == 0)
+             editor.prevCmd();
+           else if (strcmp(cmd, "time") == 0)
+             editor.timeCmd();
+           else if (strcmp(cmd, "speed") == 0)
+             editor.speedCmd();
+           else if (strcmp(cmd, "page") == 0)
+           {
+             if (num_param > 0)
+               editor.pageCmd(iparam[0]);
+             else
+               editor.printCmd("Need parameter");
+           }
+           else if (strcmp(cmd, "play") == 0)
+           {
+             editor.playCmd();
+           }
+           else if (strcmp(cmd, "set") == 0)
+           {
+             if (num_param > 0)
+               editor.setValue(iparam[0]);
+             else
+               editor.printCmd("Need parameter");
+           }
+           else if (strcmp(cmd, "list") == 0)
+             editor.listCmd();
+           else if (strcmp(cmd, "on") == 0)
+             editor.turnOnOffCmd(true, num_param, iparam);
+           else if (strcmp(cmd, "off") == 0)
+             editor.turnOnOffCmd(false, num_param, iparam);
+           else if (strcmp(cmd, "w") == 0)
+           {
+             if (num_param > 0)
+               editor.writeStepCmd(iparam[0]);
+             else
+               editor.printCmd("Need parameter");
+           }
+           else if (strcmp(cmd, "d") == 0)
+           {
+             if (num_param > 0)
+               editor.deleteStepCmd(iparam[0]);
+             else
+               editor.printCmd("Need parameter");
+           }
+           else if (strcmp(cmd, "i") == 0)
+           {
+             if (num_param == 0)
+               editor.insertStepCmd(0);
+             else
+               editor.insertStepCmd(iparam[0]);
+           }
+           else if (strcmp(cmd, "copy") == 0)
+           {
+             if (num_param > 0)
+               editor.copyCmd(iparam[0]);
+             else
+               editor.printCmd("Need parameter");
+           }
+           else if (strcmp(cmd, "new") == 0)
+             editor.newCmd();
+           else if (strcmp(cmd, "g") == 0)
+           {
+             if (num_param > 0)
+               editor.goCmd(iparam[0]);
+             else
+               editor.printCmd("Need parameter");
+           }
+           else if (strcmp(cmd, "save") == 0)
+             editor.saveCmd();
+           else if (strcmp(cmd, "name") == 0)
+             editor.nameCmd();
+           else
+             editor.printCmd("Bad command! please input 'help'");
+         }
+       }
 
-      EndCommandMode();
-    }
-  }
+       editor.endCommandMode();
+     }
+   }
 
-  DrawEnding();
+   editor.drawEnding();
 
-  return 0;
-}
-
+   return 0;
+ }

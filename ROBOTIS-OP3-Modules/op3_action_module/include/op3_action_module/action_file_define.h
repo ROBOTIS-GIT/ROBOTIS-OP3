@@ -65,21 +65,21 @@ typedef struct // Header Structure (total 64unsigned char)
   unsigned char exit;                 // Link to exit     26
   unsigned char reserved5[4];         // reserved5        27~30
   unsigned char checksum;             // checksum         31
-  unsigned char pgain[MAXNUM_JOINTS]; // pgain            32~69
-  unsigned char reserved6;            // reserved6        70
+  unsigned char pgain[MAXNUM_JOINTS]; // pgain            32~62
+  unsigned char reserved6;            // reserved6        63
 } PageHeader;
 
 typedef struct // Step Structure (total 64unsigned char)
 {
-  unsigned short position[MAXNUM_JOINTS]; // Joint position   0~75
-  unsigned char pause;                    // Pause time       76
-  unsigned char time;                     // Time             77
+  unsigned short position[MAXNUM_JOINTS]; // Joint position   0~61
+  unsigned char pause;                    // Pause time       62
+  unsigned char time;                     // Time             63
 } Step;
 
 typedef struct // Page Structure (total 512unsigned char)
 {
-  PageHeader header;             // Page header  0~70
-  Step       step[MAXNUM_STEP];	 // Page step    71~609
+  PageHeader header;             // Page header  0~63
+  Step       step[MAXNUM_STEP];	 // Page step    61~501
 } Page;
 
 }

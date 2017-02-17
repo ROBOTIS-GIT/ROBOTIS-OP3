@@ -113,7 +113,7 @@ void ActionModule::initialize(const int control_cycle_msec, robotis_framework::R
 
   ros::NodeHandle ros_node;
 
-  std::string path = ros::package::getPath("thormang3_action_module") + "/data/motion_4095.bin";
+  std::string path = ros::package::getPath("op3_action_module") + "/data/motion_4095.bin";
   std::string action_file_path = ros_node.param<std::string>("action_file_path", path);
 
   loadFile(action_file_path);

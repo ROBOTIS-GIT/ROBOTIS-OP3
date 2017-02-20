@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+    <arg  name="config_path" default="$(find ball_detector)/launch/ball_detector_params.yaml"/>
+    
+    <!-- ball detector -->
+    <node pkg="ball_detector" type="ball_detector_node" name="ball_detector_node" args="" output="screen">
+        <rosparam command="load" file="$(arg config_path)"/>  
+        <param name="yaml_path" type="string" value="$(arg config_path)"/>
+        <remap from="/ball_detector_node/image_in" to="/usb_cam_node/image_raw" />
+        <remap from="/ball_detector_node/cameraInfo_in" to="/usb_cam_node/camera_info" />
+    </node>
+</launch>
+

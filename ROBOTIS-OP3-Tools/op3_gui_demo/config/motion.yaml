@@ -1,0 +1,25 @@
+motion:
+  -2 : BREAK
+  -1 : STOP
+#  0 : .
+  1 : Walking Init
+  2 : OK
+  3 : No
+  15 : Sit down
+  16 : Stand up
+# soccer
+  80 : Init pose
+  81 : Get up(Front)
+  82 : Get up(Back)
+  83 : Right Kick
+  84 : Left Kick
+  85 : Ceremony
+# action demo
+  90 : Action Demo
+motion_shortcut:
+# motion_index : button id (0 ~ 9)
+  -1 : 0
+  81 : 1
+  82 : 2
+  83 : 3
+  84 : 4

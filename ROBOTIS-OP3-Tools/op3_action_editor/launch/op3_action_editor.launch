@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+
+<launch>    
+    <param name="gazebo"                   value="false"    type="bool"/>
+    <param name="gazebo_robot_name"        value="robotis_humanoid"/>
+    
+    <param name="offset_table"             value="$(find op3_manager)/config/offset.yaml"/>
+    <param name="robot_file_path"          value="$(find op3_manager)/config/OP3.robot"/>
+    <!-- <param name="init_file_path"           value="$(find op2_manager)/config/dxl_init.yaml"/> -->
+    <param name ="action_file_path"        value="$(find op3_action_module)/data/motion_4095.bin"/>
+        	 
+    
+    <!-- Action Editor -->
+    <node name="op3_action_editor" pkg="op3_action_editor" type="op3_action_editor" output="screen"/>
+</launch>

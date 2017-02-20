@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+
+<launch>    
+	
+    <param name="offset_path"     value="$(find op3_manager)/config/offset.yaml"/>	
+ 	<param name="robot_file_path" value="$(find op3_manager)/config/OP3.robot"/>
+    <param name="init_file_path"  value="$(find op3_manager)/config/dxl_init.yaml"/>   
+    	
+    <node name="offset_tuner_server" pkg="op3_offset_tuner_server" type="offset_tuner_server_node" output="screen"/>    
+    
+    <node name="offset_tuner_client" pkg="op3_offset_tuner_client" type="op3_offset_tuner_client" output="screen"/>
+    
+</launch>

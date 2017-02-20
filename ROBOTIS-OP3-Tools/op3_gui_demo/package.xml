@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<package>
+  <name>op3_gui_demo</name>
+  <version>0.1.0</version>
+  <description>
+
+     op3_demo
+
+  </description>
+  <maintainer email="kmjung@robotis.com">Kayman Jung</maintainer>
+  <author email="kmjung@robotis.com">Kayman Jung</author>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>qt_build</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>libqt4-dev</build_depend>
+  <build_depend>eigen_conversions</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>robotis_controller_msgs</build_depend>
+  <build_depend>op3_walking_module_msgs</build_depend>  
+
+  <run_depend>qt_build</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>libqt4-dev</run_depend>
+  <run_depend>eigen_conversions</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>robotis_controller_msgs</run_depend>
+  <run_depend>op3_walking_module_msgs</run_depend>
+ 
+</package>

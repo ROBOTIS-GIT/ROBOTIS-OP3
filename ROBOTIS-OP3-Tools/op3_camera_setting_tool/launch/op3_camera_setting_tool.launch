@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+
+<launch>   	
+    <node pkg="op3_camera_setting_tool" type="op3_camera_setting_tool" name="op3_camera_setting_node" output="screen">
+        <param name="video_device" type="string" value="/dev/video0" />
+        <param name="camera_node_name" type="string" value="/usb_cam_node" />
+    </node>
+</launch>

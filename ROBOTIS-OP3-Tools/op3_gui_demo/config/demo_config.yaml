@@ -19,7 +19,7 @@ id_joint:
   18 : l_ank_roll
   19 : head_pan 
   20 : head_tilt
-  200 : cm_740
+  200 : opencr
 module_list: [none, head_control_module, base_module, walking_module, manipulation_module, action_module, walking_module]
 module_button:
   1 : none

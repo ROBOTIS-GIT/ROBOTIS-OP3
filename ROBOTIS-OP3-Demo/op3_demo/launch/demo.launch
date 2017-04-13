@@ -7,10 +7,13 @@
 
     <!-- Camera and Ball detector -->
     <include file="$(find ball_detector)/launch/ball_detector_from_usb_cam.launch"/> 
-    
+   
     <!-- face tracking -->
     <include file="$(find op3_demo)/launch/face_detection_op3.launch" />
 
+    <!-- camera setting tool -->
+    <include file="$(find op3_camera_setting_tool)/launch/op3_camera_setting_tool.launch" />
+    
     <!-- sound player -->
     <node pkg="ros_mpg321_player" type="ros_mpg321_player" name="ros_mpg321_player" output="screen"/>
     

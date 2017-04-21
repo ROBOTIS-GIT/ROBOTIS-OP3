@@ -288,7 +288,7 @@ void ActionModule::process(std::map<std::string, robotis_framework::Dynamixel *>
     if (present_running_ == true)
     {
       std::string status_msg = "Action_Start";
-      ROS_INFO_STREAM(status_msg);
+      //ROS_INFO_STREAM(status_msg);
       publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, status_msg);
     }
     else
@@ -297,7 +297,7 @@ void ActionModule::process(std::map<std::string, robotis_framework::Dynamixel *>
         action_result_it->second->goal_position_ = result_[action_result_it->first]->goal_position_;
 
       std::string status_msg = "Action_Finish";
-      ROS_INFO_STREAM(status_msg);
+      //ROS_INFO_STREAM(status_msg);
       publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, status_msg);
       publishDoneMsg("action");
     }

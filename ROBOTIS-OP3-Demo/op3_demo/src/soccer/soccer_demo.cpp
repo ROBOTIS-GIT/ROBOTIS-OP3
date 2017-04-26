@@ -386,7 +386,7 @@ void SoccerDemo::imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg)
   Eigen::MatrixXd rpy_orientation = robotis_framework::convertQuaternionToRPY(orientation);
   rpy_orientation *= (180 / M_PI);
 
-  ROS_INFO("Roll : %3.2f, Pitch : %2.2f", rpy_orientation.coeff(0, 0), rpy_orientation.coeff(1, 0));
+  ROS_INFO_COND(debug_code_, "Roll : %3.2f, Pitch : %2.2f", rpy_orientation.coeff(0, 0), rpy_orientation.coeff(1, 0));
 
   double pitch = rpy_orientation.coeff(1, 0);
 

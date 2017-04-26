@@ -131,7 +131,7 @@ void HeadControlModule::setHeadJoint(const sensor_msgs::JointState::ConstPtr &ms
   }
 
   // moving time
-  moving_time_ = is_offset ? 0.5 : 1.0;               // default : 1 sec
+  moving_time_ = is_offset ? 0.2 : 1.0;               // default : 1 sec
 
   // set target joint angle
   target_position_ = goal_position_;        // default
@@ -159,7 +159,6 @@ void HeadControlModule::setHeadJoint(const sensor_msgs::JointState::ConstPtr &ms
       target_position_.coeffRef(0, joint_index) = target_position;
 
       // set time
-      //double angle_unit = is_offset ? 35 * M_PI / 180 : 35 * M_PI / 180;
       double angle_unit = 35 * M_PI / 180;
       double calc_moving_time = fabs(goal_position_.coeff(0, joint_index) - target_position_.coeff(0, joint_index))
           / angle_unit;

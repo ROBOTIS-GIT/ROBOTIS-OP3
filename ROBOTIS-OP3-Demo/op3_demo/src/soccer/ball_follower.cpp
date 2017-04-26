@@ -70,6 +70,8 @@ BallFollower::BallFollower()
   get_walking_param_client_ = nh_.serviceClient<op3_walking_module_msgs::GetWalkingParam>(
       "/robotis/walking/get_params");
 
+  prev_time_ = ros::Time::now();
+
 }
 
 BallFollower::~BallFollower()
@@ -136,6 +138,11 @@ void BallFollower::currentJointStatesCallback(const sensor_msgs::JointState::Con
 // x_angle : ball position (pan), y_angle : ball position (tilt)
 bool BallFollower::processFollowing(double x_angle, double y_angle, double ball_size)
 {
+  ros::Time curr_time = ros::Time::now();
+  ros::Duration dur = curr_time - prev_time_;
+  double delta_time = dur.nsec * 0.000000001 + dur.sec;
+  prev_time_ = curr_time;
+
   count_not_found_ = 0;
   int ball_position_sum = 0;
 
@@ -168,9 +175,10 @@ bool BallFollower::processFollowing(double x_angle, double y_angle, double ball_
     distance_to_ball *= (-1);
 
   double fb_goal, fb_move;
+  double distance_to_kick = 0.25;
 
   // check whether ball is correct position.
-  if ((distance_to_ball < 0.15) && (fabs(ball_x_angle) < 25.0))
+  if ((distance_to_ball < distance_to_kick) && (fabs(ball_x_angle) < 25.0))
   //if ((ball_y_angle < -65) && (fabs(current_pan_) < 25))
   {
     count_to_kick_ += 1;
@@ -180,6 +188,8 @@ bool BallFollower::processFollowing(double x_angle, double y_angle, double ball_
     ROS_INFO_STREAM_COND(debug_print_,
                          "head tilt : " << (current_tilt_ * 180 / M_PI) << " | ball tilt : " << (y_angle * 180 / M_PI));
     ROS_INFO_STREAM_COND(debug_print_, "foot to kick : " << accum_ball_position_);
+
+    ROS_INFO("In range [%d]", count_to_kick_);
 
     //if (fabs(x_angle) < 10 * M_PI / 180)
     //{
@@ -235,7 +245,7 @@ bool BallFollower::processFollowing(double x_angle, double y_angle, double ball_
     fb_move = fmax(fb_goal, MIN_FB_STEP);
   }
 
-  ROS_INFO_STREAM("distance to ball : " << distance_to_ball << ", fb : " << fb_move);
+  ROS_INFO("distance to ball : %6.4f, fb : %6.4f, delta : %6.6f", distance_to_ball, fb_move, delta_time);
   ROS_INFO("==============================================");
 
   // calc rl angle

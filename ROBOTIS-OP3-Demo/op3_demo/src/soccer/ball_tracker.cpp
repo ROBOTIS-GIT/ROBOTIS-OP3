@@ -48,7 +48,8 @@ BallTracker::BallTracker()
       current_head_tilt_(-10),
       current_ball_pan_(0),
       current_ball_tilt_(0),
-      current_ball_bottom_(0)
+      current_ball_bottom_(0),
+      DEBUG_PRINT(false)
 {
   head_joint_pub_ = nh_.advertise<sensor_msgs::JointState>("/robotis/head_control/set_joint_states_offset", 0);
   head_scan_pub_ = nh_.advertise<std_msgs::String>("/robotis/head_control/scan_command", 0);
@@ -176,23 +177,48 @@ bool BallTracker::processTracking()
   // convert ball position to desired angle(rad) of head
   // ball_position : top-left is (-1, -1), bottom-right is (+1, +1)
   // offset_rad : top-left(+, +), bottom-right(-, -)
-  double x_offset_rad = -atan(ball_position_.x * tan(FOV_WIDTH));
-  double y_offset_rad = -atan(ball_position_.y * tan(FOV_HEIGHT));
+  double x_error = -atan(ball_position_.x * tan(FOV_WIDTH));
+  double y_error = -atan(ball_position_.y * tan(FOV_HEIGHT));
 
   ball_position_.z = 0;
   count_not_found_ = 0;
 
-   //std::cout << "--------------------------------------------------------------" << std::endl;
-   //std::cout << "Ball position : " << ball_position_.x << " | " << ball_position_.y << std::endl;
-   //std::cout << "Target angle : " << (x_offset_rad * 180 / M_PI) << " | " << (y_offset_rad * 180 / M_PI) << std::endl;
-   //std::cout << "Head angle : " << (current_head_pan_ * 180 / M_PI) << " | " << (current_head_tilt_ * 180 / M_PI) << std::endl;
+  if (DEBUG_PRINT == true)
+  {
+    std::cout << "--------------------------------------------------------------" << std::endl;
+    std::cout << "Ball position : " << ball_position_.x << " | " << ball_position_.y << std::endl;
+    std::cout << "Target angle : " << (x_error * 180 / M_PI) << " | " << (y_error * 180 / M_PI) << std::endl;
+    std::cout << "Head angle : " << (current_head_pan_ * 180 / M_PI) << " | " << (current_head_tilt_ * 180 / M_PI)
+              << std::endl;
+  }
+
+  ros::Time curr_time = ros::Time::now();
+  ros::Duration dur = curr_time - prev_time_;
+  double delta_time = dur.nsec * 0.000000001 + dur.sec;
+  prev_time_ = curr_time;
+
+  double p_gain = 0.7, d_gain = 0.02;
+  double x_error_diff = (x_error - current_ball_pan_) / delta_time;
+  double y_error_diff = (y_error - current_ball_tilt_) / delta_time;
+  double x_error_target = x_error * p_gain + x_error_diff * d_gain;
+  double y_error_target = y_error * p_gain + y_error_diff * d_gain;
+
+  if (DEBUG_PRINT == true)
+  {
+    std::cout << "--------------------------------------------------------------" << std::endl;
+    std::cout << "error         : " << (x_error * 180 / M_PI) << " | " << (y_error * 180 / M_PI) << std::endl;
+    std::cout << "error_diff    : " << (x_error_diff * 180 / M_PI) << " | " << (y_error_diff * 180 / M_PI) << " | "
+              << delta_time << std::endl;
+    std::cout << "error_target  : " << (x_error_target * 180 / M_PI) << " | " << (y_error_target * 180 / M_PI)
+              << " | P : " << p_gain << " | D : " << d_gain << std::endl;
+  }
 
   // move head joint
-  publishHeadJoint(x_offset_rad, y_offset_rad);
+  publishHeadJoint(x_error_target, y_error_target);
 
   // args for following ball
-  current_ball_pan_ = x_offset_rad;
-  current_ball_tilt_ = y_offset_rad;
+  current_ball_pan_ = x_error;
+  current_ball_tilt_ = y_error;
   current_ball_bottom_ = -atan(ball_position_.z * tan(FOV_HEIGHT));
 
   return true;

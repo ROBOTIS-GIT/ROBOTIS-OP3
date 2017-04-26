@@ -83,6 +83,7 @@ class BallTracker
   const double FOV_WIDTH;
   const double FOV_HEIGHT;
   const int NOT_FOUND_THRESHOLD;
+  const bool DEBUG_PRINT;
 
   void ballPositionCallback(const ball_detector::circleSetStamped::ConstPtr &msg);
   void ballTrackerCommandCallback(const std_msgs::String::ConstPtr &msg);
@@ -114,6 +115,7 @@ class BallTracker
   double current_head_pan_, current_head_tilt_;
   double current_ball_pan_, current_ball_tilt_;
   double current_ball_bottom_;
+  ros::Time prev_time_;
 
 };
 }

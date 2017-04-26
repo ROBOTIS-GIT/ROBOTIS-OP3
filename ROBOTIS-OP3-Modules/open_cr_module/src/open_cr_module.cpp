@@ -63,10 +63,17 @@ OpenCRModule::OpenCRModule()
   buttons_["button_mode"] = false;
   buttons_["button_start"] = false;
   buttons_["button_user"] = false;
+  buttons_["published_mode"] = false;
+  buttons_["published_start"] = false;
+  buttons_["published_user"] = false;
 
-  // buttons_press_time_["button_mode"] = ros::Time::now();
-  // buttons_press_time_["button_start"] = ros::Time::now();
-  // buttons_press_time_["button_user"] = ros::Time::now();
+  previous_result_["gyro_x"] = 0.0;
+  previous_result_["gyro_y"] = 0.0;
+  previous_result_["gyro_z"] = 0.0;
+
+  previous_result_["acc_x"] = 0.0;
+  previous_result_["acc_y"] = 0.0;
+  previous_result_["acc_z"] = 0.0;
 
   last_msg_time_ = ros::Time::now();
 }
@@ -121,18 +128,31 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
 
   uint16_t present_volt = sensors["open-cr"]->sensor_state_->bulk_read_table_["present_voltage"];
 
-  result_["gyro_x"] = - getGyroValue(gyro_x);
-  result_["gyro_y"] = - getGyroValue(gyro_y);
-  result_["gyro_z"] = getGyroValue(gyro_z);
+  // for debug
+  if(present_volt < 80)
+    return;
+
+
+//  result_["gyro_x"] = - getGyroValue(gyro_x);
+//  result_["gyro_y"] = - getGyroValue(gyro_y);
+//  result_["gyro_z"] = getGyroValue(gyro_z);
+
+  result_["gyro_x"] = lowPassFilter(0.4, -getGyroValue(gyro_x), previous_result_["gyro_x"]);
+  result_["gyro_y"] = lowPassFilter(0.4, -getGyroValue(gyro_y), previous_result_["gyro_y"]);
+  result_["gyro_z"] = lowPassFilter(0.4, getGyroValue(gyro_z), previous_result_["gyro_z"]);
 
   ROS_INFO_COND(debug_print_, "Gyro Raw =============================================== ");
   ROS_INFO_COND(debug_print_, "Raw : %d, %d, %d", gyro_x, gyro_y, gyro_z);
   ROS_INFO_COND(debug_print_, "Gyro : %f, %f, %f", result_["gyro_x"], result_["gyro_y"], result_["gyro_z"]);
 
-  // align axis of Accelerometer to robot
-  result_["acc_x"] = - getAccValue(acc_x);
-  result_["acc_y"] = - getAccValue(acc_y);
-  result_["acc_z"] = getAccValue(acc_z);
+//  result_["acc_x"] = - getAccValue(acc_x);
+//  result_["acc_y"] = - getAccValue(acc_y);
+//  result_["acc_z"] = getAccValue(acc_z);
+
+  // align axis of Accelerometer to robot and
+  result_["acc_x"] = lowPassFilter(0.4, -getAccValue(acc_x), previous_result_["acc_x"]);
+  result_["acc_y"] = lowPassFilter(0.4, -getAccValue(acc_y), previous_result_["acc_y"]);
+  result_["acc_z"] = lowPassFilter(0.4, getAccValue(acc_z), previous_result_["acc_z"]);
 
   ROS_INFO_COND(debug_print_, "Acc Raw =============================================== ");
   ROS_INFO_COND(debug_print_, "Raw : %d, %d, %d", acc_x, acc_y, acc_z);
@@ -143,11 +163,27 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
   result_["button_start"] = (button_flag & 0x02) >> 1;
   result_["button_user"] = (button_flag & 0x04) >> 2;
 
-  // pushedModeButton(result_["button_mode"] == 1.0);
-  // pushedStartButton(result_["button_start"] == 1.0);
   handleButton("mode");
   handleButton("start");
   handleButton("user");
+
+
+  if(present_volt < 80)
+  {
+    ROS_INFO("Something is worng....");
+    ROS_INFO("------------------------ curr ---------------------------");
+    ROS_INFO("Gyro : %f, %f, %f", -getGyroValue(gyro_x), -getGyroValue(gyro_y), getGyroValue(gyro_z));
+    ROS_INFO("Acc  : %f, %f, %f", -getAccValue(acc_x), -getAccValue(acc_y), getAccValue(acc_z));
+    ROS_INFO("Voltage : %f", present_volt * 0.1);
+    ROS_INFO("------------------------ prev ---------------------------");
+    ROS_INFO("Gyro : %f, %f, %f", previous_result_["gyro_x"], previous_result_["gyro_y"], previous_result_["gyro_z"]);
+    ROS_INFO("Acc  : %f, %f, %f", previous_result_["acc_x"], previous_result_["acc_y"], previous_result_["acc_z"]);
+    ROS_INFO("Voltage : %f", previous_volt_);
+    ROS_INFO(".");
+    ROS_INFO(".");
+    ROS_INFO(".");
+    ROS_INFO(".");
+  }
 
   result_["present_voltage"] = present_volt * 0.1;
   handleVoltage(result_["present_voltage"]);
@@ -184,18 +220,28 @@ void OpenCRModule::fusionIMU()
   //in rad/s
   long int _value = 0;
   int _arrd_length = 2;
-  imu_msg_.angular_velocity.x = lowPassFilter(filter_alpha, result_["gyro_x"], imu_msg_.angular_velocity.x);
-  imu_msg_.angular_velocity.y = lowPassFilter(filter_alpha, result_["gyro_y"], imu_msg_.angular_velocity.y);
-  imu_msg_.angular_velocity.z = lowPassFilter(filter_alpha, result_["gyro_z"], imu_msg_.angular_velocity.z);
-  // ROS_INFO("angular velocity : %f, %f, %f", imu_angular_velocity[0], imu_angular_velocity[1], imu_angular_velocity[2]);
+  imu_msg_.angular_velocity.x = result_["gyro_x"];
+  imu_msg_.angular_velocity.y = result_["gyro_y"];
+  imu_msg_.angular_velocity.z = result_["gyro_z"];
 
   //in m/s^2
-  imu_msg_.linear_acceleration.x = lowPassFilter(filter_alpha, result_["acc_x"] * G_ACC,
-                                                 imu_msg_.linear_acceleration.x);
-  imu_msg_.linear_acceleration.y = lowPassFilter(filter_alpha, result_["acc_y"] * G_ACC,
-                                                 imu_msg_.linear_acceleration.y);
-  imu_msg_.linear_acceleration.z = lowPassFilter(filter_alpha, result_["acc_z"] * G_ACC,
-                                                 imu_msg_.linear_acceleration.z);
+  imu_msg_.linear_acceleration.x = result_["acc_x"] * G_ACC;
+  imu_msg_.linear_acceleration.y = result_["acc_y"] * G_ACC;
+  imu_msg_.linear_acceleration.z = result_["acc_z"] * G_ACC;
+
+//  imu_msg_.angular_velocity.x = lowPassFilter(filter_alpha, result_["gyro_x"], imu_msg_.angular_velocity.x);
+//  imu_msg_.angular_velocity.y = lowPassFilter(filter_alpha, result_["gyro_y"], imu_msg_.angular_velocity.y);
+//  imu_msg_.angular_velocity.z = lowPassFilter(filter_alpha, result_["gyro_z"], imu_msg_.angular_velocity.z);
+//
+//  //in m/s^2
+//  imu_msg_.linear_acceleration.x = lowPassFilter(filter_alpha, result_["acc_x"] * G_ACC,
+//                                                 imu_msg_.linear_acceleration.x);
+//  imu_msg_.linear_acceleration.y = lowPassFilter(filter_alpha, result_["acc_y"] * G_ACC,
+//                                                 imu_msg_.linear_acceleration.y);
+//  imu_msg_.linear_acceleration.z = lowPassFilter(filter_alpha, result_["acc_z"] * G_ACC,
+//                                                 imu_msg_.linear_acceleration.z);
+
+  // ROS_INFO("angular velocity : %f, %f, %f", imu_angular_velocity[0], imu_angular_velocity[1], imu_angular_velocity[2]);
   // ROS_INFO("linear_acceleration : %f, %f, %f", imu_linear_acceleration[0], imu_linear_acceleration[1], imu_linear_acceleration[2]);
 
   //Estimation of roll and pitch based on accelometer data, see http://www.nxp.com/files/sensors/doc/app_note/AN3461.pdf
@@ -230,17 +276,26 @@ void OpenCRModule::publishIMU(double roll, double pitch, double yaw)
   //in rad/s
   long int _value = 0;
   int _arrd_length = 2;
-  imu_msg_2_.angular_velocity.x = lowPassFilter(filter_alpha, result_["gyro_x"], imu_msg_2_.angular_velocity.x);
-  imu_msg_2_.angular_velocity.y = lowPassFilter(filter_alpha, result_["gyro_y"], imu_msg_2_.angular_velocity.y);
-  imu_msg_2_.angular_velocity.z = lowPassFilter(filter_alpha, result_["gyro_z"], imu_msg_2_.angular_velocity.z);
+  imu_msg_2_.angular_velocity.x = result_["gyro_x"];
+  imu_msg_2_.angular_velocity.y = result_["gyro_y"];
+  imu_msg_2_.angular_velocity.z = result_["gyro_z"];
 
   //in m/s^2
-  imu_msg_2_.linear_acceleration.x = lowPassFilter(filter_alpha, result_["acc_x"] * G_ACC,
-                                                   imu_msg_2_.linear_acceleration.x);
-  imu_msg_2_.linear_acceleration.y = lowPassFilter(filter_alpha, result_["acc_y"] * G_ACC,
-                                                   imu_msg_2_.linear_acceleration.y);
-  imu_msg_2_.linear_acceleration.z = lowPassFilter(filter_alpha, result_["acc_z"] * G_ACC,
-                                                   imu_msg_2_.linear_acceleration.z);
+  imu_msg_2_.linear_acceleration.x = result_["acc_x"] * G_ACC;
+  imu_msg_2_.linear_acceleration.y = result_["acc_y"] * G_ACC;
+  imu_msg_2_.linear_acceleration.z = result_["acc_z"] * G_ACC;
+
+//  imu_msg_2_.angular_velocity.x = lowPassFilter(filter_alpha, result_["gyro_x"], imu_msg_2_.angular_velocity.x);
+//  imu_msg_2_.angular_velocity.y = lowPassFilter(filter_alpha, result_["gyro_y"], imu_msg_2_.angular_velocity.y);
+//  imu_msg_2_.angular_velocity.z = lowPassFilter(filter_alpha, result_["gyro_z"], imu_msg_2_.angular_velocity.z);
+//
+//  //in m/s^2
+//  imu_msg_2_.linear_acceleration.x = lowPassFilter(filter_alpha, result_["acc_x"] * G_ACC,
+//                                                   imu_msg_2_.linear_acceleration.x);
+//  imu_msg_2_.linear_acceleration.y = lowPassFilter(filter_alpha, result_["acc_y"] * G_ACC,
+//                                                   imu_msg_2_.linear_acceleration.y);
+//  imu_msg_2_.linear_acceleration.z = lowPassFilter(filter_alpha, result_["acc_z"] * G_ACC,
+//                                                   imu_msg_2_.linear_acceleration.z);
 
   Eigen::Quaterniond orientation = robotis_framework::convertRPYToQuaternion(roll, pitch, yaw);
 
@@ -300,34 +355,53 @@ void OpenCRModule::pushedStartButton(bool pushed)
 void OpenCRModule::handleButton(const std::string &button_name)
 {
   std::string button_key = "button_" + button_name;
+  std::string button_published = "published_" + button_name;
 
   bool pushed = (result_[button_key] == 1.0);
   // same state
   if (buttons_[button_key] == pushed)
-    return;
-
-  buttons_[button_key] = pushed;
-
-  if (pushed == true)
   {
-    buttons_press_time_[button_name] = ros::Time::now();
+    if (pushed == true && buttons_[button_published] == false)
+    {
+      // check long press
+      ros::Duration button_duration = ros::Time::now() - buttons_press_time_[button_name];
+      if (button_duration.toSec() > 2.0)
+      {
+        publishButtonMsg(button_name + "_long");
+        buttons_[button_published] = true;
+
+        // for debug
+        std::cout << "Button Pressed : " << button_name << ", time : " << button_duration.toSec() << std::endl;
+      }
+    }
   }
-  else
+  else    // state is changed
   {
-    ros::Duration button_duration = ros::Time::now() - buttons_press_time_[button_name];
+    buttons_[button_key] = pushed;
 
-    // for debug
-    if(button_duration.toSec() < 0.01)
-      return;
-
-    if (button_duration.toSec() < 2)     // short press
-      publishButtonMsg(button_name);
+    if (pushed == true)
+    {
+      buttons_press_time_[button_name] = ros::Time::now();
+      buttons_[button_published] = false;
+    }
     else
-      // long press
-      publishButtonMsg(button_name + "_long");
+    {
+      ros::Duration button_duration = ros::Time::now() - buttons_press_time_[button_name];
 
-    // for debug
-    std::cout << "Button Pressed : " << button_name << ", time : " << button_duration.toSec() << std::endl;
+      // for debug
+      if (button_duration.toSec() < 0.02)
+        return;
+
+      if (button_duration.toSec() < 2)     // short press
+        publishButtonMsg(button_name);
+      else
+        // long press
+        ;
+      //publishButtonMsg(button_name + "_long");
+
+      // for debug
+      std::cout << "Button Pressed : " << button_name << ", time : " << button_duration.toSec() << std::endl;
+    }
   }
 }
 
@@ -379,9 +453,12 @@ void OpenCRModule::publishStatusMsg(unsigned int type, std::string msg)
   status_msg_pub_.publish(status_msg);
 }
 
-double OpenCRModule::lowPassFilter(double alpha, double x_new, double x_old)
+double OpenCRModule::lowPassFilter(double alpha, double x_new, double &x_old)
 {
-  return alpha * x_new + (1.0 - alpha) * x_old;
+  double filtered_value = alpha * x_new + (1.0 - alpha) * x_old;
+  x_old = filtered_value;
+
+  return filtered_value;
 }
 
 }

@@ -198,6 +198,10 @@ void BallDetector::publishCircles()
 
   //publish message
   circles_pub_.publish(circles_msg_);
+
+  //ball_detecting process time
+  //ros::Duration _process_dur = ros::Time::now() - sub_time_;
+  //ROS_INFO_STREAM("== Ball detecting processing time : " << _process_dur);
 }
 
 void BallDetector::enableCallback(const std_msgs::Bool::ConstPtr &msg)

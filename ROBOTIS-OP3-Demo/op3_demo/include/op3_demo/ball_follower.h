@@ -128,6 +128,7 @@ class BallFollower
   double current_x_move_, current_r_angle_;
   int kick_motion_index_;
   double hip_pitch_offset_;
+  ros::Time prev_time_;
 
 };
 }

@@ -77,7 +77,7 @@ class OpenCRModule : public robotis_framework::SensorModule, public robotis_fram
   void publishButtonMsg(const std::string &button_name);
   void handleVoltage(double present_volt);
   void publishStatusMsg(unsigned int type, std::string msg);
-  double lowPassFilter(double alpha, double x_new, double x_old);
+  double lowPassFilter(double alpha, double x_new, double &x_old);
 
   int control_cycle_msec_;
   boost::thread queue_thread_;
@@ -88,6 +88,7 @@ class OpenCRModule : public robotis_framework::SensorModule, public robotis_fram
   std::map<std::string, ros::Time> buttons_press_time_;
   ros::Time button_press_time_;
   ros::Time last_msg_time_;
+  std::map<std::string, double> previous_result_;
   double previous_volt_;
   double present_volt_;
   int button_count_for_debug_;

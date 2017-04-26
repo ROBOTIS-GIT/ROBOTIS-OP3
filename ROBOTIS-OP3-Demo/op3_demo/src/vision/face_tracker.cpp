@@ -143,17 +143,23 @@ int FaceTracker::processTracking()
   }
 
   // if face is detected
-  double x_offset_rad = -atan(face_position_.x * tan(FOV_WIDTH));
-  double y_offset_rad = -atan(face_position_.y * tan(FOV_HEIGHT));
+  double x_error = -atan(face_position_.x * tan(FOV_WIDTH));
+  double y_error = -atan(face_position_.y * tan(FOV_HEIGHT));
 
   face_position_.z = 0;
   count_not_found_ = 0;
 
-  // move head joint
-  publishHeadJoint(x_offset_rad, y_offset_rad);
+  double p_gain = 0.7, d_gain = 0.45;
+  double x_error_diff = x_error - current_face_pan_;
+  double y_error_diff = y_error - current_face_tilt_;
+  double x_error_target = x_error * p_gain + x_error_diff * d_gain;
+  double y_error_target = y_error * p_gain + y_error_diff * d_gain;
 
-  current_face_pan_ = x_offset_rad;
-  current_face_tilt_ = y_offset_rad;
+  // move head joint
+  publishHeadJoint(x_error_target, y_error_target);
+
+  current_face_pan_ = x_error;
+  current_face_tilt_ = y_error;
 
   // return true;
   return Found;

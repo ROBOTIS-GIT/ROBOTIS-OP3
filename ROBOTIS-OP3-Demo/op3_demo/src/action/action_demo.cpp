@@ -50,6 +50,10 @@ ActionDemo::ActionDemo()
 
   std::string default_path = ros::package::getPath("op3_demo") + "/script/action_script.yaml";
   script_path_ = nh.param<std::string>("action_script", default_path);
+
+  std::string default_play_list = "default";
+  play_list_name_ = nh.param<std::string>("action_script_play_list", default_play_list);
+
   parseActionScript (script_path_);
 
   boost::thread queue_thread = boost::thread(boost::bind(&ActionDemo::callbackThread, this));
@@ -73,7 +77,7 @@ void ActionDemo::setDemoEnable()
 
   playAction(DEMO_INIT_POSE);
 
-  startProcess();
+  startProcess(play_list_name_);
 }
 
 void ActionDemo::setDemoDisable()

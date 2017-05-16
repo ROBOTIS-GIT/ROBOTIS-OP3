@@ -115,6 +115,7 @@ class ActionDemo : public OPDemo
   std::vector<int> play_list_;
 
   std::string script_path_;
+  std::string play_list_name_;
   int play_index_;
 
   bool start_play_;

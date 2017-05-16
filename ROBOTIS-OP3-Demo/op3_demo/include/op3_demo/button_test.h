@@ -1,0 +1,100 @@
+/*******************************************************************************
+ * Copyright (c) 2016, ROBOTIS CO., LTD.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of ROBOTIS nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *******************************************************************************/
+
+/* Author: Kayman Jung */
+
+#ifndef BUTTON_TEST_H_
+#define BUTTON_TEST_H_
+
+#include <boost/thread.hpp>
+
+#include <ros/ros.h>
+//#include <std_msgs/String.h>
+//#include <std_msgs/Int32MultiArray.h>
+//#include <geometry_msgs/Point.h>
+
+#include "op3_demo/op_demo.h"
+//#include "op3_demo/face_tracker.h"
+
+#include "robotis_controller_msgs/SyncWriteItem.h"
+
+namespace robotis_op
+{
+
+class ButtonTest : public OPDemo
+{
+ public:
+  ButtonTest();
+  ~ButtonTest();
+
+  void setDemoEnable();
+  void setDemoDisable();
+
+ protected:
+  const int SPIN_RATE;
+
+  void processThread();
+  void callbackThread();
+
+  void process();
+
+//  void playMotion(int motion_index);
+  void setRGBLED(int blue, int green, int red);
+  void setLED(int led);
+
+  void playSound(const std::string &path);
+
+  void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg);
+//  void facePositionCallback(const std_msgs::Int32MultiArray::ConstPtr &msg);
+
+//  void setModuleToDemo(const std::string &module_name);
+
+//  FaceTracker face_tracker_;
+
+//  ros::Publisher module_control_pub_;
+//  ros::Publisher motion_index_pub_;
+  ros::Publisher rgb_led_pub_;
+  ros::Publisher play_sound_pub_;
+
+  ros::Subscriber buttuon_sub_;
+//  ros::Subscriber faceCoord_sub_;
+
+//  geometry_msgs::Point face_position_;
+
+//  bool is_tracking_;
+//  int tracking_status_;
+  std::string default_mp3_path_;
+  int led_count_;
+  int rgb_led_count_;
+};
+
+} /* namespace robotis_op */
+
+#endif /* BUTTON_TEST_H_ */

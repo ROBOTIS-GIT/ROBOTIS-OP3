@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!-- Launches an UVC camera, the ball detector and its visualization  -->
+<launch>    
+
+    <!-- op3 manager -->
+    <include file="$(find op3_manager)/launch/op3_manager.launch"/> 
+
+    <!-- Camera and Ball detector -->
+    <include file="$(find ball_detector)/launch/ball_detector_from_usb_cam.launch"/> 
+   
+    <!-- face tracking -->
+    <include file="$(find op3_demo)/launch/face_detection_op3.launch" />
+
+    <!-- camera setting tool -->
+    <include file="$(find op3_camera_setting_tool)/launch/op3_camera_setting_tool.launch" />
+    
+    <!-- sound player -->
+    <node pkg="ros_mpg321_player" type="ros_mpg321_player" name="ros_mpg321_player" output="screen"/>
+    
+    <!-- op3 demo -->
+    <node pkg="op3_demo" type="self_test_node" name="op3_self_test" output="screen"/>
+</launch>
+

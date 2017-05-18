@@ -36,7 +36,8 @@
 #include <boost/thread.hpp>
 
 #include <ros/ros.h>
-//#include <std_msgs/String.h>
+#include <ros/package.h>
+#include <std_msgs/String.h>
 //#include <std_msgs/Int32MultiArray.h>
 //#include <geometry_msgs/Point.h>
 

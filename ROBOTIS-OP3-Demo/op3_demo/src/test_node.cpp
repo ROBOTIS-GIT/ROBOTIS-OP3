@@ -31,11 +31,14 @@
 /* Author: Kayman Jung */
 
 #include <ros/ros.h>
+#include <ros/package.h>
 #include <std_msgs/String.h>
 
 #include "op3_demo/soccer_demo.h"
 #include "op3_demo/action_demo.h"
 #include "op3_demo/vision_demo.h"
+#include "op3_demo/button_test.h"
+#include "op3_demo/mic_test.h"
 #include "robotis_math/robotis_linear_algebra.h"
 #include "robotis_controller_msgs/SyncWriteItem.h"
 
@@ -71,13 +74,15 @@ bool apply_desired = false;
 int main(int argc, char **argv)
 {
   //init ros
-  ros::init(argc, argv, "demo_node");
+  ros::init(argc, argv, "self_test_node");
 
   //create ros wrapper object
   robotis_op::OPDemo *current_demo = NULL;
   robotis_op::SoccerDemo *soccer_demo = new robotis_op::SoccerDemo();
   robotis_op::ActionDemo *action_demo = new robotis_op::ActionDemo();
   robotis_op::VisionDemo *vision_demo = new robotis_op::VisionDemo();
+  robotis_op::ButtonTest *button_test = new robotis_op::ButtonTest();
+  robotis_op::MicTest *mic_test = new robotis_op::MicTest();
 
   ros::NodeHandle nh(ros::this_node::getName());
 
@@ -108,7 +113,7 @@ int main(int argc, char **argv)
   }
 
   // init procedure
-  playSound(default_mp3_path + "Demonstration ready mode.mp3");
+  playSound(default_mp3_path + "test/Self test ready mode.mp3");
   setLED(0x01 | 0x02 | 0x04);
 
   //node loop
@@ -165,6 +170,27 @@ int main(int argc, char **argv)
           ROS_INFO("[Start] Action Demo");
           break;
         }
+        case ButtonTest:
+        {
+          if (current_demo != NULL)
+            current_demo->setDemoDisable();
+
+          current_demo = button_test;
+          current_demo->setDemoEnable();
+          ROS_INFO("[Start] Button Test");
+          break;
+        }
+        case MicTest:
+        {
+          if (current_demo != NULL)
+            current_demo->setDemoDisable();
+
+          current_demo = mic_test;
+          current_demo->setDemoEnable();
+          ROS_INFO("[Start] Mic Test");
+          break;
+        }
+
 
         default:
         {
@@ -222,7 +248,7 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
       desired_status = Ready;
       apply_desired = true;
 
-      playSound(default_mp3_path + "Demonstration ready mode.mp3");
+      playSound(default_mp3_path + "test/Self test ready mode.mp3");
       setLED(0x01 | 0x02 | 0x04);
     }
     else if (msg->data == "user_long")
@@ -253,6 +279,14 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
 
         case ActionDemo:
           playSound(default_mp3_path + "Start motion demonstration.mp3");
+          break;
+
+        case ButtonTest:
+          playSound(default_mp3_path + "test/Start button test mode.mp3");
+          break;
+
+        case MicTest:
+          playSound(default_mp3_path + "test/Start mic test mode.mp3");
           break;
 
         default:
@@ -286,12 +320,12 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
           break;
 
         case ButtonTest:
-          playSound(default_mp3_path + "Button test mode.mp3");
+          playSound(default_mp3_path + "test/Button test mode.mp3");
           setLED(0x01 | 0x02);
           break;
 
         case MicTest:
-          playSound(default_mp3_path + "Mic test mode.mp3");
+          playSound(default_mp3_path + "test/Mic test mode.mp3");
           setLED(0x01 | 0x04);
           break;
 

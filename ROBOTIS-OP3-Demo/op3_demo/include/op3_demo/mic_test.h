@@ -33,15 +33,14 @@
 #ifndef MIC_TEST_H_
 #define MIC_TEST_H_
 
+#include <signal.h>
 #include <boost/thread.hpp>
 
 #include <ros/ros.h>
+#include <ros/package.h>
 #include <std_msgs/String.h>
-#include <std_msgs/Int32MultiArray.h>
-#include <geometry_msgs/Point.h>
 
 #include "op3_demo/op_demo.h"
-#include "op3_demo/face_tracker.h"
 
 #include "robotis_controller_msgs/SyncWriteItem.h"
 
@@ -51,6 +50,16 @@ namespace robotis_op
 class MicTest : public OPDemo
 {
  public:
+  enum Mic_Test_Status
+  {
+    Ready = 0,
+    AnnounceRecording = 1,
+    MicRecording = 2,
+    PlayingSound = 3,
+    DeleteTempFile = 4,
+    DemoCount = 5
+  };
+
   MicTest();
   ~MicTest();
 
@@ -65,31 +74,30 @@ class MicTest : public OPDemo
 
   void process();
 
+  void announceTest();
   void recordSound(int recording_time);
+  void recordSound();
+  void playTestSound(const std::string &path);
   void playSound(const std::string &file_path);
   void deleteSoundFile(const std::string &file_path);
 
-//  void playMotion(int motion_index);
-//  void setRGBLED(int blue, int green, int red);
+  void startTimer(double wait_time);
+  void finishTimer();
 
   void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg);
-//  void facePositionCallback(const std_msgs::Int32MultiArray::ConstPtr &msg);
 
-//  void setModuleToDemo(const std::string &module_name);
+  std::string recording_file_name_;
+  std::string default_mp3_path_;
 
-//  FaceTracker face_tracker_;
-
-//  ros::Publisher module_control_pub_;
-//  ros::Publisher motion_index_pub_;
-//  ros::Publisher rgb_led_pub_;
-
+  ros::Publisher play_sound_pub_;
   ros::Subscriber buttuon_sub_;
-//  ros::Subscriber faceCoord_sub_;
 
-//  geometry_msgs::Point face_position_;
-
-//  bool is_tracking_;
-//  int tracking_status_;
+  ros::Time start_time_;
+  double wait_time_;
+  bool is_wait_;
+  int record_pid_;
+  int play_pid_;
+  int test_status_;
 };
 
 } /* namespace robotis_op */

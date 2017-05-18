@@ -49,7 +49,7 @@ ButtonTest::ButtonTest()
   boost::thread queue_thread = boost::thread(boost::bind(&ButtonTest::callbackThread, this));
   boost::thread process_thread = boost::thread(boost::bind(&ButtonTest::processThread, this));
 
-  default_mp3_path_ = ros::package::getPath("op3_demo") + "/Data/mp3/";
+  default_mp3_path_ = ros::package::getPath("op3_demo") + "/Data/mp3/test/";
 }
 
 ButtonTest::~ButtonTest()
@@ -142,6 +142,7 @@ void ButtonTest::callbackThread()
 //  module_control_pub_ = nh.advertise<std_msgs::String>("/robotis/enable_ctrl_module", 0);
 //  motion_index_pub_ = nh.advertise<std_msgs::Int32>("/robotis/action/page_num", 0);
   rgb_led_pub_ = nh.advertise<robotis_controller_msgs::SyncWriteItem>("/robotis/sync_write_item", 0);
+  play_sound_pub_ = nh.advertise<std_msgs::String>("/play_sound_file", 0);
 
   buttuon_sub_ = nh.subscribe("/robotis/open_cr/button", 1, &ButtonTest::buttonHandlerCallback, this);
 //  faceCoord_sub_ = nh.subscribe("/faceCoord", 1, &ButtonTest::facePositionCallback, this);
@@ -162,33 +163,32 @@ void ButtonTest::buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
 
   if (msg->data == "mode")
   {
-    playSound(default_mp3_path_ + "Mode button.mp3");
+    playSound(default_mp3_path_ + "button-mode.mp3");
   }
   else if (msg->data == "start")
   {
-    playSound(default_mp3_path_ + "Start button.mp3");
+    playSound(default_mp3_path_ + "button-start.mp3");
     int rgb_selector[3] = { 1, 0, 0 };
-    setRGBLED(0x1F * rgb_selector[rgb_led_count_ % 3], 0x1F * rgb_selector[(rgb_led_count_ + 1) % 3],
-              0x1F * rgb_selector[(rgb_led_count_ + 2) % 3]);
+    setRGBLED((0x1F * rgb_selector[rgb_led_count_ % 3]), (0x1F * rgb_selector[(rgb_led_count_ + 1) % 3]),
+              (0x1F * rgb_selector[(rgb_led_count_ + 2) % 3]));
     rgb_led_count_ += 1;
   }
   else if (msg->data == "user")
   {
-    playSound(default_mp3_path_ + "User button.mp3");
+    playSound(default_mp3_path_ + "button-user.mp3");
     setLED(0x01 << (led_count_++ % 3));
   }
-
   else if (msg->data == "mode_long")
   {
-    playSound(default_mp3_path_ + "Mode button long press.mp3");
+    playSound(default_mp3_path_ + "button-mode long.mp3");
   }
   else if (msg->data == "start_long")
   {
-    playSound(default_mp3_path_ + "Start button long press.mp3");
+    playSound(default_mp3_path_ + "button-start long.mp3");
   }
   else if (msg->data == "user_long")
   {
-    playSound(default_mp3_path_ + "User button long press.mp3");
+    playSound(default_mp3_path_ + "button-user long.mp3");
   }
 }
 

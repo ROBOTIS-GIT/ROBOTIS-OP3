@@ -35,42 +35,40 @@
  *      Author: JaySong
  */
 
-
 #include "op3_action_editor/action_editor.h"
-
 
 using namespace robotis_op;
 
 ActionEditor::ActionEditor()
 {
-  ctrl_  = 0;
+  ctrl_ = 0;
   robot_ = 0;
 
-  cmd_col_       = 2;
-  stp7_col_      = 19+2;
-  stp0_col_      = 25+2;
-  stp1_col_      = 30+2;
-  stp2_col_      = 35+2;
-  stp3_col_      = 40+2;
-  stp4_col_      = 45+2;
-  stp5_col_      = 50+2;
-  stp6_col_      = 55+2;
-  cwslope_col_   = 60+2;
-  ccwslope_col_  = 61+2;
-  name_col_      = 63+2;
-  addr_col_      = 72+2;
-  pagenum_col_   = 75+2;
-  pageparam_col_ = 76+2;
+  cmd_col_ = 2;
+  stp7_col_ = 19 + 2;
+  stp0_col_ = 25 + 2;
+  stp1_col_ = 30 + 2;
+  stp2_col_ = 35 + 2;
+  stp3_col_ = 40 + 2;
+  stp4_col_ = 45 + 2;
+  stp5_col_ = 50 + 2;
+  stp6_col_ = 55 + 2;
+  cwslope_col_ = 60 + 2;
+  ccwslope_col_ = 61 + 2;
+  name_col_ = 63 + 2;
+  addr_col_ = 72 + 2;
+  pagenum_col_ = 75 + 2;
+  pageparam_col_ = 76 + 2;
 
-  name_row_       = 0;
-  page_num_row_   = 1;
-  addr_row_       = 2;
+  name_row_ = 0;
+  page_num_row_ = 1;
+  addr_row_ = 2;
   play_count_row_ = 3;
-  step_num_row_   = 4;
-  play_time_row_  = 5;
-  accel_row_      = 6;
-  next_row_       = 7;
-  exit_row_       = 8;
+  step_num_row_ = 4;
+  play_time_row_ = 5;
+  accel_row_ = 6;
+  next_row_ = 7;
+  exit_row_ = 8;
 
   first_joint_row_ = 0;
   begin_command_mode_ = false;
@@ -88,11 +86,11 @@ ActionEditor::ActionEditor()
   num_of_dxls_ = 1;
 
   first_joint_row_ = 0;
-  last_joint_row_  = num_of_dxls_ - 1;
+  last_joint_row_ = num_of_dxls_ - 1;
 
   pause_row_ = last_joint_row_ + 1;
-  time_row_  = pause_row_  + 1;
-  cmd_row_   = time_row_  + 2;
+  time_row_ = pause_row_ + 1;
+  cmd_row_ = time_row_ + 2;
 
   screen_col_ = 80;
   screen_row_ = cmd_row_ + 1;
@@ -176,11 +174,11 @@ void ActionEditor::moveUpCursor()
 {
   if (curr_col_ >= stp7_col_ && curr_col_ <= ccwslope_col_)
   {
-    if(curr_row_ > first_joint_row_)
+    if (curr_row_ > first_joint_row_)
     {
       // If last_joint_row_ is less than 9 and the difference from pause_row_ is not 1,
       // it must be specified separately if it is pause_row_.
-      if(curr_row_ == pause_row_)
+      if (curr_row_ == pause_row_)
         goToCursor(curr_col_, last_joint_row_);
       else
         goToCursor(curr_col_, curr_row_ - 1);
@@ -197,11 +195,11 @@ void ActionEditor::moveDownCursor()
 {
   if (curr_col_ >= stp7_col_ && curr_col_ <= stp6_col_)
   {
-    if(curr_row_ < time_row_)
+    if (curr_row_ < time_row_)
     {
       // If last_joint_row_ is less than 9 and the difference from pause_row_ is not 1,
       // it must be specified separately if it is last_joint_row_.
-      if(curr_row_ == last_joint_row_)
+      if (curr_row_ == last_joint_row_)
         goToCursor(curr_col_, pause_row_);
       else
         goToCursor(curr_col_, curr_row_ + 1);
@@ -255,7 +253,7 @@ void ActionEditor::moveRightCursor()
     goToCursor(stp2_col_, curr_row_);
   else if (curr_col_ == stp2_col_)
     goToCursor(stp3_col_, curr_row_);
-  else if (curr_col_ ==  stp3_col_)
+  else if (curr_col_ == stp3_col_)
     goToCursor(stp4_col_, curr_row_);
   else if (curr_col_ == stp4_col_)
     goToCursor(stp5_col_, curr_row_);
@@ -274,7 +272,8 @@ void ActionEditor::moveRightCursor()
     return;
 }
 
-bool ActionEditor::initializeActionEditor(std::string robot_file_path, std::string init_file_path, std::string offset_file_path)
+bool ActionEditor::initializeActionEditor(std::string robot_file_path, std::string init_file_path,
+                                          std::string offset_file_path)
 {
   ctrl_ = robotis_framework::RobotisController::getInstance();
 
@@ -286,7 +285,7 @@ bool ActionEditor::initializeActionEditor(std::string robot_file_path, std::stri
   }
 
   ctrl_->loadOffset(offset_file_path);
-  ctrl_->addMotionModule((robotis_framework::MotionModule*)ActionModule::getInstance());
+  ctrl_->addMotionModule((robotis_framework::MotionModule*) ActionModule::getInstance());
   ActionModule::getInstance()->enableAllJoints();
 
   robot_ = ctrl_->robot_;
@@ -294,24 +293,26 @@ bool ActionEditor::initializeActionEditor(std::string robot_file_path, std::stri
   //Initialize Publisher
   ros::NodeHandle nh;
   enable_ctrl_module_pub_ = nh.advertise<std_msgs::String>("/robotis/enable_ctrl_module", 0);
+  play_sound_pub_ = nh.advertise<std_msgs::String>("/play_sound_file", 0);
 
   //Initialize Member variable
-  for(std::map<std::string, robotis_framework::Dynamixel*>::iterator it = robot_->dxls_.begin(); it != robot_->dxls_.end(); it++)
+  for (std::map<std::string, robotis_framework::Dynamixel*>::iterator it = robot_->dxls_.begin();
+      it != robot_->dxls_.end(); it++)
   {
     std::string joint_name = it->first;
-    robotis_framework::Dynamixel*  dxl_info = it->second;
+    robotis_framework::Dynamixel* dxl_info = it->second;
 
-    joint_name_to_id_[joint_name]   = dxl_info->id_;
+    joint_name_to_id_[joint_name] = dxl_info->id_;
     joint_id_to_name_[dxl_info->id_] = joint_name;
   }
 
   //Since joint_id_to_name_ is automatically sorted by id,
   //joint_id_to_row_index_ should be initialized after initialization of joint_id_to_name_.
   int row_idx = 0;
-  for(std::map<int, std::string>::iterator it = joint_id_to_name_.begin(); it != joint_id_to_name_.end(); it++)
+  for (std::map<int, std::string>::iterator it = joint_id_to_name_.begin(); it != joint_id_to_name_.end(); it++)
   {
     int id = it->first;
-    if((id != 0) && (id <= action_file_define::MAXNUM_JOINTS))
+    if ((id != 0) && (id <= action_file_define::MAXNUM_JOINTS))
     {
       joint_id_to_row_index_[id] = row_idx;
       joint_row_index_to_id_[row_idx] = id;
@@ -322,16 +323,15 @@ bool ActionEditor::initializeActionEditor(std::string robot_file_path, std::stri
   num_of_dxls_ = joint_id_to_name_.size();
 
   first_joint_row_ = 0;
-  last_joint_row_  = num_of_dxls_ - 1;
+  last_joint_row_ = num_of_dxls_ - 1;
 
-  if(last_joint_row_ < 9)
+  if (last_joint_row_ < 9)
     pause_row_ = 9 + 1;
   else
     pause_row_ = last_joint_row_ + 1;
 
-
   time_row_ = pause_row_ + 1;
-  cmd_row_  = time_row_  + 2;
+  cmd_row_ = time_row_ + 2;
 
   screen_col_ = 80;
   screen_row_ = cmd_row_ + 1;
@@ -347,19 +347,49 @@ bool ActionEditor::initializeActionEditor(std::string robot_file_path, std::stri
         8);
   }
 
+  default_editor_script_path_ = ros::package::getPath("action_editor") + "/script/editor_script.yaml";
+
   return true;
 }
 
 int ActionEditor::convert4095ToPositionValue(int id, int w4095)
 {
-  double rad = (w4095 - 2048)*M_PI/2048.0;
+  double rad = (w4095 - 2048) * M_PI / 2048.0;
   return robot_->dxls_[joint_id_to_name_[id]]->convertRadian2Value(rad);
 }
 
 int ActionEditor::convertPositionValueTo4095(int id, int PositionValue)
 {
   double rad = robot_->dxls_[joint_id_to_name_[id]]->convertValue2Radian(PositionValue);
-  return (int)((rad + M_PI)*2048.0/M_PI);
+  return (int) ((rad + M_PI) * 2048.0 / M_PI);
+}
+
+bool ActionEditor::loadMp3Path(int mp3_index, std::string &path)
+{
+  YAML::Node doc;
+
+  try
+  {
+    // load yaml
+    doc = YAML::LoadFile(default_editor_script_path_.c_str());
+  } catch (const std::exception& e)
+  {
+    return false;
+  }
+
+  // parse action_sound table
+  YAML::Node sub_node = doc["action_and_sound"];
+  for (YAML::iterator yaml_it = sub_node.begin(); yaml_it != sub_node.end(); ++yaml_it)
+  {
+    int index = yaml_it->first.as<int>();
+    if (mp3_index == index)
+    {
+      path = yaml_it->second.as<std::string>();
+      return true;
+    }
+  }
+
+  return false;
 }
 
 // Disp & Drawing
@@ -420,22 +450,20 @@ void ActionEditor::drawPage()
 
   // Draw joint list
   goToCursor(0, 0);
-  for(std::map<int, std::string>::iterator it = joint_id_to_name_.begin();
-      it != joint_id_to_name_.end();
-      it++)
+  for (std::map<int, std::string>::iterator it = joint_id_to_name_.begin(); it != joint_id_to_name_.end(); it++)
   {
     int id = it->first;
     std::string joint_name = it->second;
 
-    if((id == 0) || (id > action_file_define::MAXNUM_JOINTS))
+    if ((id == 0) || (id > action_file_define::MAXNUM_JOINTS))
       continue;
 
     printf("ID:%3d", id);
 
     printf("(");
-    for(int joint_name_idx = 0; joint_name_idx < max_joint_name_length_; joint_name_idx++)
+    for (int joint_name_idx = 0; joint_name_idx < max_joint_name_length_; joint_name_idx++)
     {
-      if(joint_name_idx >= joint_name.size())
+      if (joint_name_idx >= joint_name.size())
         printf(" ");
       else
         printf("%c", joint_name.at(joint_name_idx));
@@ -447,7 +475,7 @@ void ActionEditor::drawPage()
     goToCursor(cwslope_col_, curr_row_);
     printf("%.1d%.1d", page_.header.pgain[id] >> 4, page_.header.pgain[id] & 0x0f);
 
-    goToCursor(0, curr_row_+1);
+    goToCursor(0, curr_row_ + 1);
   }
 
   // Draw pause row
@@ -467,22 +495,22 @@ void ActionEditor::drawPage()
     drawStep(i);
 
   // Draw Page parameter
-  goToCursor( pageparam_col_, play_count_row_);
+  goToCursor(pageparam_col_, play_count_row_);
   printf("%.3d", page_.header.repeat);
 
-  goToCursor( pageparam_col_, step_num_row_);
+  goToCursor(pageparam_col_, step_num_row_);
   printf("%.3d", page_.header.stepnum);
 
-  goToCursor( pageparam_col_, play_time_row_);
+  goToCursor(pageparam_col_, play_time_row_);
   printf("%.3d", page_.header.speed);
 
-  goToCursor( pageparam_col_, accel_row_);
+  goToCursor(pageparam_col_, accel_row_);
   printf("%.3d", page_.header.accel);
 
-  goToCursor( pageparam_col_, next_row_);
+  goToCursor(pageparam_col_, next_row_);
   printf("%.3d", page_.header.next);
 
-  goToCursor( pageparam_col_, exit_row_);
+  goToCursor(pageparam_col_, exit_row_);
   printf("%.3d", page_.header.exit);
 
   // Draw Page information
@@ -492,7 +520,7 @@ void ActionEditor::drawPage()
   printf("%.4d", page_idx_);
 
   goToCursor(addr_col_, addr_row_);
-  printf("0x%.5X", (int)(page_idx_ * sizeof(action_file_define::Page)));
+  printf("0x%.5X", (int) (page_idx_ * sizeof(action_file_define::Page)));
 
   drawStepLine(false);
 
@@ -544,10 +572,7 @@ void ActionEditor::drawStep(int index)
       return;
   }
 
-
-  for(std::map<int, int>::iterator it = joint_id_to_row_index_.begin();
-      it != joint_id_to_row_index_.end();
-      it++)
+  for (std::map<int, int>::iterator it = joint_id_to_row_index_.begin(); it != joint_id_to_row_index_.end(); it++)
   {
     int id = it->first;
     int row_idx = it->second;
@@ -599,40 +624,40 @@ void ActionEditor::drawStepLine(bool erase)
 
   switch (page_.header.stepnum)
   {
-  case 0:
-    col = stp0_col_;
-    break;
+    case 0:
+      col = stp0_col_;
+      break;
 
-  case 1:
-    col = stp1_col_;
-    break;
+    case 1:
+      col = stp1_col_;
+      break;
 
-  case 2:
-    col = stp2_col_;
-    break;
+    case 2:
+      col = stp2_col_;
+      break;
 
-  case 3:
-    col = stp3_col_;
-    break;
+    case 3:
+      col = stp3_col_;
+      break;
 
-  case 4:
-    col = stp4_col_;
-    break;
+    case 4:
+      col = stp4_col_;
+      break;
 
-  case 5:
-    col = stp5_col_;
-    break;
+    case 5:
+      col = stp5_col_;
+      break;
 
-  case 6:
-    col = stp6_col_;
-    break;
+    case 6:
+      col = stp6_col_;
+      break;
 
-  case 7:
-    col = cwslope_col_;
-    break;
+    case 7:
+      col = cwslope_col_;
+      break;
 
-  default:
-    return;
+    default:
+      return;
   }
   col--;
 
@@ -660,9 +685,7 @@ void ActionEditor::readStep()
     enable[index] = false;
   }
 
-  for (std::map<int, int>::iterator it = joint_id_to_row_index_.begin();
-       it != joint_id_to_row_index_.end();
-       it++)
+  for (std::map<int, int>::iterator it = joint_id_to_row_index_.begin(); it != joint_id_to_row_index_.end(); it++)
   {
     id = it->first;
     std::string joint_name = joint_id_to_name_[id];
@@ -712,7 +735,6 @@ void ActionEditor::clearCmd()
   printCmd("                              ");
 }
 
-
 void ActionEditor::printCmd(const char *message)
 {
   int len = strlen(message);
@@ -746,7 +768,6 @@ void ActionEditor::setValueUpDown(int offset)
 {
   setValue(getValue() + offset);
 }
-
 
 void ActionEditor::setValue(int value)
 {
@@ -809,19 +830,19 @@ void ActionEditor::setValue(int value)
   else if (col <= stp6_col_)
   {
     int i = 0;
-    if(col ==  stp0_col_)
+    if (col == stp0_col_)
       i = 0;
-    else if(col ==  stp1_col_)
+    else if (col == stp1_col_)
       i = 1;
-    else if(col ==  stp2_col_)
+    else if (col == stp2_col_)
       i = 2;
-    else if(col ==  stp3_col_)
+    else if (col == stp3_col_)
       i = 3;
-    else if(col ==  stp4_col_)
+    else if (col == stp4_col_)
       i = 4;
-    else if(col ==  stp5_col_)
+    else if (col == stp5_col_)
       i = 5;
-    else if(col ==  stp6_col_)
+    else if (col == stp6_col_)
       i = 6;
 
     int id = joint_row_index_to_id_[row];
@@ -967,19 +988,19 @@ int ActionEditor::getValue()
   else if (col <= stp6_col_)
   {
     int i = 0;
-    if(col ==  stp0_col_)
+    if (col == stp0_col_)
       i = 0;
-    else if(col ==  stp1_col_)
+    else if (col == stp1_col_)
       i = 1;
-    else if(col ==  stp2_col_)
+    else if (col == stp2_col_)
       i = 2;
-    else if(col ==  stp3_col_)
+    else if (col == stp3_col_)
       i = 3;
-    else if(col ==  stp4_col_)
+    else if (col == stp4_col_)
       i = 4;
-    else if(col ==  stp5_col_)
+    else if (col == stp5_col_)
       i = 5;
-    else if(col ==  stp6_col_)
+    else if (col == stp6_col_)
       i = 6;
 
     int id = joint_row_index_to_id_[row];
@@ -1032,8 +1053,7 @@ void ActionEditor::toggleTorque()
     if (ctrl_->readCtrlItem(joint_name, "present_position", &value, 0) != COMM_SUCCESS)
       return;
 
-    int offset = robot_->dxls_[joint_name]->convertRadian2Value(
-        robot_->dxls_[joint_name]->dxl_state_->position_offset_)
+    int offset = robot_->dxls_[joint_name]->convertRadian2Value(robot_->dxls_[joint_name]->dxl_state_->position_offset_)
         - robot_->dxls_[joint_name]->value_of_0_radian_position_;
     value = value - offset;
 
@@ -1051,7 +1071,6 @@ void ActionEditor::toggleTorque()
 
   goToCursor(curr_col_, curr_row_);
 }
-
 
 // Command process
 void ActionEditor::beginCommandMode()
@@ -1153,75 +1172,95 @@ void ActionEditor::speedCmd()
 
 void ActionEditor::playCmd()
 {
+  playCmd(-1);
+}
+
+void ActionEditor::playCmd(int mp3_index)
+{
   uint32_t value;
 
-  for (int i = 0; i < page_.header.stepnum; i++)
-  {
-    for (std::map<int, int>::iterator it = joint_id_to_row_index_.begin(); it != joint_id_to_row_index_.end(); it++)
+    for (int i = 0; i < page_.header.stepnum; i++)
     {
-      int id = it->first;
-      if (page_.step[i].position[id] & action_file_define::INVALID_BIT_MASK)
+      for (std::map<int, int>::iterator it = joint_id_to_row_index_.begin(); it != joint_id_to_row_index_.end(); it++)
       {
-        printCmd("Exist invalid joint value");
-        return;
+        int id = it->first;
+        if (page_.step[i].position[id] & action_file_define::INVALID_BIT_MASK)
+        {
+          printCmd("Exist invalid joint value");
+          return;
+        }
       }
     }
-  }
 
-  printCmd("Playing... ('s' to stop, 'b' to brake)");
+    printCmd("Playing... ('s' to stop, 'b' to brake)");
 
-  ctrl_->startTimer();
-  ros::Duration(0.03).sleep(); // waiting for timer start
+    ctrl_->startTimer();
+    ros::Duration(0.03).sleep();  // waiting for timer start
 
-  std_msgs::String msg;
-  msg.data = "action_module";
-  enable_ctrl_module_pub_.publish(msg);
-  ros::Duration(0.03).sleep(); // waiting for enable
+    std_msgs::String msg;
+    msg.data = "action_module";
+    enable_ctrl_module_pub_.publish(msg);
+    ros::Duration(0.03).sleep();  // waiting for enable
 
-  if (ActionModule::getInstance()->start(page_idx_, &page_) == false)
-  {
-    printCmd("Failed to play this page!");
+    if (ActionModule::getInstance()->start(page_idx_, &page_) == false)
+    {
+      printCmd("Failed to play this page!");
+      ctrl_->stopTimer();
+      return;
+    }
+
+    // play mp3
+    if(mp3_index != -1)
+    {
+      std::string mp3_path = "";
+      bool get_path_result = loadMp3Path(mp3_index, mp3_path);
+
+      if(get_path_result == true)
+      {
+        std_msgs::String sound_msg;
+        sound_msg.data = mp3_path;
+
+        play_sound_pub_.publish(sound_msg);
+      }
+    }
+
+    setSTDin();
+    while (1)
+    {
+      if (ActionModule::getInstance()->isRunning() == false)
+        break;
+
+      if (kbhit())
+      {
+        int key = _getch();
+        goToCursor(cmd_col_, cmd_row_);
+        if (key == 's')
+        {
+          ActionModule::getInstance()->stop();
+          fprintf(stderr, "\r] Stopping...                                  ");
+        }
+        else if (key == 'b')
+        {
+          ActionModule::getInstance()->brake();
+          fprintf(stderr, "\r] Braking...                                   ");
+        }
+        else
+          fprintf(stderr, "\r] Playing... ('s' to stop, 'b' to brake)");
+      }
+
+      usleep(10000);
+    }
+    resetSTDin();
+
     ctrl_->stopTimer();
-    return;
-  }
 
-  setSTDin();
-  while (1)
-  {
-    if (ActionModule::getInstance()->isRunning() == false)
-      break;
-
-    if (kbhit())
-    {
-      int key = _getch();
-      goToCursor(cmd_col_, cmd_row_);
-      if (key == 's')
-      {
-        ActionModule::getInstance()->stop();
-        fprintf(stderr, "\r] Stopping...                                  ");
-      }
-      else if (key == 'b')
-      {
-        ActionModule::getInstance()->brake();
-        fprintf(stderr, "\r] Braking...                                   ");
-      }
-      else
-        fprintf(stderr, "\r] Playing... ('s' to stop, 'b' to brake)");
-    }
+    goToCursor(cmd_col_, cmd_row_);
+    printCmd("Done.");
 
     usleep(10000);
-  }
-  resetSTDin();
 
-  ctrl_->stopTimer();
-
-  goToCursor(cmd_col_, cmd_row_);
-  printCmd("Done.");
-
-  usleep(10000);
-
-  readStep();
-  drawStep(7);
+    readStep();
+    drawStep(7);
 }
 
 void ActionEditor::listCmd()
@@ -1237,7 +1276,7 @@ void ActionEditor::listCmd()
     {
       for (int j = 0; j < 4; j++)
       {
-        int k = (index * 88) + (j * 22 + i); //first page number is 1
+        int k = (index * 88) + (j * 22 + i);  //first page number is 1
         action_file_define::Page page;
         if (ActionModule::getInstance()->loadPage(k, &page) == true)
         {
@@ -1296,9 +1335,7 @@ void ActionEditor::turnOnOffCmd(bool on, int num_param, int *list)
 
   if (num_param == 0)
   {
-    for (std::map<int, int>::iterator it = joint_id_to_row_index_.begin();
-         it != joint_id_to_row_index_.end();
-         it++)
+    for (std::map<int, int>::iterator it = joint_id_to_row_index_.begin(); it != joint_id_to_row_index_.end(); it++)
     {
       int id = it->first;
       std::string joint_name = joint_id_to_name_[id];
@@ -1311,7 +1348,7 @@ void ActionEditor::turnOnOffCmd(bool on, int num_param, int *list)
     {
       int id = list[i];
       std::map<int, int>::iterator it = joint_id_to_row_index_.find(id);
-      if(it != joint_id_to_row_index_.end())
+      if (it != joint_id_to_row_index_.end())
       {
         std::string joint_name = joint_id_to_name_[id];
         ctrl_->writeCtrlItem(joint_name, "torque_enable", torque_enable, 0);
@@ -1325,9 +1362,7 @@ void ActionEditor::turnOnOffCmd(bool on, int num_param, int *list)
 
 void ActionEditor::writeStepCmd(int index)
 {
-  for (std::map<int, int>::iterator it = joint_id_to_row_index_.begin();
-       it != joint_id_to_row_index_.end();
-       it++)
+  for (std::map<int, int>::iterator it = joint_id_to_row_index_.begin(); it != joint_id_to_row_index_.end(); it++)
   {
     int id = it->first;
 
@@ -1386,9 +1421,7 @@ void ActionEditor::deleteStepCmd(int index)
 
 void ActionEditor::insertStepCmd(int index)
 {
-  for (std::map<int, int>::iterator it = joint_id_to_row_index_.begin();
-       it != joint_id_to_row_index_.end();
-       it++)
+  for (std::map<int, int>::iterator it = joint_id_to_row_index_.begin(); it != joint_id_to_row_index_.end(); it++)
   {
     int id = it->first;
     if (step_.position[id] & action_file_define::TORQUE_OFF_BIT_MASK)
@@ -1517,9 +1550,7 @@ void ActionEditor::goCmd(int index)
     it->second->clearParam();
   }
 
-  for (std::map<int, int>::iterator it = joint_id_to_row_index_.begin();
-       it != joint_id_to_row_index_.end();
-       it++)
+  for (std::map<int, int>::iterator it = joint_id_to_row_index_.begin(); it != joint_id_to_row_index_.end(); it++)
   {
     id = it->first;
     std::string joint_name = joint_id_to_name_[id];
@@ -1529,7 +1560,7 @@ void ActionEditor::goCmd(int index)
       return;
     }
 
-    if (ctrl_->readCtrlItem(joint_name, "present_position", (uint32_t*)&start_position, 0) != COMM_SUCCESS)
+    if (ctrl_->readCtrlItem(joint_name, "present_position", (uint32_t*) &start_position, 0) != COMM_SUCCESS)
     {
       printCmd("Failed to read position");
       return;
@@ -1562,7 +1593,6 @@ void ActionEditor::goCmd(int index)
     param[6] = DXL_LOBYTE(DXL_HIWORD(goal_position));
     param[7] = DXL_HIBYTE(DXL_HIWORD(goal_position));
 
-
     for (std::map<std::string, dynamixel::GroupSyncWrite *>::iterator it = port_to_sync_write_go_cmd_.begin();
         it != port_to_sync_write_go_cmd_.end(); it++)
     {
@@ -1584,9 +1614,7 @@ void ActionEditor::goCmd(int index)
     it->second->clearParam();
   }
 
-  for (std::map<int, int>::iterator it = joint_id_to_row_index_.begin();
-       it != joint_id_to_row_index_.end();
-       it++)
+  for (std::map<int, int>::iterator it = joint_id_to_row_index_.begin(); it != joint_id_to_row_index_.end(); it++)
   {
     id = it->first;
     std::string joint_name = joint_id_to_name_[id];

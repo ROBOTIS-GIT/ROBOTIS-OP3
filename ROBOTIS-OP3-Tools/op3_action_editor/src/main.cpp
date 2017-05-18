@@ -231,6 +231,13 @@ int main(int argc, char **argv)
            {
              editor.playCmd();
            }
+           else if (strcmp(cmd, "playboth") == 0)
+           {
+             if (num_param > 0)
+               editor.playCmd(iparam[0]);
+             else
+               editor.printCmd("Need parameter");
+           }
            else if (strcmp(cmd, "set") == 0)
            {
              if (num_param > 0)

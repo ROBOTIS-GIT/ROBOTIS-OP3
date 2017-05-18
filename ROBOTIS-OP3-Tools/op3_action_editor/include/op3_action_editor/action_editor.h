@@ -106,6 +106,7 @@ public:
   void timeCmd();
   void speedCmd();
   void playCmd();
+  void playCmd(int mp3_index);
   void playCmd(const char* file_path);
   void listCmd();
   void turnOnOffCmd(bool on, int num_param, int *list);
@@ -129,8 +130,11 @@ private:
   int convert4095ToPositionValue(int id, int w4095);
   int convertPositionValueTo4095(int id, int PositionValue);
 
+  bool loadMp3Path(int mp3_index, std::string &path);
+
   struct termios oldterm, new_term;
   ros::Publisher enable_ctrl_module_pub_;
+  ros::Publisher play_sound_pub_;
 
   action_file_define::Page page_;
   action_file_define::Step step_;
@@ -142,6 +146,8 @@ private:
   std::map<int, int> joint_id_to_row_index_;
   std::map<int, int> joint_row_index_to_id_;
   std::map<std::string, int> joint_name_to_id_;
+
+  std::string default_editor_script_path_;
 
   std::map<std::string, dynamixel::GroupSyncWrite *> port_to_sync_write_go_cmd_;
 

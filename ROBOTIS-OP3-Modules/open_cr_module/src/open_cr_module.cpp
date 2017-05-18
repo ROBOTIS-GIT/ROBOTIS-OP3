@@ -71,6 +71,10 @@ OpenCRModule::OpenCRModule()
   previous_result_["gyro_y"] = 0.0;
   previous_result_["gyro_z"] = 0.0;
 
+  previous_result_["gyro_x_prev"] = 0.0;
+  previous_result_["gyro_y_prev"] = 0.0;
+  previous_result_["gyro_z_prev"] = 0.0;
+
   previous_result_["acc_x"] = 0.0;
   previous_result_["acc_y"] = 0.0;
   previous_result_["acc_z"] = 0.0;
@@ -128,10 +132,28 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
 
   uint16_t present_volt = sensors["open-cr"]->sensor_state_->bulk_read_table_["present_voltage"];
 
-  // for debug
   if(present_volt < 80)
-    return;
+  {
+    //ROS_INFO("Something is worng....");
+    ROS_INFO("------------------------ curr ---------------------------");
+    ROS_INFO("Gyro : %6.3f[%6d], %6.3f[%6d], %6.3f[%6d]", -getGyroValue(gyro_x), gyro_x, -getGyroValue(gyro_y), gyro_y, getGyroValue(gyro_z), gyro_z);
+    //ROS_INFO("Acc  : %6.3f, %6.3f, %6.3f", -getAccValue(acc_x), -getAccValue(acc_y), getAccValue(acc_z));
+    //ROS_INFO("Voltage : %f", present_volt * 0.1);
+    ROS_INFO("------------------------ prev ---------------------------");
+    ROS_INFO("Gyro : %6.3f, %6.3f, %6.3f", previous_result_["gyro_x_prev"], previous_result_["gyro_y_prev"], previous_result_["gyro_z_prev"]);
+    //ROS_INFO("Acc  : %6.3f, %6.3f, %6.3f", previous_result_["acc_x"], previous_result_["acc_y"], previous_result_["acc_z"]);
+    ROS_INFO("Voltage : %f", previous_volt_);
+    //ROS_INFO(".");
+    //ROS_INFO(".");
+    //ROS_INFO(".");
+    //ROS_INFO(".");
 
+    return;
+  }
+
+  // for debug
+  //if(present_volt < 80)
+  //  return;
 
 //  result_["gyro_x"] = - getGyroValue(gyro_x);
 //  result_["gyro_y"] = - getGyroValue(gyro_y);
@@ -167,24 +189,6 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
   handleButton("start");
   handleButton("user");
 
-
-  if(present_volt < 80)
-  {
-    ROS_INFO("Something is worng....");
-    ROS_INFO("------------------------ curr ---------------------------");
-    ROS_INFO("Gyro : %f, %f, %f", -getGyroValue(gyro_x), -getGyroValue(gyro_y), getGyroValue(gyro_z));
-    ROS_INFO("Acc  : %f, %f, %f", -getAccValue(acc_x), -getAccValue(acc_y), getAccValue(acc_z));
-    ROS_INFO("Voltage : %f", present_volt * 0.1);
-    ROS_INFO("------------------------ prev ---------------------------");
-    ROS_INFO("Gyro : %f, %f, %f", previous_result_["gyro_x"], previous_result_["gyro_y"], previous_result_["gyro_z"]);
-    ROS_INFO("Acc  : %f, %f, %f", previous_result_["acc_x"], previous_result_["acc_y"], previous_result_["acc_z"]);
-    ROS_INFO("Voltage : %f", previous_volt_);
-    ROS_INFO(".");
-    ROS_INFO(".");
-    ROS_INFO(".");
-    ROS_INFO(".");
-  }
-
   result_["present_voltage"] = present_volt * 0.1;
   handleVoltage(result_["present_voltage"]);
 
@@ -195,6 +199,10 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
   double yaw = DEGREE2RADIAN * sensors["open-cr"]->sensor_state_->bulk_read_table_["acc_z"];
 
   publishIMU(roll, pitch, yaw);
+
+  previous_result_["gyro_x_prev"] = result_["gyro_x"];
+  previous_result_["gyro_y_prev"] = result_["gyro_y"];
+  previous_result_["gyro_z_prev"] = result_["gyro_z"];
 }
 
 // -2000 ~ 2000dps(-32800 ~ 32800), scale factor : 16.4, dps -> rps

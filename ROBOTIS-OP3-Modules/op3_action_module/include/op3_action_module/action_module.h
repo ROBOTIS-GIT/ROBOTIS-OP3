@@ -86,6 +86,14 @@ class ActionModule : public robotis_framework::MotionModule, public robotis_fram
   void actionPlayProcess(std::map<std::string, robotis_framework::Dynamixel *> dxls);
 
 private:
+  const int PRE_SECTION;
+  const int MAIN_SECTION;
+  const int POST_SECTION;
+  const int PAUSE_SECTION;
+  const int ZERO_FINISH;
+  const int NONE_ZERO_FINISH;
+  const bool DEBUG_PRINT;
+
   void queueThread();
 
   bool verifyChecksum( action_file_define::Page* page );
@@ -131,13 +139,6 @@ private:
   bool action_module_enabled_;
   bool previous_running_;
   bool present_running_;
-
-  const int PRE_SECTION;
-  const int MAIN_SECTION;
-  const int POST_SECTION;
-  const int PAUSE_SECTION;
-  const int ZERO_FINISH;
-  const int NONE_ZERO_FINISH;
 };
 
 }

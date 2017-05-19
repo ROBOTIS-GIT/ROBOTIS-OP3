@@ -96,6 +96,7 @@ ActionEditor::ActionEditor()
   screen_row_ = cmd_row_ + 1;
 
   profile_velocity_addr_ = 112;
+  cache_value_ = -1;
 }
 
 ActionEditor::~ActionEditor()
@@ -347,7 +348,16 @@ bool ActionEditor::initializeActionEditor(std::string robot_file_path, std::stri
         8);
   }
 
-  default_editor_script_path_ = ros::package::getPath("action_editor") + "/script/editor_script.yaml";
+  default_editor_script_path_ = ros::package::getPath("op3_action_editor") + "/script/editor_script.yaml";
+  mirror_joint_file_path_ = ros::package::getPath("op3_action_editor") + "/config/config_mirror_joint.yaml";
+
+  // for mirroring
+  upper_body_mirror_joints_rl_.clear();
+  upper_body_mirror_joints_lr_.clear();
+  lower_body_mirror_joints_rl_.clear();
+  lower_body_mirror_joints_lr_.clear();
+
+  loadMirrorJoint();
 
   return true;
 }
@@ -362,6 +372,11 @@ int ActionEditor::convertPositionValueTo4095(int id, int PositionValue)
 {
   double rad = robot_->dxls_[joint_id_to_name_[id]]->convertValue2Radian(PositionValue);
   return (int) ((rad + M_PI) * 2048.0 / M_PI);
+}
+
+int ActionEditor::convert4095ToMirror(int id, int w4095)
+{
+  return 4095 - w4095;
 }
 
 bool ActionEditor::loadMp3Path(int mp3_index, std::string &path)
@@ -390,6 +405,43 @@ bool ActionEditor::loadMp3Path(int mp3_index, std::string &path)
   }
 
   return false;
+}
+
+bool ActionEditor::loadMirrorJoint()
+{
+  YAML::Node doc;
+
+  try
+  {
+    // load yaml
+    doc = YAML::LoadFile(mirror_joint_file_path_.c_str());
+  } catch (const std::exception& e)
+  {
+    return false;
+  }
+
+  // parse action_sound table
+  YAML::Node sub_node = doc["upper_body"];
+  for (YAML::iterator yaml_it = sub_node.begin(); yaml_it != sub_node.end(); ++yaml_it)
+  {
+    int right_id = yaml_it->first.as<int>();
+    int left_id = yaml_it->second.as<int>();
+
+    upper_body_mirror_joints_rl_[right_id] = left_id;
+    upper_body_mirror_joints_lr_[left_id] = right_id;
+  }
+
+  YAML::Node sub_node2 = doc["lower_body"];
+  for (YAML::iterator yaml_it = sub_node2.begin(); yaml_it != sub_node2.end(); ++yaml_it)
+  {
+    int right_id = yaml_it->first.as<int>();
+    int left_id = yaml_it->second.as<int>();
+
+    lower_body_mirror_joints_rl_[right_id] = left_id;
+    lower_body_mirror_joints_lr_[left_id] = right_id;
+  }
+
+  return true;
 }
 
 // Disp & Drawing
@@ -1072,6 +1124,34 @@ void ActionEditor::toggleTorque()
   goToCursor(curr_col_, curr_row_);
 }
 
+void ActionEditor::storeValueToCache()
+{
+  cache_value_ = getValue();
+}
+
+void ActionEditor::setValueFromCache()
+{
+  // cache is empty.
+  if (cache_value_ == -1)
+  {
+    int cursor_col = curr_col_;
+    int cursor_row = curr_row_;
+
+    printCmd("Cache is empty.");
+    goToCursor(cursor_col, cursor_row);
+
+    return;
+  }
+
+  // set value
+  setValue(cache_value_);
+}
+
+void ActionEditor::clearCache()
+{
+  cache_value_ = -1;
+}
+
 // Command process
 void ActionEditor::beginCommandMode()
 {
@@ -1179,88 +1259,88 @@ void ActionEditor::playCmd(int mp3_index)
 {
   uint32_t value;
 
-    for (int i = 0; i < page_.header.stepnum; i++)
+  for (int i = 0; i < page_.header.stepnum; i++)
+  {
+    for (std::map<int, int>::iterator it = joint_id_to_row_index_.begin(); it != joint_id_to_row_index_.end(); it++)
     {
-      for (std::map<int, int>::iterator it = joint_id_to_row_index_.begin(); it != joint_id_to_row_index_.end(); it++)
+      int id = it->first;
+      if (page_.step[i].position[id] & action_file_define::INVALID_BIT_MASK)
       {
-        int id = it->first;
-        if (page_.step[i].position[id] & action_file_define::INVALID_BIT_MASK)
-        {
-          printCmd("Exist invalid joint value");
-          return;
-        }
+        printCmd("Exist invalid joint value");
+        return;
       }
     }
+  }
 
-    printCmd("Playing... ('s' to stop, 'b' to brake)");
+  printCmd("Playing... ('s' to stop, 'b' to brake)");
 
-    ctrl_->startTimer();
-    ros::Duration(0.03).sleep();  // waiting for timer start
+  ctrl_->startTimer();
+  ros::Duration(0.03).sleep();  // waiting for timer start
 
-    std_msgs::String msg;
-    msg.data = "action_module";
-    enable_ctrl_module_pub_.publish(msg);
-    ros::Duration(0.03).sleep();  // waiting for enable
+  std_msgs::String msg;
+  msg.data = "action_module";
+  enable_ctrl_module_pub_.publish(msg);
+  ros::Duration(0.03).sleep();  // waiting for enable
 
-    if (ActionModule::getInstance()->start(page_idx_, &page_) == false)
-    {
-      printCmd("Failed to play this page!");
-      ctrl_->stopTimer();
-      return;
-    }
-
-    // play mp3
-    if(mp3_index != -1)
-    {
-      std::string mp3_path = "";
-      bool get_path_result = loadMp3Path(mp3_index, mp3_path);
-
-      if(get_path_result == true)
-      {
-        std_msgs::String sound_msg;
-        sound_msg.data = mp3_path;
-
-        play_sound_pub_.publish(sound_msg);
-      }
-    }
-
-    setSTDin();
-    while (1)
-    {
-      if (ActionModule::getInstance()->isRunning() == false)
-        break;
-
-      if (kbhit())
-      {
-        int key = _getch();
-        goToCursor(cmd_col_, cmd_row_);
-        if (key == 's')
-        {
-          ActionModule::getInstance()->stop();
-          fprintf(stderr, "\r] Stopping...                                  ");
-        }
-        else if (key == 'b')
-        {
-          ActionModule::getInstance()->brake();
-          fprintf(stderr, "\r] Braking...                                   ");
-        }
-        else
-          fprintf(stderr, "\r] Playing... ('s' to stop, 'b' to brake)");
-      }
-
-      usleep(10000);
-    }
-    resetSTDin();
-
+  if (ActionModule::getInstance()->start(page_idx_, &page_) == false)
+  {
+    printCmd("Failed to play this page!");
     ctrl_->stopTimer();
+    return;
+  }
 
-    goToCursor(cmd_col_, cmd_row_);
-    printCmd("Done.");
+  // play mp3
+  if (mp3_index != -1)
+  {
+    std::string mp3_path = "";
+    bool get_path_result = loadMp3Path(mp3_index, mp3_path);
+
+    if (get_path_result == true)
+    {
+      std_msgs::String sound_msg;
+      sound_msg.data = mp3_path;
+
+      play_sound_pub_.publish(sound_msg);
+    }
+  }
+
+  setSTDin();
+  while (1)
+  {
+    if (ActionModule::getInstance()->isRunning() == false)
+      break;
+
+    if (kbhit())
+    {
+      int key = _getch();
+      goToCursor(cmd_col_, cmd_row_);
+      if (key == 's')
+      {
+        ActionModule::getInstance()->stop();
+        fprintf(stderr, "\r] Stopping...                                  ");
+      }
+      else if (key == 'b')
+      {
+        ActionModule::getInstance()->brake();
+        fprintf(stderr, "\r] Braking...                                   ");
+      }
+      else
+        fprintf(stderr, "\r] Playing... ('s' to stop, 'b' to brake)");
+    }
 
     usleep(10000);
+  }
+  resetSTDin();
 
-    readStep();
-    drawStep(7);
+  ctrl_->stopTimer();
+
+  goToCursor(cmd_col_, cmd_row_);
+  printCmd("Done.");
+
+  usleep(10000);
+
+  readStep();
+  drawStep(7);
 }
 
 void ActionEditor::listCmd()
@@ -1358,6 +1438,82 @@ void ActionEditor::turnOnOffCmd(bool on, int num_param, int *list)
 
   readStep();
   drawStep(7);
+}
+
+void ActionEditor::mirrorStepCmd(int index, int mirror_type, int target_type)
+{
+  // check index
+  if (index < 0 || index >= action_file_define::MAXNUM_STEP)
+  {
+    printCmd("Invalid step index");
+    return;
+  }
+
+  // store previous step
+  action_file_define::Step before_step = page_.step[index];
+
+  //check target_type
+  if (target_type == UpperBody || target_type == AllBody)
+  {
+    if (mirror_type == RightToLeft || mirror_type == SwitchEach)
+    {
+      for (std::map<int, int>::iterator it = upper_body_mirror_joints_rl_.begin();
+          it != upper_body_mirror_joints_rl_.end(); it++)
+      {
+        int right_id = it->first;
+        int left_id = it->second;
+        int mirror_value = convert4095ToMirror(right_id, before_step.position[right_id]);
+
+        page_.step[index].position[left_id] = mirror_value;
+      }
+    }
+
+    if (mirror_type == LeftToRight || mirror_type == SwitchEach)
+    {
+      for (std::map<int, int>::iterator it = upper_body_mirror_joints_lr_.begin();
+          it != upper_body_mirror_joints_lr_.end(); it++)
+      {
+        int left_id = it->first;
+        int right_id = it->second;
+        int mirror_value = convert4095ToMirror(left_id, before_step.position[left_id]);
+
+        page_.step[index].position[right_id] = mirror_value;
+      }
+    }
+  }
+
+  if (target_type == LowerBody || target_type == AllBody)
+  {
+    if (mirror_type == RightToLeft || mirror_type == SwitchEach)
+    {
+      for (std::map<int, int>::iterator it = lower_body_mirror_joints_rl_.begin();
+          it != lower_body_mirror_joints_rl_.end(); it++)
+      {
+        int right_id = it->first;
+        int left_id = it->second;
+        int mirror_value = convert4095ToMirror(right_id, before_step.position[right_id]);
+
+        page_.step[index].position[left_id] = mirror_value;
+      }
+    }
+
+    if (mirror_type == LeftToRight || mirror_type == SwitchEach)
+    {
+      for (std::map<int, int>::iterator it = lower_body_mirror_joints_lr_.begin();
+          it != lower_body_mirror_joints_lr_.end(); it++)
+      {
+        int left_id = it->first;
+        int right_id = it->second;
+        int mirror_value = convert4095ToMirror(left_id, before_step.position[left_id]);
+
+        page_.step[index].position[right_id] = mirror_value;
+      }
+    }
+  }
+
+  // draw step
+  drawStep(index);
+  edited_ = true;
 }
 
 void ActionEditor::writeStepCmd(int index)
@@ -1459,6 +1615,65 @@ void ActionEditor::insertStepCmd(int index)
   }
   else
     printCmd("Invalid step index");
+}
+
+void ActionEditor::insertInterpolationStepCmd(int index, int ratio)
+{
+  // check index (0 ~ 6)
+  if (index < 0 || (index + 1) >= action_file_define::MAXNUM_STEP)
+  {
+    printCmd("Invalid step index. input [0 - 6].");
+    return;
+  }
+
+  if((index + 1) >= page_.header.stepnum)
+  {
+    printCmd("Invalid step index.");
+    return;
+  }
+
+  // check ratio
+  if (ratio < 0 || ratio > 10)
+  {
+    printCmd("Invalid ratio. input from [0 - 10].");
+    return;
+  }
+
+  // move further steps to next
+  action_file_define::Step step_b = page_.step[index + 1];
+  action_file_define::Step step_a = page_.step[index];
+  double ratio_double = ratio / 10.0;
+
+  for (int i = action_file_define::MAXNUM_STEP - 1; i > (index + 1); i--)
+  {
+    page_.step[i] = page_.step[i - 1];
+    drawStep(i);
+  }
+
+  // interpolation and insert
+  for (std::map<int, int>::iterator it = joint_id_to_row_index_.begin(); it != joint_id_to_row_index_.end(); it++)
+  {
+    int id = it->first;
+    step_a.position[id] = step_a.position[id] * (1 - ratio_double) + step_b.position[id] * ratio_double;
+  }
+
+  page_.step[index + 1] = step_a;
+  drawStep(index + 1);
+
+  if (index == 0 || index < page_.header.stepnum)
+  {
+    if (page_.header.stepnum != action_file_define::MAXNUM_STEP)
+    {
+      drawStepLine(true);
+      page_.header.stepnum++;
+      drawStepLine(false);
+    }
+
+    goToCursor(pageparam_col_, step_num_row_);
+    printf("%.3d", page_.header.stepnum);
+  }
+
+  edited_ = true;
 }
 
 void ActionEditor::moveStepCmd(int src, int dst)

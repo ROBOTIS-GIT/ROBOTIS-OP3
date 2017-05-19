@@ -62,6 +62,19 @@ namespace robotis_op
 class ActionEditor
 {
 public:
+  enum MirrorCommandType
+  {
+    LeftToRight = 1,
+    RightToLeft = 2,
+    SwitchEach = 3
+  };
+  enum MirrorTargetType
+  {
+    UpperBody = 1,
+    LowerBody = 2,
+    AllBody = 3
+  };
+
   ActionEditor();
   ~ActionEditor();
 
@@ -95,6 +108,9 @@ public:
   void setValue(int value);
   int  getValue();
   void toggleTorque();
+  void storeValueToCache();
+  void setValueFromCache();
+  void clearCache();
 
   // Command process
   void beginCommandMode();
@@ -110,9 +126,11 @@ public:
   void playCmd(const char* file_path);
   void listCmd();
   void turnOnOffCmd(bool on, int num_param, int *list);
+  void mirrorStepCmd(int index, int mirror_type, int target_type);
   void writeStepCmd(int index);
   void deleteStepCmd(int index);
   void insertStepCmd(int index);
+  void insertInterpolationStepCmd(int index, int ratio);
   void moveStepCmd(int src, int dst);
   void copyCmd(int index);
   void newCmd();
@@ -129,8 +147,10 @@ private:
 
   int convert4095ToPositionValue(int id, int w4095);
   int convertPositionValueTo4095(int id, int PositionValue);
+  int convert4095ToMirror(int id, int w4095);
 
   bool loadMp3Path(int mp3_index, std::string &path);
+  bool loadMirrorJoint();
 
   struct termios oldterm, new_term;
   ros::Publisher enable_ctrl_module_pub_;
@@ -147,7 +167,13 @@ private:
   std::map<int, int> joint_row_index_to_id_;
   std::map<std::string, int> joint_name_to_id_;
 
+  std::map<int, int> upper_body_mirror_joints_rl_;
+  std::map<int, int> upper_body_mirror_joints_lr_;
+  std::map<int, int> lower_body_mirror_joints_rl_;
+  std::map<int, int> lower_body_mirror_joints_lr_;
+
   std::string default_editor_script_path_;
+  std::string mirror_joint_file_path_;
 
   std::map<std::string, dynamixel::GroupSyncWrite *> port_to_sync_write_go_cmd_;
 
@@ -197,6 +223,7 @@ private:
   int exit_row_;
 
   int profile_velocity_addr_;
+  int cache_value_;
 
 };
 

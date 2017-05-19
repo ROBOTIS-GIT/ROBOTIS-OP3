@@ -10,9 +10,14 @@ action_and_sound:
   27: "/home/robotis/catkin_ws/src/ROBOTIS-OP3/ROBOTIS-OP3-Demo/op3_demo/Data/mp3/Oops.mp3"
   38: "/home/robotis/catkin_ws/src/ROBOTIS-OP3/ROBOTIS-OP3-Demo/op3_demo/Data/mp3/Bye bye.mp3"
   101 : "/home/robotis/catkin_ws/src/ROBOTIS-OP3/ROBOTIS-OP3-Demo/op3_demo/Data/mp3/Oops.mp3"
+  110 : ""
+  111 : "/home/robotis/catkin_ws/src/ROBOTIS-OP3/ROBOTIS-OP3-Demo/op3_demo/Data/mp3/Intro01.mp3"
+  115 : "/home/robotis/catkin_ws/src/ROBOTIS-OP3/ROBOTIS-OP3-Demo/op3_demo/Data/mp3/Intro02.mp3"
+  118 : "/home/robotis/catkin_ws/src/ROBOTIS-OP3/ROBOTIS-OP3-Demo/op3_demo/Data/mp3/Intro03.mp3"
 
 # play list
-default: [4, 41, 24, 23, 15, 1, 54, 27, 38]
+prev_default: [4, 41, 24, 23, 15, 1, 54, 27, 38]
+default: [110, 111, 115, 118, 38]
 
 # example of play list
 certificatino: [101]

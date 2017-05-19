@@ -143,6 +143,12 @@ int main(int argc, char **argv)
        editor.setValueUpDown(10);
      else if (ch == ' ')
        editor.toggleTorque();
+     else if (ch == ',')
+       editor.storeValueToCache();
+     else if (ch == '.')
+       editor.setValueFromCache();
+     else if (ch == '/')
+       editor.clearCache();
      else if (ch >= 'A' && ch <= 'z')
      {
        char input[128] = { 0, };
@@ -251,6 +257,62 @@ int main(int argc, char **argv)
              editor.turnOnOffCmd(true, num_param, iparam);
            else if (strcmp(cmd, "off") == 0)
              editor.turnOnOffCmd(false, num_param, iparam);
+           else if (strcmp(cmd, "mrl") == 0)
+           {
+             if (num_param > 0)
+               editor.mirrorStepCmd(iparam[0], robotis_op::ActionEditor::RightToLeft,
+                                    robotis_op::ActionEditor::AllBody);
+             else
+               editor.printCmd("Need parameter");
+           }
+           else if (strcmp(cmd, "murl") == 0)
+           {
+             if (num_param > 0)
+               editor.mirrorStepCmd(iparam[0], robotis_op::ActionEditor::RightToLeft,
+                                    robotis_op::ActionEditor::UpperBody);
+             else
+               editor.printCmd("Need parameter");
+           }
+           else if (strcmp(cmd, "mlrl") == 0)
+           {
+             if (num_param > 0)
+               editor.mirrorStepCmd(iparam[0], robotis_op::ActionEditor::RightToLeft,
+                                    robotis_op::ActionEditor::LowerBody);
+             else
+               editor.printCmd("Need parameter");
+           }
+           else if (strcmp(cmd, "mlr") == 0)
+           {
+             if (num_param > 0)
+               editor.mirrorStepCmd(iparam[0], robotis_op::ActionEditor::LeftToRight,
+                                    robotis_op::ActionEditor::AllBody);
+             else
+               editor.printCmd("Need parameter");
+           }
+           else if (strcmp(cmd, "mulr") == 0)
+           {
+             if (num_param > 0)
+               editor.mirrorStepCmd(iparam[0], robotis_op::ActionEditor::LeftToRight,
+                                    robotis_op::ActionEditor::UpperBody);
+             else
+               editor.printCmd("Need parameter");
+           }
+           else if (strcmp(cmd, "mllr") == 0)
+           {
+             if (num_param > 0)
+               editor.mirrorStepCmd(iparam[0], robotis_op::ActionEditor::LeftToRight,
+                                    robotis_op::ActionEditor::LowerBody);
+             else
+               editor.printCmd("Need parameter");
+           }
+           else if (strcmp(cmd, "ms") == 0)
+           {
+             if (num_param > 0)
+               editor.mirrorStepCmd(iparam[0], robotis_op::ActionEditor::SwitchEach,
+                                    robotis_op::ActionEditor::AllBody);
+             else
+               editor.printCmd("Need parameter");
+           }
            else if (strcmp(cmd, "w") == 0)
            {
              if (num_param > 0)
@@ -271,6 +333,13 @@ int main(int argc, char **argv)
                editor.insertStepCmd(0);
              else
                editor.insertStepCmd(iparam[0]);
+           }
+           else if (strcmp(cmd, "int") == 0)
+           {
+             if (num_param == 2)
+               editor.insertInterpolationStepCmd(iparam[0], iparam[1]);
+             else
+               editor.printCmd("Need 2 parameters");
            }
            else if (strcmp(cmd, "copy") == 0)
            {

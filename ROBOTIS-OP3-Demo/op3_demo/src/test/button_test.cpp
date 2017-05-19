@@ -163,11 +163,12 @@ void ButtonTest::buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
 
   if (msg->data == "mode")
   {
-    playSound(default_mp3_path_ + "button-mode.mp3");
+    playSound(default_mp3_path_ + "Mode button pressed.mp3");
   }
   else if (msg->data == "start")
   {
-    playSound(default_mp3_path_ + "button-start.mp3");
+    // RGB led color test
+    playSound(default_mp3_path_ + "Start button pressed.mp3");
     int rgb_selector[3] = { 1, 0, 0 };
     setRGBLED((0x1F * rgb_selector[rgb_led_count_ % 3]), (0x1F * rgb_selector[(rgb_led_count_ + 1) % 3]),
               (0x1F * rgb_selector[(rgb_led_count_ + 2) % 3]));
@@ -175,20 +176,21 @@ void ButtonTest::buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
   }
   else if (msg->data == "user")
   {
-    playSound(default_mp3_path_ + "button-user.mp3");
+    // Monochromatic led color test
+    playSound(default_mp3_path_ + "User button pressed.mp3");
     setLED(0x01 << (led_count_++ % 3));
   }
   else if (msg->data == "mode_long")
   {
-    playSound(default_mp3_path_ + "button-mode long.mp3");
+    playSound(default_mp3_path_ + "Mode button long pressed.mp3");
   }
   else if (msg->data == "start_long")
   {
-    playSound(default_mp3_path_ + "button-start long.mp3");
+    playSound(default_mp3_path_ + "Start button long pressed.mp3");
   }
   else if (msg->data == "user_long")
   {
-    playSound(default_mp3_path_ + "button-user long.mp3");
+    playSound(default_mp3_path_ + "User button long pressed.mp3");
   }
 }
 

@@ -9,7 +9,7 @@ action_and_sound:
   54: "/home/robotis/catkin_ws/src/ROBOTIS-OP3/ROBOTIS-OP3-Demo/op3_demo/Data/mp3/Clap please.mp3"
   27: "/home/robotis/catkin_ws/src/ROBOTIS-OP3/ROBOTIS-OP3-Demo/op3_demo/Data/mp3/Oops.mp3"
   38: "/home/robotis/catkin_ws/src/ROBOTIS-OP3/ROBOTIS-OP3-Demo/op3_demo/Data/mp3/Bye bye.mp3"
-  101 : "/home/robotis/catkin_ws/src/ROBOTIS-OP3/ROBOTIS-OP3-Demo/op3_demo/Data/mp3/Oops.mp3"
+#  101 : "/home/robotis/catkin_ws/src/ROBOTIS-OP3/ROBOTIS-OP3-Demo/op3_demo/Data/mp3/Oops.mp3"
   110 : ""
   111 : "/home/robotis/catkin_ws/src/ROBOTIS-OP3/ROBOTIS-OP3-Demo/op3_demo/Data/mp3/Intro01.mp3"
   115 : "/home/robotis/catkin_ws/src/ROBOTIS-OP3/ROBOTIS-OP3-Demo/op3_demo/Data/mp3/Intro02.mp3"
@@ -17,7 +17,7 @@ action_and_sound:
 
 # play list
 prev_default: [4, 41, 24, 23, 15, 1, 54, 27, 38]
-default: [110, 111, 115, 118, 38]
+default: [4, 110, 111, 115, 118, 24, 54, 27, 38]
 
 # example of play list
-certificatino: [101]
+#certification: [101]

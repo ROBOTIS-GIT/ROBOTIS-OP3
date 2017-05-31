@@ -11,7 +11,7 @@
   <maintainer email="pyo@robotis.com">Pyo</maintainer>
 
   <!-- <url type="bugtracker">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3-Demo/issues</url> -->
-  <!-- <url type="repository">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3-Ddemo</url> -->
+  <!-- <url type="repository">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3-Demo</url> -->
   <!-- <url type="website">http://wiki.ros.org/robotis_op3_demo</url> -->
   
   <buildtool_depend>catkin</buildtool_depend>

@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package>
+  <name>robotis_op3_tools</name>
+  <version>0.1.0</version>
+  <description>
+    ROS packages for the robotis_op3_tools (meta package)
+  </description>
+
+  <license>BSD</license>
+  <author email="kmjung@robotis.com">Kayman</author>
+  <maintainer email="pyo@robotis.com">Pyo</maintainer>
+
+  <!-- <url type="bugtracker">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3-Tools/issues</url> -->
+  <!-- <url type="repository">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3-Tools</url> -->
+  <!-- <url type="website">http://wiki.ros.org/robotis_op3_tools</url> -->
+  
+  <buildtool_depend>catkin</buildtool_depend>
+    
+  <run_depend>op3_action_editor</run_depend>
+  <run_depend>op3_camera_setting_tool</run_depend>
+  <run_depend>op3_gui_demo</run_depend>
+  <run_depend>op3_offset_tuner_client</run_depend>
+  <run_depend>op3_offset_tuner_server</run_depend>
+  <run_depend>op3_walking_tuner</run_depend>
+
+  <export>
+    <metapackage/>
+  </export>
+</package>

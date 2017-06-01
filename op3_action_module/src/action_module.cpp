@@ -51,8 +51,7 @@ ActionModule::ActionModule()
       POST_SECTION(2),
       PAUSE_SECTION(3),
       ZERO_FINISH(0),
-      NONE_ZERO_FINISH(1),
-      DEBUG_PRINT(false)
+      NONE_ZERO_FINISH(1)
 {
   /////////////// Const Variable
   /**************************************
@@ -157,7 +156,7 @@ void ActionModule::pageNumberCallback(const std_msgs::Int32::ConstPtr& msg)
   if(enable_ == false)
   {
     std::string status_msg = "Action Module is not enabled";
-    ROS_INFO_STREAM_COND(DEBUG_PRINT, status_msg);
+    ROS_INFO_STREAM(status_msg);
     publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
     return;
   }
@@ -178,13 +177,13 @@ void ActionModule::pageNumberCallback(const std_msgs::Int32::ConstPtr& msg)
     if(start(msg->data) == true)
     {
       std::string status_msg = "Succeed to start page " + convertIntToString(msg->data);
-      ROS_INFO_STREAM_COND(DEBUG_PRINT, status_msg);
+      ROS_INFO_STREAM(status_msg);
       publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, status_msg);
     }
     else
     {
       std::string status_msg = "Failed to start page " + convertIntToString(msg->data);
-      ROS_ERROR_STREAM_COND(DEBUG_PRINT, status_msg);
+      ROS_ERROR_STREAM(status_msg);
       publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
       publishDoneMsg("action_failed");
     }
@@ -196,7 +195,7 @@ void ActionModule::startActionCallback(const op3_action_module_msgs::StartAction
   if(enable_ == false)
   {
     std::string status_msg = "Action Module is not enabled";
-    ROS_INFO_STREAM_COND(DEBUG_PRINT, status_msg);
+    ROS_INFO_STREAM(status_msg);
     publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
     return;
   }
@@ -222,7 +221,7 @@ void ActionModule::startActionCallback(const op3_action_module_msgs::StartAction
       if(joints_enable_it == action_joints_enable_.end())
       {
         std::string status_msg = "Invalid Joint Name : " + msg->joint_name_array[joint_idx];
-        ROS_INFO_STREAM_COND(DEBUG_PRINT, status_msg);
+        ROS_INFO_STREAM(status_msg);
         publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
         publishDoneMsg("action_failed");
         return;
@@ -236,13 +235,13 @@ void ActionModule::startActionCallback(const op3_action_module_msgs::StartAction
     if(start(msg->page_num) == true)
     {
       std::string status_msg = "Succeed to start page " + convertIntToString(msg->page_num);
-      ROS_INFO_STREAM_COND(DEBUG_PRINT, status_msg);
+      ROS_INFO_STREAM(status_msg);
       publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, status_msg);
     }
     else
     {
       std::string status_msg = "Failed to start page " + convertIntToString(msg->page_num);
-      ROS_ERROR_STREAM_COND(DEBUG_PRINT, status_msg);
+      ROS_ERROR_STREAM(status_msg);
       publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
       publishDoneMsg("action_failed");
     }
@@ -289,7 +288,7 @@ void ActionModule::process(std::map<std::string, robotis_framework::Dynamixel *>
     if (present_running_ == true)
     {
       std::string status_msg = "Action_Start";
-      ROS_INFO_STREAM_COND(DEBUG_PRINT, status_msg);
+      //ROS_INFO_STREAM(status_msg);
       publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, status_msg);
     }
     else
@@ -298,7 +297,7 @@ void ActionModule::process(std::map<std::string, robotis_framework::Dynamixel *>
         action_result_it->second->goal_position_ = result_[action_result_it->first]->goal_position_;
 
       std::string status_msg = "Action_Finish";
-      ROS_INFO_STREAM_COND(DEBUG_PRINT, status_msg);
+      //ROS_INFO_STREAM(status_msg);
       publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, status_msg);
       publishDoneMsg("action");
     }
@@ -375,7 +374,7 @@ bool ActionModule::loadFile(std::string file_name)
   if( action == 0 )
   {
     std::string status_msg = "Can not open Action file!";
-    ROS_ERROR_STREAM_COND(DEBUG_PRINT, status_msg);
+    ROS_ERROR_STREAM(status_msg);
     publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
     return false;
   }
@@ -384,7 +383,7 @@ bool ActionModule::loadFile(std::string file_name)
   if( ftell(action) != (long)(sizeof(action_file_define::Page) * action_file_define::MAXNUM_PAGE) )
   {
     std::string status_msg = "It's not an Action file!";
-    ROS_ERROR_STREAM_COND(DEBUG_PRINT, status_msg);
+    ROS_ERROR_STREAM(status_msg);
     publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
     fclose( action );
     return false;
@@ -403,7 +402,7 @@ bool ActionModule::createFile(std::string file_name)
   if( action == 0 )
   {
     std::string status_msg = "Can not create Action file!";
-    ROS_ERROR_STREAM_COND(DEBUG_PRINT, status_msg);
+    ROS_ERROR_STREAM(status_msg);
     publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
     return false;
   }
@@ -428,7 +427,7 @@ bool ActionModule::start(int page_number)
   {
 
     std::string status_msg = "Can not play page.(" + convertIntToString(page_number) + " is invalid index)";
-    ROS_ERROR_STREAM_COND(DEBUG_PRINT, status_msg);
+    ROS_ERROR_STREAM(status_msg);
     publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
     return false;
   }
@@ -458,7 +457,7 @@ bool ActionModule::start(std::string page_name)
   {
     std::string str_name_page = page_name;
     std::string status_msg = "Can not play page.(" + str_name_page + " is invalid name)\n";
-    ROS_ERROR_STREAM_COND(DEBUG_PRINT, status_msg);
+    ROS_ERROR_STREAM(status_msg);
     publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
     return false;
   }
@@ -471,7 +470,7 @@ bool ActionModule::start(int page_number, action_file_define::Page* page)
   if (enable_ == false)
   {
     std::string status_msg = "Action Module is disabled";
-    ROS_ERROR_STREAM_COND(DEBUG_PRINT, status_msg);
+    ROS_ERROR_STREAM(status_msg);
     publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
     return false;
   }
@@ -479,7 +478,7 @@ bool ActionModule::start(int page_number, action_file_define::Page* page)
   if (playing_ == true)
   {
     std::string status_msg = "Can not play page " + convertIntToString(page_number) + ".(Now playing)";
-    ROS_ERROR_STREAM_COND(DEBUG_PRINT, status_msg);
+    ROS_ERROR_STREAM(status_msg);
     publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
     return false;
   }
@@ -489,7 +488,7 @@ bool ActionModule::start(int page_number, action_file_define::Page* page)
   if (play_page_.header.repeat == 0 || play_page_.header.stepnum == 0)
   {
     std::string status_msg = "Page " + convertIntToString(page_number) + " has no action\n";
-    ROS_ERROR_STREAM_COND(DEBUG_PRINT, status_msg);
+    ROS_ERROR_STREAM(status_msg);
     publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
     return false;
   }

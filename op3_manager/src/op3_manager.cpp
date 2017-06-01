@@ -121,7 +121,7 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
 
     controller->startTimer();
 
-    usleep(100 * 1000);
+    usleep(200 * 1000);
 
     // go to init pose
     std_msgs::String init_msg;
@@ -220,7 +220,8 @@ int main(int argc, char **argv)
   if (g_offset_file != "")
     controller->loadOffset(g_offset_file);
 
-  sleep(1);
+  // sleep(1);
+  usleep(300 * 1000);
 
   /* Add Sensor Module */
   controller->addSensorModule((SensorModule*) OpenCRModule::getInstance());
@@ -233,6 +234,8 @@ int main(int argc, char **argv)
 
   // start timer
   controller->startTimer();
+
+  usleep(100 * 1000);
 
   // go to init pose
   std_msgs::String init_msg;

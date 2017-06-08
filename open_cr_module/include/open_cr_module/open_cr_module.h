@@ -54,7 +54,6 @@ class OpenCRModule : public robotis_framework::SensorModule, public robotis_fram
   virtual ~OpenCRModule();
 
   /* ROS Topic Callback Functions */
-  // void    TopicCallback(const std_msgs::Int16::ConstPtr &msg);
   void initialize(const int control_cycle_msec, robotis_framework::Robot *robot);
   void process(std::map<std::string, robotis_framework::Dynamixel *> dxls,
                std::map<std::string, robotis_framework::Sensor *> sensors);
@@ -63,6 +62,7 @@ class OpenCRModule : public robotis_framework::SensorModule, public robotis_fram
   const double G_ACC = 9.80665;
   const double GYRO_FACTOR = 2000.0 / 32800;
   const double ACCEL_FACTOR = 2.0 / 32768;
+  const bool DEBUG_PRINT;
 
   void queueThread();
 
@@ -71,8 +71,6 @@ class OpenCRModule : public robotis_framework::SensorModule, public robotis_fram
   void fusionIMU();
   void publishIMU(double roll, double pitch, double yaw);
 
-  void pushedModeButton(bool pushed);
-  void pushedStartButton(bool pushed);
   void handleButton(const std::string &button_name);
   void publishButtonMsg(const std::string &button_name);
   void handleVoltage(double present_volt);
@@ -81,9 +79,6 @@ class OpenCRModule : public robotis_framework::SensorModule, public robotis_fram
 
   int control_cycle_msec_;
   boost::thread queue_thread_;
-  bool debug_print_;
-  bool button_mode_;
-  bool button_start_;
   std::map<std::string, bool> buttons_;
   std::map<std::string, ros::Time> buttons_press_time_;
   ros::Time button_press_time_;
@@ -91,15 +86,14 @@ class OpenCRModule : public robotis_framework::SensorModule, public robotis_fram
   std::map<std::string, double> previous_result_;
   double previous_volt_;
   double present_volt_;
-  int button_count_for_debug_;
 
   sensor_msgs::Imu imu_msg_;
   sensor_msgs::Imu imu_msg_2_;
 
-  /* sample subscriber & publisher */
+  /* subscriber & publisher */
   ros::Publisher imu_pub_;
   ros::Publisher imu_pub_2_;
-  ros::Publisher reset_dxl_pub_;
+  ros::Publisher button_pub_;
   ros::Publisher status_msg_pub_;
 };
 

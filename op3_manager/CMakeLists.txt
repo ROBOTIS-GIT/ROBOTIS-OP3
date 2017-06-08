@@ -1,6 +1,12 @@
+################################################################################
+# CMake
+################################################################################
 cmake_minimum_required(VERSION 2.8.3)
 project(op3_manager)
 
+################################################################################
+# Packages
+################################################################################
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   cmake_modules
@@ -22,44 +28,44 @@ find_package(catkin REQUIRED COMPONENTS
   op3_kinematics_dynamics
 )
 
-## System dependencies are found with CMake's conventions
 find_package(Eigen REQUIRED)
 
-###################################
-## catkin specific configuration ##
-###################################
-## The catkin_package macro generates cmake config files for your package
+################################################################################
+# Declare ROS messages, services and actions
+################################################################################
+
+################################################################################
+# Declare ROS dynamic reconfigure parameters
+################################################################################
+
+################################################################################
+# Catkin specific configuration
+################################################################################
 catkin_package(
   LIBRARIES op3_manager
 )
 
-###########
-## Build ##
-###########
-
-## Specify additional locations of header files
+################################################################################
+# Build
+################################################################################
 include_directories(
   include
   ${Eigen_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
 
-## Declare a C++ executable
 add_executable(op3_manager src/op3_manager.cpp)
 
 add_dependencies(op3_manager ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-## Specify libraries to link a library or executable target against
 target_link_libraries(op3_manager
   ${catkin_LIBRARIES}
 )
 
-## Declare a C++ executable
-#add_executable(op3_test_manager src/test_manager.cpp)
+################################################################################
+# Install
+################################################################################
 
-#add_dependencies(op3_test_manager ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-## Specify libraries to link a library or executable target against
-#target_link_libraries(op3_test_manager
-#  ${catkin_LIBRARIES}
-#)
+################################################################################
+# Test
+################################################################################

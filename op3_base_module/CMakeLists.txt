@@ -1,6 +1,12 @@
+################################################################################
+# CMake
+################################################################################
 cmake_minimum_required(VERSION 2.8.3)
 project(op3_base_module)
 
+################################################################################
+# Packages
+################################################################################
 find_package(catkin REQUIRED COMPONENTS
   robotis_device
   robotis_math
@@ -16,21 +22,31 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Eigen REQUIRED)
 
-## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+################################################################################
+# Declare ROS messages, services and actions
+################################################################################
 
+################################################################################
+# Declare ROS dynamic reconfigure parameters
+################################################################################
+
+################################################################################
+# Catkin specific configuration
+################################################################################
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES op3_base_module
 )
 
+################################################################################
+# Build
+################################################################################
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${Eigen_INCLUDE_DIRS}
 )
 
-## Declare a C++ library
 add_library(op3_base_module
   src/base_module.cpp
   src/base_module_state.cpp
@@ -42,3 +58,11 @@ target_link_libraries(op3_base_module
   yaml-cpp
   ${catkin_LIBRARIES}
 )
+
+################################################################################
+# Install
+################################################################################
+
+################################################################################
+# Test
+################################################################################

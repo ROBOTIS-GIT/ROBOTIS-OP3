@@ -1,9 +1,12 @@
+################################################################################
+# CMake
+################################################################################
 cmake_minimum_required(VERSION 2.8.3)
 project(cm_740_module)
 
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
+################################################################################
+# Packages
+################################################################################
 find_package(catkin REQUIRED COMPONENTS
   cmake_modules
   dynamixel_sdk
@@ -16,27 +19,41 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Eigen REQUIRED)
 
-## The catkin_package macro generates cmake config files for your package
+################################################################################
+# Declare ROS messages, services and actions
+################################################################################
+
+################################################################################
+# Declare ROS dynamic reconfigure parameters
+################################################################################
+
+################################################################################
+# Catkin specific configuration
+################################################################################
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES cm_740_module
 )
 
-###########
-## Build ##
-###########
-
-## Specify additional locations of header files
+################################################################################
+# Build
+################################################################################
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${Eigen_INCLUDE_DIRS}
 )
 
-## Declare a C++ library
 add_library(cm_740_module
   src/cm_740_module.cpp
 )
 
-## Add cmake target dependencies of the library
 add_dependencies(cm_740_module ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+################################################################################
+# Install
+################################################################################
+
+################################################################################
+# Test
+################################################################################

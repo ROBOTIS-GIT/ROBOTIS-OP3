@@ -54,12 +54,12 @@ class CM740Module : public robotis_framework::SensorModule, public robotis_frame
   virtual ~CM740Module();
 
   /* ROS Topic Callback Functions */
-  // void    TopicCallback(const std_msgs::Int16::ConstPtr &msg);
   void initialize(const int control_cycle_msec, robotis_framework::Robot *robot);
   void process(std::map<std::string, robotis_framework::Dynamixel *> dxls,
                std::map<std::string, robotis_framework::Sensor *> sensors);
 
  private:
+  const bool DEBUG_PRINT;
   const double G_ACC = 9.80665;
 
   void queueThread();
@@ -68,28 +68,26 @@ class CM740Module : public robotis_framework::SensorModule, public robotis_frame
   double getAccValue(int raw_value);
   void fusionIMU();
 
-  void pushedModeButton(bool pushed);
-  void pushedStartButton(bool pushed);
   void handleButton(const std::string &button_name);
+  void publishButtonMsg(const std::string &button_name);
   void handleVoltage(double present_volt);
   void publishStatusMsg(unsigned int type, std::string msg);
   double lowPassFilter(double alpha, double x_new, double x_old);
 
   int control_cycle_msec_;
   boost::thread queue_thread_;
-  bool debug_print_;
-  bool button_mode_;
-  bool button_start_;
+  std::map<std::string, bool> buttons_;
+  std::map<std::string, ros::Time> buttons_press_time_;
   ros::Time button_press_time_;
+  ros::Time last_msg_time_;
   double previous_volt_;
   double present_volt_;
-  int volt_count_;
 
   sensor_msgs::Imu imu_msg_;
 
-  /* sample subscriber & publisher */
+  /* subscriber & publisher */
   ros::Publisher imu_pub_;
-  ros::Publisher reset_dxl_pub_;
+  ros::Publisher button_pub_;
   ros::Publisher status_msg_pub_;
 };
 

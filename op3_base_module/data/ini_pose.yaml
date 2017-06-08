@@ -1,8 +1,8 @@
 # time parameter
 
-mov_time : 8.0		# movement time
+mov_time : 4.0		# movement time
 
-via_num : 1		# via-point number
+via_num : 0		# via-point number
 via_time : [ 4.0 ] # via-point time
 
 

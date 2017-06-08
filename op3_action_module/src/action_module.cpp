@@ -762,7 +762,6 @@ void ActionModule::actionPlayProcess(std::map<std::string, robotis_framework::Dy
               }
             }
           }
-          //action_result_[_joint_name]->position_p_gain = ( 256 >> (play_page_.header.pgain[bID] >> 4) ) << 2 ;
         }
       }
     }

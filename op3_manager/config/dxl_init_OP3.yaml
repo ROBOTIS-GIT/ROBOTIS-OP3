@@ -122,8 +122,8 @@ r_knee :  # XM-430
    max_position_limit       : 4095
 #   position_p_gain          : 1600
    position_p_gain          : 1000
-   position_i_gain          : 500
-   position_d_gain          : 150
+   position_i_gain          : 250
+   position_d_gain          : 50
    LED : 0
    
 l_knee :  # XM-430
@@ -132,8 +132,8 @@ l_knee :  # XM-430
    max_position_limit       : 4095
 #   position_p_gain          : 1600
    position_p_gain          : 1000
-   position_i_gain          : 500
-   position_d_gain          : 150
+   position_i_gain          : 250
+   position_d_gain          : 50
    LED : 0
    
 r_ank_pitch :  # XM-430

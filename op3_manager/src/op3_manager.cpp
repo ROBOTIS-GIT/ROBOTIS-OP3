@@ -98,16 +98,7 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
         int return_data = packet_handler->write1ByteTxRx(port_handler, SUB_CONTROLLER_ID, POWER_CTRL_TABLE, 1);
         ROS_INFO("Power on DXLs! [%d]", return_data);
 
-        // _port_h->ClosePort();
         usleep(100 * 1000);
-
-        //PortHandler *port_handler_2 = (PortHandler *) PortHandler::getPortHandler(g_device_name.c_str());
-        //set_port_result = port_handler_2->setBaudRate(BAUD_RATE);
-        //if (set_port_result == false)
-        //{
-        //  ROS_ERROR("Error Set port");
-        //  return;
-        //}
 
         ROS_INFO("Torque on DXLs! [%d]", return_data);
 
@@ -220,7 +211,6 @@ int main(int argc, char **argv)
   if (g_offset_file != "")
     controller->loadOffset(g_offset_file);
 
-  // sleep(1);
   usleep(300 * 1000);
 
   /* Add Sensor Module */

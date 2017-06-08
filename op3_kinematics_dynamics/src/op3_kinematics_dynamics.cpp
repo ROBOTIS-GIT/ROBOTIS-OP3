@@ -317,7 +317,6 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
     op3_link_data_[9]->sibling_ = -1;
     op3_link_data_[9]->child_ = 11;
     op3_link_data_[9]->mass_ = 1.045;
-    // op3_link_data[9]->relative_position     =   robotis_framework::getTransitionXYZ( 0.000 , 0.000 , -0.0315 );
     op3_link_data_[9]->relative_position_ = robotis_framework::getTransitionXYZ(0.000, 0.000, -0.0285);
     op3_link_data_[9]->joint_axis_ = robotis_framework::getTransitionXYZ(-1.0, 0.0, 0.0);
     op3_link_data_[9]->center_of_mass_ = robotis_framework::getTransitionXYZ(-0.068, 0.000, 0.000);
@@ -346,7 +345,6 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
     op3_link_data_[13]->sibling_ = -1;
     op3_link_data_[13]->child_ = 15;
     op3_link_data_[13]->mass_ = 2.401;
-    // op3_link_data[13]->relative_position     =   robotis_framework::getTransitionXYZ( 0.000 , 0.000 , -0.093 );
     op3_link_data_[13]->relative_position_ = robotis_framework::getTransitionXYZ(0.000, 0.000, -0.110);
     op3_link_data_[13]->joint_axis_ = robotis_framework::getTransitionXYZ(0.0, -1.0, 0.0);
     op3_link_data_[13]->center_of_mass_ = robotis_framework::getTransitionXYZ(-0.002, 0.066, -0.183);
@@ -361,7 +359,6 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
     op3_link_data_[15]->sibling_ = -1;
     op3_link_data_[15]->child_ = 17;
     op3_link_data_[15]->mass_ = 1.045;
-    // op3_link_data[15]->relative_position     =   robotis_framework::getTransitionXYZ( 0.000 , 0.000 , -0.093 );
     op3_link_data_[15]->relative_position_ = robotis_framework::getTransitionXYZ(0.000, 0.000, -0.110);
     op3_link_data_[15]->joint_axis_ = robotis_framework::getTransitionXYZ(0.0, 1.0, 0.0);
     op3_link_data_[15]->center_of_mass_ = robotis_framework::getTransitionXYZ(-0.011, 0.033, 0.000);
@@ -390,7 +387,6 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
     op3_link_data_[31]->sibling_ = -1;
     op3_link_data_[31]->child_ = -1;
     op3_link_data_[31]->mass_ = 0.0;
-    // op3_link_data[31]->relative_position     =   robotis_framework::getTransitionXYZ( 0.0 , 0.0 , -0.03 );
     op3_link_data_[31]->relative_position_ = robotis_framework::getTransitionXYZ(0.0, 0.0, -0.0305);
     op3_link_data_[31]->joint_axis_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.0);
     op3_link_data_[31]->center_of_mass_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.0);
@@ -420,7 +416,6 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
     op3_link_data_[10]->sibling_ = -1;
     op3_link_data_[10]->child_ = 12;
     op3_link_data_[10]->mass_ = 1.045;
-    //op3_link_data[10]->relative_position     =   robotis_framework::getTransitionXYZ( 0.0 , 0.0 , -0.0315 );
     op3_link_data_[10]->relative_position_ = robotis_framework::getTransitionXYZ(0.0, 0.0, -0.0285);
     op3_link_data_[10]->joint_axis_ = robotis_framework::getTransitionXYZ(-1.0, 0.0, 0.0);
     op3_link_data_[10]->center_of_mass_ = robotis_framework::getTransitionXYZ(-0.068, 0.000, 0.000);
@@ -449,7 +444,6 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
     op3_link_data_[14]->sibling_ = -1;
     op3_link_data_[14]->child_ = 16;
     op3_link_data_[14]->mass_ = 2.401;
-    // op3_link_data[14]->relative_position     =   robotis_framework::getTransitionXYZ( 0.000 , 0.000 , -0.093 );
     op3_link_data_[14]->relative_position_ = robotis_framework::getTransitionXYZ(0.000, 0.000, -0.110);
     op3_link_data_[14]->joint_axis_ = robotis_framework::getTransitionXYZ(0.0, 1.0, 0.0);
     op3_link_data_[14]->center_of_mass_ = robotis_framework::getTransitionXYZ(-0.002, -0.066, -0.183);
@@ -464,7 +458,6 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
     op3_link_data_[16]->sibling_ = -1;
     op3_link_data_[16]->child_ = 18;
     op3_link_data_[16]->mass_ = 1.045;
-    // op3_link_data[16]->relative_position     =   robotis_framework::getTransitionXYZ( 0.000 , 0.000 , -0.093 );
     op3_link_data_[16]->relative_position_ = robotis_framework::getTransitionXYZ(0.000, 0.000, -0.110);
     op3_link_data_[16]->joint_axis_ = robotis_framework::getTransitionXYZ(0.0, -1.0, 0.0);
     op3_link_data_[16]->center_of_mass_ = robotis_framework::getTransitionXYZ(-0.011, -0.033, 0.000);
@@ -493,7 +486,6 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
     op3_link_data_[30]->sibling_ = -1;
     op3_link_data_[30]->child_ = -1;
     op3_link_data_[30]->mass_ = 0.0;
-    // op3_link_data[30]->relative_position     =   robotis_framework::getTransitionXYZ( 0.0 , 0.0 , -0.03 );
     op3_link_data_[30]->relative_position_ = robotis_framework::getTransitionXYZ(0.0, 0.0, -0.0305);
     op3_link_data_[30]->joint_axis_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.0);
     op3_link_data_[30]->center_of_mass_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.0);
@@ -506,10 +498,6 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
   calf_length_m_ = std::fabs(op3_link_data_[ID_R_LEG_START + 2 * 4]->relative_position_.coeff(2, 0));
   ankle_length_m_ = std::fabs(op3_link_data_[ID_R_LEG_END]->relative_position_.coeff(2, 0));
   leg_side_offset_m_ = 2.0 * (std::fabs(op3_link_data_[ID_R_LEG_START]->relative_position_.coeff(1, 0)));
-
-  std::cout << "thigh_length_m : " << thigh_length_m_ << "  calf_length_m : " << calf_length_m_ << " ankle_length_m : "
-            << ankle_length_m_ << std::endl;
-
 }
 
 std::vector<int> OP3KinematicsDynamics::findRoute(int to)
@@ -981,7 +969,6 @@ bool OP3KinematicsDynamics::calcInverseKinematics(int from, int to, Eigen::Matri
 bool OP3KinematicsDynamics::calcInverseKinematicsForLeg(double *out, double x, double y, double z, double roll,
                                                         double pitch, double yaw)
 {
-  //Eigen::MatrixXd target_transform;
   Eigen::Matrix4d trans_ad, trans_da, trans_cd, trans_dc, trans_ac;
   Eigen::Vector3d vec;
 
@@ -1075,15 +1062,6 @@ bool OP3KinematicsDynamics::calcInverseKinematicsForRightLeg(double *out, double
 {
   if (calcInverseKinematicsForLeg(out, x, y, z, roll, pitch, yaw) == true)
   {
-    /*
-    out[0] = out[0] * (op3_link_data_[ID_R_LEG_START + 2 * 0]->joint_axis_.coeff(2, 0));
-    out[1] = out[1] * (op3_link_data_[ID_R_LEG_START + 2 * 1]->joint_axis_.coeff(0, 0));
-    out[2] = out[2] * (op3_link_data_[ID_R_LEG_START + 2 * 2]->joint_axis_.coeff(1, 0));
-    out[3] = out[3] * (op3_link_data_[ID_R_LEG_START + 2 * 3]->joint_axis_.coeff(1, 0));
-    out[4] = out[4] * (op3_link_data_[ID_R_LEG_START + 2 * 4]->joint_axis_.coeff(1, 0));
-    out[5] = out[5] * (op3_link_data_[ID_R_LEG_START + 2 * 5]->joint_axis_.coeff(0, 0));
-    */
-
     for(int ix = 0 ; ix < 6; ix++)
       out[ix] *= getJointDirection(ID_R_LEG_START + 2 * ix);
 
@@ -1098,14 +1076,6 @@ bool OP3KinematicsDynamics::calcInverseKinematicsForLeftLeg(double *out, double 
 {
   if (calcInverseKinematicsForLeg(out, x, y, z, roll, pitch, yaw) == true)
   {
-    /*
-    out[0] = out[0] * (op3_link_data_[ID_L_LEG_START + 2 * 0]->joint_axis_.coeff(2, 0));
-    out[1] = out[1] * (op3_link_data_[ID_L_LEG_START + 2 * 1]->joint_axis_.coeff(0, 0));
-    out[2] = out[2] * (op3_link_data_[ID_L_LEG_START + 2 * 2]->joint_axis_.coeff(1, 0));
-    out[3] = out[3] * (op3_link_data_[ID_L_LEG_START + 2 * 3]->joint_axis_.coeff(1, 0));
-    out[4] = out[4] * (op3_link_data_[ID_L_LEG_START + 2 * 4]->joint_axis_.coeff(1, 0));
-    out[5] = out[5] * (op3_link_data_[ID_L_LEG_START + 2 * 5]->joint_axis_.coeff(0, 0));
-*/
     for(int ix = 0 ; ix < 6; ix++)
       out[ix] *= getJointDirection(ID_L_LEG_START + 2 * ix);
 

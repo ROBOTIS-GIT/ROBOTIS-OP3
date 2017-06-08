@@ -175,7 +175,7 @@ void HeadControlModule::setHeadJoint(const sensor_msgs::JointState::ConstPtr &ms
   goal_velocity_ = Eigen::MatrixXd::Zero(1, result_.size());
   goal_acceleration_ = Eigen::MatrixXd::Zero(1, result_.size());
 
-  if (is_moving_ == true)  // && is_direct_control_ == true)
+  if (is_moving_ == true)
   {
     goal_velocity_ = calc_joint_vel_tra_.block(tra_count_, 0, 1, result_.size());
     goal_acceleration_ = calc_joint_accel_tra_.block(tra_count_, 0, 1, result_.size());

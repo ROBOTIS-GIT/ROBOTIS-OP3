@@ -67,7 +67,6 @@ void BaseModule::initialize(const int control_cycle_msec, robotis_framework::Rob
     robotis_framework::Dynamixel* dxl_info = it->second;
 
     joint_name_to_id_[joint_name] = dxl_info->id_;
-    // joint_id_to_name_[dxl_info->id] = joint_name;
     result_[joint_name] = new robotis_framework::DynamixelState();
     result_[joint_name]->goal_position_ = dxl_info->dxl_state_->goal_position_;
   }

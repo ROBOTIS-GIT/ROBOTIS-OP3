@@ -51,7 +51,8 @@ ActionModule::ActionModule()
       POST_SECTION(2),
       PAUSE_SECTION(3),
       ZERO_FINISH(0),
-      NONE_ZERO_FINISH(1)
+      NONE_ZERO_FINISH(1),
+      DEBUG_PRINT(false)
 {
   /////////////// Const Variable
   /**************************************

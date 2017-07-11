@@ -43,6 +43,7 @@
 #include "robotis_math/robotis_linear_algebra.h"
 #include "robotis_framework_common/sensor_module.h"
 #include "robotis_controller_msgs/StatusMsg.h"
+#include "robotis_controller_msgs/SyncWriteItem.h"
 
 namespace robotis_op
 {
@@ -75,6 +76,7 @@ class OpenCRModule : public robotis_framework::SensorModule, public robotis_fram
   void publishButtonMsg(const std::string &button_name);
   void handleVoltage(double present_volt);
   void publishStatusMsg(unsigned int type, std::string msg);
+  void publishDXLPowerMsg(unsigned int value);
   double lowPassFilter(double alpha, double x_new, double &x_old);
 
   int control_cycle_msec_;
@@ -95,6 +97,7 @@ class OpenCRModule : public robotis_framework::SensorModule, public robotis_fram
   ros::Publisher imu_pub_2_;
   ros::Publisher button_pub_;
   ros::Publisher status_msg_pub_;
+  ros::Publisher dxl_power_msg_pub_;
 };
 
 }

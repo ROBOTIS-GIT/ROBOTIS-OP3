@@ -89,25 +89,25 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
       PacketHandler *packet_handler = PacketHandler::getPacketHandler(PROTOCOL_VERSION);
 
       // check dxls torque.
-      uint8_t torque = 0;
-      packet_handler->read1ByteTxRx(port_handler, SUB_CONTROLLER_ID, 24, &torque);
+      //uint8_t torque = 0;
+      //packet_handler->read1ByteTxRx(port_handler, SUB_CONTROLLER_ID, 24, &torque);
 
-      if (torque != 1)
-      {
+      //if (torque != 1)
+      //{
         // power on
-        int return_data = packet_handler->write1ByteTxRx(port_handler, SUB_CONTROLLER_ID, POWER_CTRL_TABLE, 1);
-        ROS_INFO("Power on DXLs! [%d]", return_data);
+        //int return_data = packet_handler->write1ByteTxRx(port_handler, SUB_CONTROLLER_ID, POWER_CTRL_TABLE, 1);
+        //ROS_INFO("Power on DXLs! [%d]", return_data);
 
-        usleep(100 * 1000);
+        //usleep(100 * 1000);
 
-        ROS_INFO("Torque on DXLs! [%d]", return_data);
+        //ROS_INFO("Torque on DXLs! [%d]", return_data);
 
         controller->initializeDevice(g_init_file);
-      }
-      else
-      {
-        ROS_INFO("Torque is already on!!");
-      }
+      //}
+      //else
+      //{
+      //  ROS_INFO("Torque is already on!!");
+      //}
     }
 
     controller->startTimer();

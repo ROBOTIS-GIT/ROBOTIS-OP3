@@ -103,6 +103,7 @@ void OpenCRModule::queueThread()
   imu_pub_ = ros_node.advertise<sensor_msgs::Imu>("/robotis/open_cr/imu", 1);
   imu_pub_2_ = ros_node.advertise<sensor_msgs::Imu>("/robotis/open_cr/imu2", 1);
   button_pub_ = ros_node.advertise<std_msgs::String>("/robotis/open_cr/button", 1);
+  dxl_power_msg_pub_ = ros_node.advertise<robotis_controller_msgs::SyncWriteItem>("/robotis/sync_write_item", 0);
   
   ros::WallDuration duration(control_cycle_msec_ / 1000.0);
   while(ros_node.ok())
@@ -141,6 +142,13 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
   ROS_INFO_COND(DEBUG_PRINT, " ======================= Acc ======================== ");
   ROS_INFO_COND(DEBUG_PRINT, "Raw : %d, %d, %d", acc_x, acc_y, acc_z);
   ROS_INFO_COND(DEBUG_PRINT, "Filtered : %f, %f, %f", result_["acc_x"], result_["acc_y"], result_["acc_z"]);
+
+  ros::Time update_time;
+  update_time.sec = sensors["open-cr"]->sensor_state_->update_time_stamp_.sec_;
+  update_time.nsec = sensors["open-cr"]->sensor_state_->update_time_stamp_.nsec_;
+  ros::Duration update_duration = ros::Time::now() - update_time;
+  if ((update_duration.sec * 1000000000 + update_duration.nsec) > 100000000)
+    publishDXLPowerMsg(1);
 
   uint8_t button_flag = sensors["open-cr"]->sensor_state_->bulk_read_table_["button"];
   result_["button_mode"] = button_flag & 0x01;
@@ -337,6 +345,16 @@ void OpenCRModule::publishStatusMsg(unsigned int type, std::string msg)
   status_msg.status_msg = msg;
 
   status_msg_pub_.publish(status_msg);
+}
+
+void OpenCRModule::publishDXLPowerMsg(unsigned int value)
+{
+  robotis_controller_msgs::SyncWriteItem sync_write_msg;
+  sync_write_msg.item_name = "dynamixel_power";
+  sync_write_msg.joint_name.push_back("open-cr");
+  sync_write_msg.value.push_back(value);
+
+  dxl_power_msg_pub_.publish(sync_write_msg);
 }
 
 double OpenCRModule::lowPassFilter(double alpha, double x_new, double &x_old)

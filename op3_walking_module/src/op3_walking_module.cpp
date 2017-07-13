@@ -536,15 +536,12 @@ void WalkingModule::process(std::map<std::string, robotis_framework::Dynamixel *
     int joint_index = joint_table_[joint_name];
 
     result_[joint_name]->goal_position_ = target_position_.coeff(0, joint_index);
-  }
 
-  // Todo : PID gain
-  // for(int id = JointData::ID_R_HIP_YAW; id <= JointData::ID_L_ANKLE_ROLL; id++)
-  // {
-  //     m_Joint.SetPGain(id, P_GAIN);
-  //     m_Joint.SetIGain(id, I_GAIN);
-  //     m_Joint.SetDGain(id, D_GAIN);
-  // }
+    // Todo : setting PID gain to the leg joints
+    // result_[joint_name]->position_p_gain_ = walking_param_.p_gain;
+    // result_[joint_name]->position_i_gain_ = walking_param_.i_gain;
+    // result_[joint_name]->position_d_gain_ = walking_param_.d_gain;
+  }
 
   // time
   if (real_running_ == true)
@@ -602,7 +599,6 @@ void WalkingModule::processPhase(const double &time_unit)
       else
       {
         // set walking param to init
-        // walking_param_.x_move_amplitude = 0;
         walking_param_.x_move_amplitude = previous_x_move_amplitude_;
         walking_param_.y_move_amplitude = 0;
         walking_param_.angle_move_amplitude = 0;
@@ -877,7 +873,6 @@ void WalkingModule::sensoryFeedback(const double &rlGyroErr, const double &fbGyr
   if (walking_param_.balance_enable == false)
     return;
 
-  // double internal_gain = 0.36;
   double internal_gain = 0.05;
 
   balance_angle[joint_table_["r_hip_roll"]] =  op3_kd_->getJointDirection("r_hip_roll") * internal_gain
@@ -933,6 +928,7 @@ void WalkingModule::loadWalkingParam(const std::string &path)
   walking_param_.z_move_amplitude = doc["foot_height"].as<double>();
   // walking_param_.angle_move_amplitude
   // walking_param_.move_aim_on
+
   // balance
   // walking_param_.balance_enable
   walking_param_.balance_hip_roll_gain = doc["balance_hip_roll_gain"].as<double>();

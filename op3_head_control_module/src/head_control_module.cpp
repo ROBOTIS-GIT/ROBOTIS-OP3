@@ -131,7 +131,7 @@ void HeadControlModule::setHeadJoint(const sensor_msgs::JointState::ConstPtr &ms
   }
 
   // moving time
-  moving_time_ = is_offset ? 0.2 : 1.0;               // default : 1 sec
+  moving_time_ = is_offset ? 0.1 : 1.0;               // default : 1 sec
 
   // set target joint angle
   target_position_ = goal_position_;        // default
@@ -296,8 +296,10 @@ void HeadControlModule::process(std::map<std::string, robotis_framework::Dynamix
   {
     std::string joint_name = state_it->first;
     int index = using_joint_name_[joint_name];
+    double goal_position = goal_position_.coeff(0, index);
+    checkAngleLimit(index, goal_position);
 
-    result_[joint_name]->goal_position_ = goal_position_.coeff(0, index);
+    result_[joint_name]->goal_position_ = goal_position;
   }
 }
 

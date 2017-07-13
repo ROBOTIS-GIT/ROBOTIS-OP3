@@ -51,6 +51,7 @@ const int BAUD_RATE = 2000000;
 const double PROTOCOL_VERSION = 2.0;
 const int SUB_CONTROLLER_ID = 200;
 const int DXL_BROADCAST_ID = 254;
+const int DEFAULT_DXL_ID = 1;
 const std::string SUB_CONTROLLER_DEVICE = "/dev/ttyUSB0";
 const int POWER_CTRL_TABLE = 24;
 const int RGB_LED_CTRL_TABLE = 26;
@@ -89,43 +90,35 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
       PacketHandler *packet_handler = PacketHandler::getPacketHandler(PROTOCOL_VERSION);
 
       // check dxls torque.
-      //uint8_t torque = 0;
-      //packet_handler->read1ByteTxRx(port_handler, SUB_CONTROLLER_ID, 24, &torque);
+      uint8_t torque = 0;
+      packet_handler->read1ByteTxRx(port_handler, DEFAULT_DXL_ID, TORQUE_ON_CTRL_TABLE, &torque);
 
-      //if (torque != 1)
-      //{
-        // power on
-        //int return_data = packet_handler->write1ByteTxRx(port_handler, SUB_CONTROLLER_ID, POWER_CTRL_TABLE, 1);
-        //ROS_INFO("Power on DXLs! [%d]", return_data);
-
-        //usleep(100 * 1000);
-
-        //ROS_INFO("Torque on DXLs! [%d]", return_data);
-
+      if (torque != 1)
+      {
         controller->initializeDevice(g_init_file);
-      //}
-      //else
-      //{
-      //  ROS_INFO("Torque is already on!!");
-      //}
+      }
+      else
+      {
+        ROS_INFO("Torque is already on!!");
+      }
     }
 
     controller->startTimer();
-
-    usleep(200 * 1000);
-
-    // go to init pose
-    std_msgs::String init_msg;
-    init_msg.data = "ini_pose";
-
-    g_init_pose_pub.publish(init_msg);
-    ROS_INFO("Go to init pose");
+//
+//    usleep(200 * 1000);
+//
+//    // go to init pose
+//    std_msgs::String init_msg;
+//    init_msg.data = "ini_pose";
+//
+//    g_init_pose_pub.publish(init_msg);
+//    ROS_INFO("Go to init pose");
   }
 }
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "OP3_Manager");
+  ros::init(argc, argv, "op3_manager");
   ros::NodeHandle nh;
 
   ROS_INFO("manager->init");

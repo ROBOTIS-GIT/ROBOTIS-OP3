@@ -260,7 +260,7 @@ void CM740Module::handleVoltage(double present_volt)
     std::stringstream log_stream;
     log_stream << "Present Volt : " << present_volt_ << "V";
     publishStatusMsg(
-        (present_volt_ < 11 ?
+        (present_volt_ < 11.0 ?
             robotis_controller_msgs::StatusMsg::STATUS_WARN : robotis_controller_msgs::StatusMsg::STATUS_INFO),
         log_stream.str());
     ROS_INFO_COND(DEBUG_PRINT, "Present Volt : %fV, Read Volt : %fV", previous_volt_, result_["present_voltage"]);

@@ -1,6 +1,6 @@
 x_offset: -0.02
 y_offset: 0.015
-z_offset: 0.02
+z_offset: 0.035
 roll_offset: 0
 pitch_offset: 0
 yaw_offset: 0
@@ -8,7 +8,7 @@ hip_pitch_offset: 7.000000052497138
 period_time: 600
 dsp_ratio: 0.2
 step_forward_back_ratio: 0.28
-foot_height: 0.05
+foot_height: 0.06
 swing_right_left: 0.02
 swing_top_down: 0.006
 pelvis_offset: 0.4999999961268166

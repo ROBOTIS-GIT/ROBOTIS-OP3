@@ -61,8 +61,8 @@ class OpenCRModule : public robotis_framework::SensorModule, public robotis_fram
 
  private:
   const double G_ACC = 9.80665;
-  const double GYRO_FACTOR = 2000.0 / 32800;
-  const double ACCEL_FACTOR = 2.0 / 32768;
+  const double GYRO_FACTOR = 2000.0 / 32800.0;
+  const double ACCEL_FACTOR = 2.0 / 32768.0;
   const bool DEBUG_PRINT;
 
   void queueThread();

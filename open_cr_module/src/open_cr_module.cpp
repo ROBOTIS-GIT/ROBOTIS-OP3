@@ -101,12 +101,11 @@ void OpenCRModule::queueThread()
   /* publisher */
   status_msg_pub_ = ros_node.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 1);
   imu_pub_ = ros_node.advertise<sensor_msgs::Imu>("/robotis/open_cr/imu", 1);
-  imu_pub_2_ = ros_node.advertise<sensor_msgs::Imu>("/robotis/open_cr/imu2", 1);
   button_pub_ = ros_node.advertise<std_msgs::String>("/robotis/open_cr/button", 1);
   dxl_power_msg_pub_ = ros_node.advertise<robotis_controller_msgs::SyncWriteItem>("/robotis/sync_write_item", 0);
-  
+
   ros::WallDuration duration(control_cycle_msec_ / 1000.0);
-  while(ros_node.ok())
+  while (ros_node.ok())
     callback_queue.callAvailable(duration);
 }
 
@@ -162,15 +161,7 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
   result_["present_voltage"] = present_volt * 0.1;
   handleVoltage(result_["present_voltage"]);
 
-  // publishing imu made from gryo and acceleration
-  fusionIMU();
-
-  // publishing imu data getting from opencr
-  double roll = DEGREE2RADIAN * sensors["open-cr"]->sensor_state_->bulk_read_table_["acc_x"];
-  double pitch = DEGREE2RADIAN * sensors["open-cr"]->sensor_state_->bulk_read_table_["acc_y"];
-  double yaw = DEGREE2RADIAN * sensors["open-cr"]->sensor_state_->bulk_read_table_["acc_z"];
-
-  publishIMU(roll, pitch, yaw);
+  publishIMU();
 
   previous_result_["gyro_x_prev"] = result_["gyro_x"];
   previous_result_["gyro_y_prev"] = result_["gyro_y"];
@@ -189,17 +180,17 @@ double OpenCRModule::getAccValue(int raw_value)
   return (double) raw_value * ACCEL_FACTOR;
 }
 
-void OpenCRModule::fusionIMU()
+void OpenCRModule::publishIMU()
 {
   // fusion imu data
   imu_msg_.header.stamp = ros::Time::now();
   imu_msg_.header.frame_id = "body_link";
-
   double filter_alpha = 0.4;
 
   //in rad/s
   long int _value = 0;
   int _arrd_length = 2;
+
   imu_msg_.angular_velocity.x = result_["gyro_x"];
   imu_msg_.angular_velocity.y = result_["gyro_y"];
   imu_msg_.angular_velocity.z = result_["gyro_z"];
@@ -226,36 +217,6 @@ void OpenCRModule::fusionIMU()
   imu_msg_.orientation.w = orientation.w();
 
   imu_pub_.publish(imu_msg_);
-}
-
-void OpenCRModule::publishIMU(double roll, double pitch, double yaw)
-{
-  // fusion imu data
-  imu_msg_2_.header.stamp = ros::Time::now();
-  imu_msg_2_.header.frame_id = "body_link";
-
-  double filter_alpha = 0.4;
-
-  //in rad/s
-  long int _value = 0;
-  int _arrd_length = 2;
-  imu_msg_2_.angular_velocity.x = result_["gyro_x"];
-  imu_msg_2_.angular_velocity.y = result_["gyro_y"];
-  imu_msg_2_.angular_velocity.z = result_["gyro_z"];
-
-  //in m/s^2
-  imu_msg_2_.linear_acceleration.x = result_["acc_x"] * G_ACC;
-  imu_msg_2_.linear_acceleration.y = result_["acc_y"] * G_ACC;
-  imu_msg_2_.linear_acceleration.z = result_["acc_z"] * G_ACC;
-
-  Eigen::Quaterniond orientation = robotis_framework::convertRPYToQuaternion(roll, pitch, yaw);
-
-  imu_msg_2_.orientation.x = orientation.x();
-  imu_msg_2_.orientation.y = orientation.y();
-  imu_msg_2_.orientation.z = orientation.z();
-  imu_msg_2_.orientation.w = orientation.w();
-
-  imu_pub_2_.publish(imu_msg_);
 }
 
 void OpenCRModule::handleButton(const std::string &button_name)
@@ -291,7 +252,7 @@ void OpenCRModule::handleButton(const std::string &button_name)
     {
       ros::Duration button_duration = ros::Time::now() - buttons_press_time_[button_name];
 
-      if (button_duration.toSec() < 2)     // short press
+      if (button_duration.toSec() < 2.0)     // short press
         publishButtonMsg(button_name);
       else
         // long press

@@ -104,15 +104,47 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
     }
 
     controller->startTimer();
-//
-//    usleep(200 * 1000);
-//
-//    // go to init pose
-//    std_msgs::String init_msg;
-//    init_msg.data = "ini_pose";
-//
-//    g_init_pose_pub.publish(init_msg);
-//    ROS_INFO("Go to init pose");
+
+    usleep(200 * 1000);
+
+    // go to init pose
+    std_msgs::String init_msg;
+    init_msg.data = "ini_pose";
+
+    g_init_pose_pub.publish(init_msg);
+    ROS_INFO("Go to init pose");
+  }
+}
+
+void dxlTorqueCheckCallback(const std_msgs::String::ConstPtr& msg)
+{
+  if (g_is_simulation == true)
+    return;
+
+  // check dxl torque
+  uint8_t torque_result = 0;
+  bool torque_on = true;
+  RobotisController *controller = RobotisController::getInstance();
+  //controller->robot_->port_default_device_
+
+  for (std::map<std::string, std::string>::iterator map_it = controller->robot_->port_default_device_.begin();
+      map_it != controller->robot_->port_default_device_.end(); map_it++)
+  {
+    std::string default_device_name = map_it->second;
+    controller->read1Byte(default_device_name, TORQUE_ON_CTRL_TABLE, &torque_result);
+
+    // if not, torque on
+    if (torque_result != 1)
+      torque_on = false;
+  }
+
+  if(torque_on == false)
+  {
+    controller->stopTimer();
+
+    controller->initializeDevice(g_init_file);
+
+    controller->startTimer();
   }
 }
 
@@ -132,7 +164,8 @@ int main(int argc, char **argv)
   nh.param<std::string>("device_name", g_device_name, SUB_CONTROLLER_DEVICE);
   nh.param<int>("baud_rate", g_baudrate, BAUD_RATE);
 
-  ros::Subscriber power_on_sub = nh.subscribe("/robotis/open_cr/button", 1, buttonHandlerCallback);
+  ros::Subscriber button_sub = nh.subscribe("/robotis/open_cr/button", 1, buttonHandlerCallback);
+  ros::Subscriber dxl_torque_sub = nh.subscribe("/robotis/dxl_torque", 1, dxlTorqueCheckCallback);
   g_init_pose_pub = nh.advertise<std_msgs::String>("/robotis/base/ini_pose", 0);
   g_demo_command_pub = nh.advertise<std_msgs::String>("/ball_tracker/command", 0);
 
@@ -146,7 +179,7 @@ int main(int argc, char **argv)
     PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler(g_device_name.c_str());
     bool set_port_result = port_handler->setBaudRate(BAUD_RATE);
     if (set_port_result == false)
-      ROS_ERROR("Error Set port");
+    ROS_ERROR("Error Set port");
 
     PacketHandler *packet_handler = PacketHandler::getPacketHandler(PROTOCOL_VERSION);
 
@@ -161,9 +194,9 @@ int main(int argc, char **argv)
       packet_handler->printTxRxResult(_return);
 
       if (_return == 0)
-        break;
+      break;
       else
-        torque_on_count++;
+      torque_on_count++;
     }
 
     usleep(100 * 1000);
@@ -184,7 +217,7 @@ int main(int argc, char **argv)
     std::string robot_name;
     nh.param<std::string>("gazebo_robot_name", robot_name, "");
     if (robot_name != "")
-      controller->gazebo_robot_name_ = robot_name;
+    controller->gazebo_robot_name_ = robot_name;
   }
 
   if (g_robot_file == "")
@@ -202,7 +235,7 @@ int main(int argc, char **argv)
 
   // load offset
   if (g_offset_file != "")
-    controller->loadOffset(g_offset_file);
+  controller->loadOffset(g_offset_file);
 
   usleep(300 * 1000);
 

@@ -28,4 +28,4 @@ dynamixel | /dev/ttyUSB0 | 17  | MX-28          | 1.0      | r_ank_roll    | pre
 dynamixel | /dev/ttyUSB0 | 18  | MX-28          | 1.0      | l_ank_roll    | present_position
 dynamixel | /dev/ttyUSB0 | 19  | MX-28          | 1.0      | head_pan      | present_position
 dynamixel | /dev/ttyUSB0 | 20  | MX-28          | 1.0      | head_tilt     | present_position
-sensor    | /dev/ttyUSB1 | 200 | CM-740         | 1.0      | cm-740        | button, present_voltage, gyro_x, gyro_y, gyro_z, acc_x, acc_y, acc_z, roll, pitch, yaw
+sensor    | /dev/ttyUSB1 | 200 | CM-740         | 1.0      | cm-740        | button, present_voltage, gyro_x, gyro_y, gyro_z, acc_x, acc_y, acc_z

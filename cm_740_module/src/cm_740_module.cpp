@@ -248,7 +248,7 @@ void CM740Module::handleVoltage(double present_volt)
 
   if (fabs(present_volt_ - previous_volt_) >= 0.1)
   {
-    // check last publised time
+    // check last published time
     ros::Time now = ros::Time::now();
     ros::Duration dur = now - last_msg_time_;
     if (dur.sec < 1)

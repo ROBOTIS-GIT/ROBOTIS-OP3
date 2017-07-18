@@ -103,12 +103,9 @@ void HeadControlModule::queueThread()
   ros::Subscriber set_head_scan_sub = ros_node.subscribe("/robotis/head_control/scan_command", 1,
                                                          &HeadControlModule::setHeadScanCallback, this);
 
-  while (ros_node.ok())
-  {
-    callback_queue.callAvailable();
-
-    usleep(100);
-  }
+  ros::WallDuration duration(control_cycle_msec_ / 1000.0);
+  while(ros_node.ok())
+    callback_queue.callAvailable(duration);
 }
 
 void HeadControlModule::setHeadJointCallback(const sensor_msgs::JointState::ConstPtr &msg)
@@ -449,7 +446,7 @@ void HeadControlModule::generateScanTra(const int head_direction)
   goal_velocity_ = Eigen::MatrixXd::Zero(1, result_.size());
   goal_acceleration_ = Eigen::MatrixXd::Zero(1, result_.size());
 
-  if (is_moving_ == true)  // && is_direct_control_ == true)
+  if (is_moving_ == true)
   {
     goal_velocity_ = calc_joint_vel_tra_.block(tra_count_, 0, 1, result_.size());
     goal_acceleration_ = calc_joint_accel_tra_.block(tra_count_, 0, 1, result_.size());
@@ -529,9 +526,19 @@ void HeadControlModule::jointTraGeneThread()
   double smp_time = control_cycle_msec_ * 0.001;		// ms -> s
   int all_time_steps = int(moving_time_ / smp_time) + 1;
 
+  // for debug
+  try
+  {
   calc_joint_tra_.resize(all_time_steps, result_.size());
   calc_joint_vel_tra_.resize(all_time_steps, result_.size());
   calc_joint_accel_tra_.resize(all_time_steps, result_.size());
+  }
+  catch(std::exception &e)
+  {
+    std::cout << "All step tile : " << all_time_steps << std::endl;
+    std::cout << e.what() << std::endl;
+    throw;
+  }
 
   for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_it = result_.begin();
       state_it != result_.end(); state_it++)
@@ -558,9 +565,6 @@ void HeadControlModule::jointTraGeneThread()
 
   if (DEBUG)
     ROS_INFO("[ready] make trajectory : %d, %d", tra_size_, tra_count_);
-
-  // init value
-  // moving_time_ = 0;
 
   tra_lock_.unlock();
 }

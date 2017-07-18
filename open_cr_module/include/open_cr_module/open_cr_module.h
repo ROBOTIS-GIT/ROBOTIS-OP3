@@ -69,8 +69,7 @@ class OpenCRModule : public robotis_framework::SensorModule, public robotis_fram
 
   double getGyroValue(int raw_value);
   double getAccValue(int raw_value);
-  void fusionIMU();
-  void publishIMU(double roll, double pitch, double yaw);
+  void publishIMU();
 
   void handleButton(const std::string &button_name);
   void publishButtonMsg(const std::string &button_name);
@@ -90,11 +89,9 @@ class OpenCRModule : public robotis_framework::SensorModule, public robotis_fram
   double present_volt_;
 
   sensor_msgs::Imu imu_msg_;
-  sensor_msgs::Imu imu_msg_2_;
 
   /* subscriber & publisher */
   ros::Publisher imu_pub_;
-  ros::Publisher imu_pub_2_;
   ros::Publisher button_pub_;
   ros::Publisher status_msg_pub_;
   ros::Publisher dxl_power_msg_pub_;

@@ -192,12 +192,9 @@ void WalkingModule::queueThread()
   ros::Subscriber walking_param_sub = ros_node.subscribe("/robotis/walking/set_params", 0,
                                                          &WalkingModule::walkingParameterCallback, this);
 
-  while (ros_node.ok())
-  {
-    callback_queue.callAvailable();
-
-    usleep(100);
-  }
+  ros::WallDuration duration(control_cycle_msec_ / 1000.0);
+  while(ros_node.ok())
+    callback_queue.callAvailable(duration);
 }
 
 void WalkingModule::publishStatusMsg(unsigned int type, std::string msg)
@@ -352,7 +349,6 @@ void WalkingModule::updateTimeParam()
   phase2_time_ = (l_ssp_end_time_ + r_ssp_start_time_) / 2;
   phase3_time_ = (r_ssp_start_time_ + r_ssp_end_time_) / 2;
 
-  // m_Pelvis_Offset = PELVIS_OFFSET*MX28::RATIO_ANGLE2VALUE;
   pelvis_offset_ = walking_param_.pelvis_offset;
   pelvis_swing_ = pelvis_offset_ * 0.35;
   arm_swing_gain_ = walking_param_.arm_swing_gain;

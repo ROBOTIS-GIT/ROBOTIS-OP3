@@ -40,34 +40,38 @@ DirectControlModule::DirectControlModule()
   : control_cycle_msec_(0),
     stop_process_(false),
     is_moving_(false),
-    is_direct_control_(true),
+    is_updated_(false),
     tra_count_(0),
     tra_size_(0),
     default_moving_time_(1.0),
     default_moving_angle_(45),
     moving_time_(3.0),
+    BASE_INDEX(0),
+    HEAD_INDEX(20),
+    RIGHT_END_EFFECTOR_INDEX(21),
+    LEFT_END_EFFECTOR_INDEX(22),
     DEBUG(false)
 {
   enable_ = false;
   module_name_ = "direct_control_module";
   control_mode_ = robotis_framework::PositionControl;
 
-//  result_["head_pan"] = new robotis_framework::DynamixelState();
-//  result_["head_tilt"] = new robotis_framework::DynamixelState();
+  //  result_["head_pan"] = new robotis_framework::DynamixelState();
+  //  result_["head_tilt"] = new robotis_framework::DynamixelState();
 
-//  using_joint_name_["head_pan"] = 0;
-//  using_joint_name_["head_tilt"] = 1;
+  //  using_joint_name_["head_pan"] = 0;
+  //  using_joint_name_["head_tilt"] = 1;
 
-//  max_angle_[using_joint_name_["head_pan"]] = 85 * DEGREE2RADIAN;
-//  min_angle_[using_joint_name_["head_pan"]] = -85 * DEGREE2RADIAN;
-//  max_angle_[using_joint_name_["head_tilt"]] = 30 * DEGREE2RADIAN;
-//  min_angle_[using_joint_name_["head_tilt"]] = -75 * DEGREE2RADIAN;
+  //  max_angle_[using_joint_name_["head_pan"]] = 85 * DEGREE2RADIAN;
+  //  min_angle_[using_joint_name_["head_pan"]] = -85 * DEGREE2RADIAN;
+  //  max_angle_[using_joint_name_["head_tilt"]] = 30 * DEGREE2RADIAN;
+  //  min_angle_[using_joint_name_["head_tilt"]] = -75 * DEGREE2RADIAN;
 
-//  target_position_ = Eigen::MatrixXd::Zero(1, result_.size());
-//  current_position_ = Eigen::MatrixXd::Zero(1, result_.size());
-//  goal_position_ = Eigen::MatrixXd::Zero(1, result_.size());
-//  goal_velocity_ = Eigen::MatrixXd::Zero(1, result_.size());
-//  goal_acceleration_ = Eigen::MatrixXd::Zero(1, result_.size());
+  //  target_position_ = Eigen::MatrixXd::Zero(1, result_.size());
+  //  current_position_ = Eigen::MatrixXd::Zero(1, result_.size());
+  //  goal_position_ = Eigen::MatrixXd::Zero(1, result_.size());
+  //  goal_velocity_ = Eigen::MatrixXd::Zero(1, result_.size());
+  //  goal_acceleration_ = Eigen::MatrixXd::Zero(1, result_.size());
 
   last_msg_time_ = ros::Time::now();
 }
@@ -79,10 +83,12 @@ DirectControlModule::~DirectControlModule()
 
 void DirectControlModule::initialize(const int control_cycle_msec, robotis_framework::Robot *robot)
 {
+  op3_kinematics_ = new OP3KinematicsDynamics(WholeBody);
+
   // init result, joint_id_table
   int joint_index = 0;
   for (std::map<std::string, robotis_framework::Dynamixel*>::iterator it = robot->dxls_.begin();
-      it != robot->dxls_.end(); it++)
+       it != robot->dxls_.end(); it++)
   {
     std::string joint_name = it->first;
     robotis_framework::Dynamixel* dxl_info = it->second;
@@ -138,6 +144,17 @@ void DirectControlModule::setJointCallback(const sensor_msgs::JointState::ConstP
     ROS_INFO_THROTTLE(1, "Direct control module is not enable.");
     publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, "Not Enable");
     return;
+  }
+
+  int sleep_count = 0;
+  while(is_updated_ == false)
+  {
+    usleep(control_cycle_msec_ * 1000);
+    if(++sleep_count > 100)
+    {
+      ROS_ERROR("present joint angle is not updated");
+      return;
+    }
   }
 
   // moving time
@@ -218,6 +235,8 @@ void DirectControlModule::process(std::map<std::string, robotis_framework::Dynam
     goal_position_.coeffRef(0, index) = _dxl->dxl_state_->goal_position_;
   }
 
+  is_updated_ = true;
+
   // check to stop
   if (stop_process_ == true)
   {
@@ -248,6 +267,27 @@ void DirectControlModule::process(std::map<std::string, robotis_framework::Dynam
     }
   }
   tra_lock_.unlock();
+
+  // set goal angle and run forward kinematics
+  for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_it = result_.begin();
+       state_it != result_.end(); state_it++)
+  {
+    std::string joint_name = state_it->first;
+    int index = using_joint_name_[joint_name];
+    double goal_position = goal_position_.coeff(0, index);
+
+    LinkData *op3_link = op3_kinematics_->getLinkData(joint_name);
+    if(op3_link != NULL)
+      op3_link->joint_angle_ = goal_position;
+  }
+
+  op3_kinematics_->calcForwardKinematics(0);
+
+  // check self collision
+  bool collision_result = checkSelfCollision();
+
+  if(collision_result == true)
+    return;
 
   // set joint data to robot
   for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_it = result_.begin();
@@ -280,12 +320,12 @@ bool DirectControlModule::isRunning()
 
 void DirectControlModule::onModuleEnable()
 {
-
+      is_updated_ = false;
 }
 
 void DirectControlModule::onModuleDisable()
 {
-
+    
 }
 
 void DirectControlModule::startMoving()
@@ -383,6 +423,45 @@ Eigen::MatrixXd DirectControlModule::calcMinimumJerkTraPVA(double pos_start, dou
   }
 
   return minimum_jer_tra;
+}
+
+bool DirectControlModule::checkSelfCollision()
+{
+  // right arm
+  // get length between right arm and base
+  double diff_length = 0.0;
+  bool result = getDiff(RIGHT_END_EFFECTOR_INDEX, BASE_INDEX, diff_length);
+
+  // check collision
+  if(result == true && diff_length < 0.05)
+  {
+    ROS_ERROR("Self Collision : RIGHT_ARM and BASE");
+    return true;
+  }
+
+  // left arm
+  // get left arm end effect position
+
+  // check collision
+
+
+
+
+
+}
+
+bool DirectControlModule::getDiff(int end_index, int base_index, double &diff)
+{
+  if(op3_kinematics_->op3_link_data_[end_index] == NULL | op3_kinematics_->op3_link_data_[base_index] == NULL)
+    return false;
+
+  Eigen::Vector3d end_position = op3_kinematics_->op3_link_data_[end_index]->position_;
+  Eigen::Vector3d base_position = op3_kinematics_->op3_link_data_[base_index]->position_;
+  Eigen::Vector3d diff_vec = base_position - end_position;
+
+  diff = diff_vec.norm();
+
+  return true;
 }
 
 void DirectControlModule::jointTraGeneThread()

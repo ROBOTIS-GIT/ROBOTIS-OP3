@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   cmake_modules
+  op3_kinematics_dynamics
 )
 
 ## System dependencies are found with CMake's conventions

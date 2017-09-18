@@ -1,7 +1,7 @@
 r_sho_pitch :   # XM-430
    return_delay_time        : 1    # item name : value
    operating_mode           : 3
-#   shutdown              :  58
+   shutdown                 : 56
 #   homing_offset         :  0
 #   torque_limit          :  310
    min_position_limit       : 0
@@ -25,6 +25,7 @@ r_sho_pitch :   # XM-430
 l_sho_pitch :   # XM-430
    return_delay_time        : 1    # item name : value
    operating_mode           : 3
+   shutdown                 : 56
    min_position_limit       : 0
    max_position_limit       : 4095
    position_p_gain          : 600
@@ -34,6 +35,7 @@ l_sho_pitch :   # XM-430
 r_sho_roll :   # XM-430
    return_delay_time        : 1    # item name : value
    operating_mode           : 3
+   shutdown                 : 56
    min_position_limit       : 0
    max_position_limit       : 4095
    position_p_gain          : 800
@@ -43,6 +45,7 @@ r_sho_roll :   # XM-430
 l_sho_roll :   # XM-430
    return_delay_time        : 1    # item name : value
    operating_mode           : 3
+   shutdown                 : 56
    min_position_limit       : 0
    max_position_limit       : 4095
    position_p_gain          : 800
@@ -52,6 +55,7 @@ l_sho_roll :   # XM-430
 r_el :   # XM-430
    return_delay_time        : 1    # item name : value
    operating_mode           : 3
+   shutdown                 : 56
    min_position_limit       : 0
    max_position_limit       : 4095
    position_p_gain          : 800
@@ -61,6 +65,7 @@ r_el :   # XM-430
 l_el :   # XM-430
    return_delay_time        : 1    # item name : value
    operating_mode           : 3
+   shutdown                 : 56
    min_position_limit       : 0
    max_position_limit       : 4095
    position_p_gain          : 800

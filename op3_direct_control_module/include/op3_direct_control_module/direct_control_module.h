@@ -45,6 +45,7 @@
 #include "robotis_math/robotis_math.h"
 #include "robotis_controller_msgs/StatusMsg.h"
 
+#include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
 namespace robotis_op
 {
 
@@ -72,6 +73,11 @@ class DirectControlModule : public robotis_framework::MotionModule, public robot
      Count
    };
 
+   const int BASE_INDEX;
+   const int HEAD_INDEX;
+   const int RIGHT_END_EFFECTOR_INDEX;
+   const int LEFT_END_EFFECTOR_INDEX;
+
   /* ROS Topic Callback Functions */
   void setJointCallback(const sensor_msgs::JointState::ConstPtr &msg);
 
@@ -87,6 +93,9 @@ class DirectControlModule : public robotis_framework::MotionModule, public robot
   Eigen::MatrixXd calcMinimumJerkTraPVA(double pos_start, double vel_start, double accel_start, double pos_end,
                                         double vel_end, double accel_end, double smp_time, double mov_time);
 
+  bool checkSelfCollision();
+  bool getDiff(int end_index, int base_index, double &diff);
+
   double default_moving_time_;
   double default_moving_angle_;
 
@@ -98,10 +107,9 @@ class DirectControlModule : public robotis_framework::MotionModule, public robot
   const bool DEBUG;
   bool stop_process_;
   bool is_moving_;
-  bool is_direct_control_;
+  bool is_updated_;
   int tra_count_, tra_size_;
   double moving_time_;
-  int scan_state_;
 
   Eigen::MatrixXd target_position_;
   Eigen::MatrixXd present_position_;
@@ -118,6 +126,8 @@ class DirectControlModule : public robotis_framework::MotionModule, public robot
 
   ros::Time last_msg_time_;
   std::string last_msg_;
+
+  OP3KinematicsDynamics *op3_kinematics_;
 };
 
 }

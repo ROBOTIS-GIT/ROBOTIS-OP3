@@ -46,7 +46,6 @@
 #include "robotis_controller_msgs/StatusMsg.h"
 
 #include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
-
 namespace robotis_op
 {
 

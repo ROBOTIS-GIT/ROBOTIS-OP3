@@ -105,6 +105,7 @@ void DirectControlModule::initialize(const int control_cycle_msec, robotis_frame
   goal_velocity_ = Eigen::MatrixXd::Zero(1, result_.size());
   goal_acceleration_ = Eigen::MatrixXd::Zero(1, result_.size());
 
+
   // setting of queue thread
   queue_thread_ = boost::thread(boost::bind(&DirectControlModule::queueThread, this));
 
@@ -149,7 +150,7 @@ void DirectControlModule::setJointCallback(const sensor_msgs::JointState::ConstP
   while(is_updated_ == false)
   {
     usleep(control_cycle_msec_ * 1000);
-    if(++sleep_count > 10)
+    if(++sleep_count > 100)
     {
       ROS_ERROR("present joint angle is not updated");
       return;
@@ -157,7 +158,7 @@ void DirectControlModule::setJointCallback(const sensor_msgs::JointState::ConstP
   }
 
   // moving time
-  moving_time_ = 0.5;               // default : 1 sec
+  moving_time_ = 1.0;               // default : 1 sec
 
   // set target joint angle
   target_position_ = goal_position_;        // default
@@ -181,7 +182,7 @@ void DirectControlModule::setJointCallback(const sensor_msgs::JointState::ConstP
       target_position_.coeffRef(0, joint_index) = target_position;
 
       // set time
-      double angle_unit = 15 * M_PI / 180;
+      double angle_unit = 35 * M_PI / 180;
       double calc_moving_time = fabs(goal_position_.coeff(0, joint_index) - target_position_.coeff(0, joint_index))
           / angle_unit;
       if (calc_moving_time > moving_time_)
@@ -319,12 +320,12 @@ bool DirectControlModule::isRunning()
 
 void DirectControlModule::onModuleEnable()
 {
-
+  is_updated_ = false;
 }
 
 void DirectControlModule::onModuleDisable()
 {
-  is_updated_ = false;
+
 }
 
 void DirectControlModule::startMoving()
@@ -446,7 +447,7 @@ bool DirectControlModule::checkSelfCollision()
 
 
 
-
+  return false;
 }
 
 bool DirectControlModule::getDiff(int end_index, int base_index, double &diff)
@@ -457,6 +458,7 @@ bool DirectControlModule::getDiff(int end_index, int base_index, double &diff)
   Eigen::Vector3d end_position = op3_kinematics_->op3_link_data_[end_index]->position_;
   Eigen::Vector3d base_position = op3_kinematics_->op3_link_data_[base_index]->position_;
   Eigen::Vector3d diff_vec = base_position - end_position;
+  diff_vec.coeffRef(2) = 0;
 
   diff = diff_vec.norm();
 

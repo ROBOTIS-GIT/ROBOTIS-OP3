@@ -462,6 +462,10 @@ bool DirectControlModule::getDiff(int end_index, int base_index, double &diff)
 
   diff = diff_vec.norm();
 
+  ROS_WARN_STREAM("Base Position [" << base_position.coeff(0) << ", " << base_position.coeff(1) << "] \n"
+                  << "End Position [" << end_position.coeff(0) << ", " << end_position.coeff(1) << "] \n"
+                  << "Diff : " << diff);
+
   return true;
 }
 

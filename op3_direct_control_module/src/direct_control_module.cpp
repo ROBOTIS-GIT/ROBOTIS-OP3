@@ -320,12 +320,12 @@ bool DirectControlModule::isRunning()
 
 void DirectControlModule::onModuleEnable()
 {
-      is_updated_ = false;
+  is_updated_ = false;
 }
 
 void DirectControlModule::onModuleDisable()
 {
-    
+
 }
 
 void DirectControlModule::startMoving()
@@ -447,7 +447,7 @@ bool DirectControlModule::checkSelfCollision()
 
 
 
-
+  return false;
 }
 
 bool DirectControlModule::getDiff(int end_index, int base_index, double &diff)
@@ -458,6 +458,7 @@ bool DirectControlModule::getDiff(int end_index, int base_index, double &diff)
   Eigen::Vector3d end_position = op3_kinematics_->op3_link_data_[end_index]->position_;
   Eigen::Vector3d base_position = op3_kinematics_->op3_link_data_[base_index]->position_;
   Eigen::Vector3d diff_vec = base_position - end_position;
+  diff_vec.coeffRef(2) = 0;
 
   diff = diff_vec.norm();
 

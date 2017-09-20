@@ -93,7 +93,7 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
     op3_link_data_[25]->sibling_ = -1;
     op3_link_data_[25]->child_ = 26;
     op3_link_data_[25]->mass_ = 0.0;
-    op3_link_data_[25]->relative_position_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.801);
+    op3_link_data_[25]->relative_position_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.385);
     op3_link_data_[25]->joint_axis_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.0);
     op3_link_data_[25]->center_of_mass_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.0);
     op3_link_data_[25]->joint_limit_max_ = 100.0;
@@ -217,8 +217,8 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
     op3_link_data_[5]->sibling_ = -1;
     op3_link_data_[5]->child_ = 21;
     op3_link_data_[5]->mass_ = 1.122;
-    op3_link_data_[5]->relative_position_ = robotis_framework::getTransitionXYZ(0.016, 0.0, -0.06);
-    op3_link_data_[5]->joint_axis_ = robotis_framework::getTransitionXYZ(0.0, -1.0, 0.0);
+    op3_link_data_[5]->relative_position_ = robotis_framework::getTransitionXYZ(0.0, -0.09, 0.0);
+    op3_link_data_[5]->joint_axis_ = robotis_framework::getTransitionXYZ(1.0, 0.0, 0.0);
     op3_link_data_[5]->center_of_mass_ = robotis_framework::getTransitionXYZ(0.000, -0.073, 0.000);
     op3_link_data_[5]->joint_limit_max_ = 0.5 * M_PI;
     op3_link_data_[5]->joint_limit_min_ = -0.5 * M_PI;
@@ -231,7 +231,7 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
     op3_link_data_[21]->sibling_ = -1;
     op3_link_data_[21]->child_ = -1;
     op3_link_data_[21]->mass_ = 0.0;
-    op3_link_data_[21]->relative_position_ = robotis_framework::getTransitionXYZ(0.0, 0.0, -0.15);
+    op3_link_data_[21]->relative_position_ = robotis_framework::getTransitionXYZ(0.0, -0.15, 0.0);
     op3_link_data_[21]->joint_axis_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.0);
     op3_link_data_[21]->center_of_mass_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.0);
     op3_link_data_[21]->joint_limit_max_ = 100.0;
@@ -274,8 +274,8 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
     op3_link_data_[6]->sibling_ = -1;
     op3_link_data_[6]->child_ = 22;
     op3_link_data_[6]->mass_ = 1.122;
-    op3_link_data_[6]->relative_position_ = robotis_framework::getTransitionXYZ(0.016, 0.0, -0.06);
-    op3_link_data_[6]->joint_axis_ = robotis_framework::getTransitionXYZ(0.0, 1.0, 0.0);
+    op3_link_data_[6]->relative_position_ = robotis_framework::getTransitionXYZ(0.0, 0.09, 0.0);
+    op3_link_data_[6]->joint_axis_ = robotis_framework::getTransitionXYZ(1.0, 0.0, 0.0);
     op3_link_data_[6]->center_of_mass_ = robotis_framework::getTransitionXYZ(0.000, 0.073, 0.000);
     op3_link_data_[6]->joint_limit_max_ = 0.5 * M_PI;
     op3_link_data_[6]->joint_limit_min_ = -0.5 * M_PI;
@@ -288,7 +288,7 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
     op3_link_data_[22]->sibling_ = -1;
     op3_link_data_[22]->child_ = -1;
     op3_link_data_[22]->mass_ = 0.0;
-    op3_link_data_[22]->relative_position_ = robotis_framework::getTransitionXYZ(0.0, 0.0, -0.15);
+    op3_link_data_[22]->relative_position_ = robotis_framework::getTransitionXYZ(0.0, 0.15, 0.0);
     op3_link_data_[22]->joint_axis_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.0);
     op3_link_data_[22]->center_of_mass_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.0);
     op3_link_data_[22]->joint_limit_max_ = 100.0;

@@ -433,7 +433,7 @@ bool DirectControlModule::checkSelfCollision()
   bool result = getDiff(RIGHT_END_EFFECTOR_INDEX, BASE_INDEX, diff_length);
 
   // check collision
-  if(result == true && diff_length < 0.05)
+  if(result == true && diff_length < 0.07)
   {
     ROS_ERROR("Self Collision : RIGHT_ARM and BASE");
     return true;
@@ -441,11 +441,15 @@ bool DirectControlModule::checkSelfCollision()
 
   // left arm
   // get left arm end effect position
+  diff_length = 0.0;
+  result = getDiff(LEFT_END_EFFECTOR_INDEX, BASE_INDEX, diff_length);
 
   // check collision
-
-
-
+  if(result == true && diff_length < 0.07)
+  {
+    ROS_ERROR("Self Collision : LEFT_ARM and BASE");
+    return true;
+  }
 
   return false;
 }
@@ -462,8 +466,8 @@ bool DirectControlModule::getDiff(int end_index, int base_index, double &diff)
 
   diff = diff_vec.norm();
 
-  ROS_WARN_STREAM("Base Position [" << base_position.coeff(0) << ", " << base_position.coeff(1) << "] \n"
-                  << "End Position [" << end_position.coeff(0) << ", " << end_position.coeff(1) << "] \n"
+  ROS_WARN_STREAM_COND(DEBUG, "\nBase Position [" << base_position.coeff(0) << ", " << base_position.coeff(1) << ", " << base_position.coeff(2) << "] \n"
+                  << "End Position [" << end_position.coeff(0) << ", " << end_position.coeff(1) << ", " << end_position.coeff(2) << "] \n"
                   << "Diff : " << diff);
 
   return true;

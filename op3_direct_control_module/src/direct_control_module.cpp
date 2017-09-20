@@ -41,6 +41,7 @@ DirectControlModule::DirectControlModule()
     stop_process_(false),
     is_moving_(false),
     is_updated_(false),
+    is_blocked_(false),
     tra_count_(0),
     tra_size_(0),
     default_moving_time_(1.0),
@@ -198,7 +199,7 @@ void DirectControlModule::setJointCallback(const sensor_msgs::JointState::ConstP
   goal_velocity_ = Eigen::MatrixXd::Zero(1, result_.size());
   goal_acceleration_ = Eigen::MatrixXd::Zero(1, result_.size());
 
-  if (is_moving_ == true)
+  if (is_moving_ == true && is_blocked_ == false)
   {
     goal_velocity_ = calc_joint_vel_tra_.block(tra_count_, 0, 1, result_.size());
     goal_acceleration_ = calc_joint_accel_tra_.block(tra_count_, 0, 1, result_.size());
@@ -287,7 +288,12 @@ void DirectControlModule::process(std::map<std::string, robotis_framework::Dynam
   bool collision_result = checkSelfCollision();
 
   if(collision_result == true)
+  {
+    is_blocked_ = true;
     return;
+  }
+  else
+    is_blocked_ = false;
 
   // set joint data to robot
   for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_it = result_.begin();
@@ -321,6 +327,7 @@ bool DirectControlModule::isRunning()
 void DirectControlModule::onModuleEnable()
 {
   is_updated_ = false;
+  is_blocked_ = false;
 }
 
 void DirectControlModule::onModuleDisable()
@@ -433,7 +440,7 @@ bool DirectControlModule::checkSelfCollision()
   bool result = getDiff(RIGHT_END_EFFECTOR_INDEX, BASE_INDEX, diff_length);
 
   // check collision
-  if(result == true && diff_length < 0.05)
+  if(result == true && diff_length < 0.07)
   {
     ROS_ERROR("Self Collision : RIGHT_ARM and BASE");
     return true;
@@ -441,11 +448,15 @@ bool DirectControlModule::checkSelfCollision()
 
   // left arm
   // get left arm end effect position
+  diff_length = 0.0;
+  result = getDiff(LEFT_END_EFFECTOR_INDEX, BASE_INDEX, diff_length);
 
   // check collision
-
-
-
+  if(result == true && diff_length < 0.07)
+  {
+    ROS_ERROR("Self Collision : LEFT_ARM and BASE");
+    return true;
+  }
 
   return false;
 }
@@ -462,8 +473,8 @@ bool DirectControlModule::getDiff(int end_index, int base_index, double &diff)
 
   diff = diff_vec.norm();
 
-  ROS_WARN_STREAM("Base Position [" << base_position.coeff(0) << ", " << base_position.coeff(1) << "] \n"
-                  << "End Position [" << end_position.coeff(0) << ", " << end_position.coeff(1) << "] \n"
+  ROS_WARN_STREAM_COND(DEBUG, "\nBase Position [" << base_position.coeff(0) << ", " << base_position.coeff(1) << ", " << base_position.coeff(2) << "] \n"
+                  << "End Position [" << end_position.coeff(0) << ", " << end_position.coeff(1) << ", " << end_position.coeff(2) << "] \n"
                   << "Diff : " << diff);
 
   return true;

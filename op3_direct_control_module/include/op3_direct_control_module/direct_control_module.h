@@ -108,6 +108,7 @@ class DirectControlModule : public robotis_framework::MotionModule, public robot
   bool stop_process_;
   bool is_moving_;
   bool is_updated_;
+  bool is_blocked_;
   int tra_count_, tra_size_;
   double moving_time_;
 

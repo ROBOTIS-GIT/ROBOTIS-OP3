@@ -42,6 +42,8 @@ DirectControlModule::DirectControlModule()
     is_moving_(false),
     is_updated_(false),
     is_blocked_(false),
+    r_min_diff_(0.07),
+    l_min_diff_(0.07),
     tra_count_(0),
     tra_size_(0),
     default_moving_time_(1.0),
@@ -329,6 +331,8 @@ void DirectControlModule::onModuleEnable()
 {
   is_updated_ = false;
   is_blocked_ = false;
+  r_min_diff_ = 0.07;
+  l_min_diff_ = 0.07;
 }
 
 void DirectControlModule::onModuleDisable()
@@ -443,7 +447,13 @@ bool DirectControlModule::checkSelfCollision()
   // check collision
   if(result == true && diff_length < 0.07)
   {
+    if(r_min_diff_ < diff_length)
+    {
+      r_min_diff_ = diff_length;
+      return false;
+    }
     ROS_ERROR("Self Collision : RIGHT_ARM and BASE");
+    r_min_diff_ = diff_length;
     return true;
   }
 
@@ -455,7 +465,13 @@ bool DirectControlModule::checkSelfCollision()
   // check collision
   if(result == true && diff_length < 0.07)
   {
+    if(l_min_diff_ < diff_length)
+    {
+      l_min_diff_ = diff_length;
+      return false;
+    }
     ROS_ERROR("Self Collision : LEFT_ARM and BASE");
+    l_min_diff_ = diff_length;
     return true;
   }
 

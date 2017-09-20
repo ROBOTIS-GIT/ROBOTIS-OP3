@@ -111,6 +111,7 @@ class DirectControlModule : public robotis_framework::MotionModule, public robot
   bool is_blocked_;
   int tra_count_, tra_size_;
   double moving_time_;
+  double r_min_diff_, l_min_diff_;
 
   Eigen::MatrixXd target_position_;
   Eigen::MatrixXd present_position_;

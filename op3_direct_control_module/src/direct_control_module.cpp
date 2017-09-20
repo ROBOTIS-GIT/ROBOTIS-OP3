@@ -159,7 +159,7 @@ void DirectControlModule::setJointCallback(const sensor_msgs::JointState::ConstP
   }
 
   // moving time
-  moving_time_ = 1.0;               // default : 1 sec
+  moving_time_ = 0.5;               // default : 1 sec
 
   // set target joint angle
   target_position_ = goal_position_;        // default
@@ -183,7 +183,7 @@ void DirectControlModule::setJointCallback(const sensor_msgs::JointState::ConstP
       target_position_.coeffRef(0, joint_index) = target_position;
 
       // set time
-      double angle_unit = 35 * M_PI / 180;
+      double angle_unit = 20 * M_PI / 180;
       double calc_moving_time = fabs(goal_position_.coeff(0, joint_index) - target_position_.coeff(0, joint_index))
           / angle_unit;
       if (calc_moving_time > moving_time_)
@@ -234,6 +234,7 @@ void DirectControlModule::process(std::map<std::string, robotis_framework::Dynam
 
     present_position_.coeffRef(0, index) = _dxl->dxl_state_->present_position_;
     goal_position_.coeffRef(0, index) = _dxl->dxl_state_->goal_position_;
+    result_[joint_name]->goal_position_ = _dxl->dxl_state_->goal_position_;
   }
 
   is_updated_ = true;

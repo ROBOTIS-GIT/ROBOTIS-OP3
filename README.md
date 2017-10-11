@@ -20,5 +20,5 @@ ROBOTIS OP3 is the latest miniature humanoid robot platform from ROBOTIS that su
 
 
 ### 3. User's Guide
- > Reference : [e-manual](http://support.robotis.com/en/product/robotis-op3.htm)  
+ > Reference : [e-manual](http://support.robotis.com/en/product/robotis_op3.htm)  
  > Reference : [WIKI](https://github.com/ROBOTIS-GIT/ROBOTIS-Documents/wiki/OP3-User's-Guide)  

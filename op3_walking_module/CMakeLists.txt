@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   robotis_device
   robotis_framework_common
   robotis_math
+  op3_walking_module_msgs
   roscpp
 )
 

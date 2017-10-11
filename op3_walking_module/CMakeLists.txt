@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   dynamixel_sdk
   eigen_conversions
   op3_kinematics_dynamics
+  op3_walking_module_msgs
   robotis_controller_msgs
   robotis_device
   robotis_framework_common

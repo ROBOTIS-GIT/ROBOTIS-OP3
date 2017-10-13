@@ -59,23 +59,6 @@ DirectControlModule::DirectControlModule()
   module_name_ = "direct_control_module";
   control_mode_ = robotis_framework::PositionControl;
 
-  //  result_["head_pan"] = new robotis_framework::DynamixelState();
-  //  result_["head_tilt"] = new robotis_framework::DynamixelState();
-
-  //  using_joint_name_["head_pan"] = 0;
-  //  using_joint_name_["head_tilt"] = 1;
-
-  //  max_angle_[using_joint_name_["head_pan"]] = 85 * DEGREE2RADIAN;
-  //  min_angle_[using_joint_name_["head_pan"]] = -85 * DEGREE2RADIAN;
-  //  max_angle_[using_joint_name_["head_tilt"]] = 30 * DEGREE2RADIAN;
-  //  min_angle_[using_joint_name_["head_tilt"]] = -75 * DEGREE2RADIAN;
-
-  //  target_position_ = Eigen::MatrixXd::Zero(1, result_.size());
-  //  current_position_ = Eigen::MatrixXd::Zero(1, result_.size());
-  //  goal_position_ = Eigen::MatrixXd::Zero(1, result_.size());
-  //  goal_velocity_ = Eigen::MatrixXd::Zero(1, result_.size());
-  //  goal_acceleration_ = Eigen::MatrixXd::Zero(1, result_.size());
-
   last_msg_time_ = ros::Time::now();
 }
 
@@ -107,7 +90,6 @@ void DirectControlModule::initialize(const int control_cycle_msec, robotis_frame
   goal_position_ = Eigen::MatrixXd::Zero(1, result_.size());
   goal_velocity_ = Eigen::MatrixXd::Zero(1, result_.size());
   goal_acceleration_ = Eigen::MatrixXd::Zero(1, result_.size());
-
 
   // setting of queue thread
   queue_thread_ = boost::thread(boost::bind(&DirectControlModule::queueThread, this));
@@ -149,11 +131,12 @@ void DirectControlModule::setJointCallback(const sensor_msgs::JointState::ConstP
     return;
   }
 
-  int sleep_count = 0;
+  // wait for updating of present joint states
+  int waiting_count = 0;
   while(is_updated_ == false)
   {
     usleep(control_cycle_msec_ * 1000);
-    if(++sleep_count > 100)
+    if(++waiting_count > 100)
     {
       ROS_ERROR("present joint angle is not updated");
       return;
@@ -161,7 +144,7 @@ void DirectControlModule::setJointCallback(const sensor_msgs::JointState::ConstP
   }
 
   // moving time
-  moving_time_ = 0.5;               // default : 1 sec
+  moving_time_ = 0.5;               // default : 0.5 sec
 
   // set target joint angle
   target_position_ = goal_position_;        // default

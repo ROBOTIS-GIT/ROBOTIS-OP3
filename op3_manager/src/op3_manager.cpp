@@ -36,6 +36,7 @@
 
 /* Sensor Module Header */
 #include "open_cr_module/open_cr_module.h"
+#include "op3_status_check_module/status_check_module.h"
 
 /* Motion Module Header */
 #include "op3_base_module/base_module.h"
@@ -241,6 +242,7 @@ int main(int argc, char **argv)
 
   /* Add Sensor Module */
   controller->addSensorModule((SensorModule*) OpenCRModule::getInstance());
+  controller->addSensorModule((SensorModule*) StatusCheckModule::getInstance());
 
   /* Add Motion Module */
   controller->addMotionModule((MotionModule*) ActionModule::getInstance());

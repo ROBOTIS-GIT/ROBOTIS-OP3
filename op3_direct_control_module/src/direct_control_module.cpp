@@ -52,7 +52,9 @@ DirectControlModule::DirectControlModule()
     BASE_INDEX(0),
     HEAD_INDEX(20),
     RIGHT_END_EFFECTOR_INDEX(21),
+    RIGHT_ELBOW_INDEX(5),
     LEFT_END_EFFECTOR_INDEX(22),
+    LEFT_ELBOW_INDEX(6),
     DEBUG(false)
 {
   enable_ = false;
@@ -81,6 +83,8 @@ void DirectControlModule::initialize(const int control_cycle_msec, robotis_frame
 
     result_[joint_name] = new robotis_framework::DynamixelState();
     result_[joint_name]->goal_position_ = dxl_info->dxl_state_->goal_position_;
+
+    collision_[joint_name] = false;
 
     using_joint_name_[joint_name] = joint_index++;
   }
@@ -147,7 +151,7 @@ void DirectControlModule::setJointCallback(const sensor_msgs::JointState::ConstP
   moving_time_ = 0.5;               // default : 0.5 sec
 
   // set target joint angle
-  target_position_ = goal_position_;        // default
+  target_position_ = goal_position_;        // default is goal position
 
   for (int ix = 0; ix < msg->name.size(); ix++)
   {
@@ -220,6 +224,7 @@ void DirectControlModule::process(std::map<std::string, robotis_framework::Dynam
     present_position_.coeffRef(0, index) = _dxl->dxl_state_->present_position_;
     goal_position_.coeffRef(0, index) = _dxl->dxl_state_->goal_position_;
     result_[joint_name]->goal_position_ = _dxl->dxl_state_->goal_position_;
+    collision_[joint_name] = false;
   }
 
   is_updated_ = true;
@@ -273,13 +278,13 @@ void DirectControlModule::process(std::map<std::string, robotis_framework::Dynam
   // check self collision
   bool collision_result = checkSelfCollision();
 
-  if(collision_result == true)
-  {
-    is_blocked_ = true;
-    return;
-  }
-  else
-    is_blocked_ = false;
+  //  if(collision_result == true)
+  //  {
+  //    is_blocked_ = true;
+  //    return;
+  //  }
+  //  else
+  //    is_blocked_ = false;
 
   // set joint data to robot
   for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_it = result_.begin();
@@ -289,7 +294,8 @@ void DirectControlModule::process(std::map<std::string, robotis_framework::Dynam
     int index = using_joint_name_[joint_name];
     double goal_position = goal_position_.coeff(0, index);
 
-    result_[joint_name]->goal_position_ = goal_position;
+    if(collision_[joint_name] == false)
+      result_[joint_name]->goal_position_ = goal_position;
   }
 }
 
@@ -422,7 +428,9 @@ Eigen::MatrixXd DirectControlModule::calcMinimumJerkTraPVA(double pos_start, dou
 
 bool DirectControlModule::checkSelfCollision()
 {
-  // right arm
+  bool collision_result = false;
+
+  // right arm : end-effector
   // get length between right arm and base
   double diff_length = 0.0;
   bool result = getDiff(RIGHT_END_EFFECTOR_INDEX, BASE_INDEX, diff_length);
@@ -430,18 +438,42 @@ bool DirectControlModule::checkSelfCollision()
   // check collision
   if(result == true && diff_length < 0.07)
   {
-    // handling exception : allow when the length is increasing.
-    if(r_min_diff_ < diff_length)
-    {
-      r_min_diff_ = diff_length;
-      return false;
-    }
+//    // handling exception : allow when the length is increasing.
+//    if(r_min_diff_ < diff_length)
+//    {
+//      r_min_diff_ = diff_length;
+//      collision_result = false;
+//    }
+//    else
+//    {
+//      ROS_ERROR("Self Collision : RIGHT_ARM and BASE");
+//      r_min_diff_ = diff_length;
+//      collision_result = true;
+//    }
     ROS_ERROR("Self Collision : RIGHT_ARM and BASE");
-    //r_min_diff_ = diff_length;
-    return true;
+    collision_["r_sho_pitch"] = true;
+    collision_["r_sho_roll"] = true;
+    collision_["r_el"] = true;
+
+    collision_result = true;
   }
 
-  // left arm
+  // right arm : elbow
+  // get length between right elbow and base
+  diff_length = 0.0;
+  result = getDiff(RIGHT_ELBOW_INDEX, BASE_INDEX, diff_length);
+
+  // check collision
+  if(result == true && diff_length < 0.07)
+  {
+    ROS_ERROR("Self Collision : RIGHT_ELBOW and BASE");
+    collision_["r_sho_pitch"] = true;
+    collision_["r_sho_roll"] = true;
+
+    collision_result = true;
+  }
+
+  // left arm : end-effector
   // get left arm end effect position
   diff_length = 0.0;
   result = getDiff(LEFT_END_EFFECTOR_INDEX, BASE_INDEX, diff_length);
@@ -449,17 +481,41 @@ bool DirectControlModule::checkSelfCollision()
   // check collision
   if(result == true && diff_length < 0.07)
   {
-    if(l_min_diff_ < diff_length)
-    {
-      l_min_diff_ = diff_length;
-      return false;
-    }
+//    if(l_min_diff_ < diff_length)
+//    {
+//      l_min_diff_ = diff_length;
+//      collision_result = false;
+//    }
+//    else
+//    {
+//      ROS_ERROR("Self Collision : LEFT_ARM and BASE");
+//      //l_min_diff_ = diff_length;
+//      collision_result = true;
+//    }
     ROS_ERROR("Self Collision : LEFT_ARM and BASE");
-    //l_min_diff_ = diff_length;
-    return true;
+    collision_["l_sho_pitch"] = true;
+    collision_["l_sho_roll"] = true;
+    collision_["l_el"] = true;
+
+    collision_result = true;
   }
 
-  return false;
+  // left arm : elbow
+  // get length between left elbow and base
+  diff_length = 0.0;
+  result = getDiff(LEFT_ELBOW_INDEX, BASE_INDEX, diff_length);
+
+  // check collision
+  if(result == true && diff_length < 0.07)
+  {
+    ROS_ERROR("Self Collision : LEFT_ELBOW and BASE");
+    collision_["l_sho_pitch"] = true;
+    collision_["l_sho_roll"] = true;
+
+    collision_result = true;
+  }
+
+  return collision_result;
 }
 
 bool DirectControlModule::getDiff(int end_index, int base_index, double &diff)
@@ -475,8 +531,8 @@ bool DirectControlModule::getDiff(int end_index, int base_index, double &diff)
   diff = diff_vec.norm();
 
   ROS_WARN_STREAM_COND(DEBUG, "\nBase Position [" << base_position.coeff(0) << ", " << base_position.coeff(1) << ", " << base_position.coeff(2) << "] \n"
-                  << "End Position [" << end_position.coeff(0) << ", " << end_position.coeff(1) << ", " << end_position.coeff(2) << "] \n"
-                  << "Diff : " << diff);
+                       << "End Position [" << end_position.coeff(0) << ", " << end_position.coeff(1) << ", " << end_position.coeff(2) << "] \n"
+                       << "Diff : " << diff);
 
   return true;
 }

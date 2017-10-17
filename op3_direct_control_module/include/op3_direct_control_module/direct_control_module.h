@@ -76,7 +76,9 @@ class DirectControlModule : public robotis_framework::MotionModule, public robot
    const int BASE_INDEX;
    const int HEAD_INDEX;
    const int RIGHT_END_EFFECTOR_INDEX;
+   const int RIGHT_ELBOW_INDEX;
    const int LEFT_END_EFFECTOR_INDEX;
+   const int LEFT_ELBOW_INDEX;
 
   /* ROS Topic Callback Functions */
   void setJointCallback(const sensor_msgs::JointState::ConstPtr &msg);
@@ -92,6 +94,8 @@ class DirectControlModule : public robotis_framework::MotionModule, public robot
 
   Eigen::MatrixXd calcMinimumJerkTraPVA(double pos_start, double vel_start, double accel_start, double pos_end,
                                         double vel_end, double accel_end, double smp_time, double mov_time);
+
+  std::map<std::string, bool> collision_;
 
   bool checkSelfCollision();
   bool getDiff(int end_index, int base_index, double &diff);

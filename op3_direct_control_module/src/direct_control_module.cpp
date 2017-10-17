@@ -147,6 +147,16 @@ void DirectControlModule::setJointCallback(const sensor_msgs::JointState::ConstP
     }
   }
 
+  // set init joint vel, accel
+  goal_velocity_ = Eigen::MatrixXd::Zero(1, result_.size());
+  goal_acceleration_ = Eigen::MatrixXd::Zero(1, result_.size());
+
+  if (is_moving_ == true)
+  {
+    goal_velocity_ = calc_joint_vel_tra_.block(tra_count_, 0, 1, result_.size());
+    goal_acceleration_ = calc_joint_accel_tra_.block(tra_count_, 0, 1, result_.size());
+  }
+
   // moving time
   moving_time_ = 0.5;               // default : 0.5 sec
 
@@ -172,7 +182,7 @@ void DirectControlModule::setJointCallback(const sensor_msgs::JointState::ConstP
       target_position_.coeffRef(0, joint_index) = target_position;
 
       // set time
-      double angle_unit = 20 * M_PI / 180;
+      double angle_unit = 30 * M_PI / 180;
       double calc_moving_time = fabs(goal_position_.coeff(0, joint_index) - target_position_.coeff(0, joint_index))
           / angle_unit;
       if (calc_moving_time > moving_time_)
@@ -181,18 +191,43 @@ void DirectControlModule::setJointCallback(const sensor_msgs::JointState::ConstP
       if (DEBUG)
         std::cout << "joint : " << joint_name << ", Index : " << joint_index << ", Angle : " << msg->position[ix]
                      << ", Time : " << moving_time_ << std::endl;
+
+      // in case of moving and collision
+      if(collision_[joint_name] == true)
+      {
+        goal_velocity_.coeffRef(0, joint_index) = 0.0;
+        goal_acceleration_.coeffRef(0, joint_index) = 0.0;
+      }
     }
   }
 
-  // set init joint vel, accel
-  goal_velocity_ = Eigen::MatrixXd::Zero(1, result_.size());
-  goal_acceleration_ = Eigen::MatrixXd::Zero(1, result_.size());
-
-  if (is_moving_ == true && is_blocked_ == false)
+  // check collision of target angle
+  will_be_collision_ = false;
+  OP3KinematicsDynamics *op3_kinematics_for_target = new OP3KinematicsDynamics(WholeBody);
+  // set goal angle and run forward kinematics
+  for ( std::map<std::string, int>::iterator joint_index_it = using_joint_name_.begin();
+       joint_index_it != using_joint_name_.end(); joint_index_it++)
   {
-    goal_velocity_ = calc_joint_vel_tra_.block(tra_count_, 0, 1, result_.size());
-    goal_acceleration_ = calc_joint_accel_tra_.block(tra_count_, 0, 1, result_.size());
+    std::string joint_name = joint_index_it->first;
+    int index = joint_index_it->second;
+    double target_position = target_position_.coeff(0, index);
+
+    LinkData *op3_link = op3_kinematics_for_target->getLinkData(joint_name);
+    if(op3_link != NULL)
+      op3_link->joint_angle_ = target_position;
   }
+
+  op3_kinematics_for_target->calcForwardKinematics(0);
+
+  double diff_length = 0.0;
+  bool result = getDiff(op3_kinematics_for_target, RIGHT_END_EFFECTOR_INDEX, BASE_INDEX, diff_length);
+  if(result == true && diff_length < 0.075)
+    will_be_collision_ = true;
+
+  diff_length = 0.0;
+  result = getDiff(op3_kinematics_for_target, LEFT_END_EFFECTOR_INDEX, BASE_INDEX, diff_length);
+  if(result == true && diff_length < 0.075)
+    will_be_collision_ = true;
 
   // generate trajectory
   tra_gene_thread_ = new boost::thread(boost::bind(&DirectControlModule::jointTraGeneThread, this));
@@ -426,17 +461,19 @@ Eigen::MatrixXd DirectControlModule::calcMinimumJerkTraPVA(double pos_start, dou
   return minimum_jer_tra;
 }
 
+// checking self-collision of both arms
 bool DirectControlModule::checkSelfCollision()
 {
   bool collision_result = false;
+  double collision_boundary = will_be_collision_ ? 0.075 : 0.055;
 
   // right arm : end-effector
   // get length between right arm and base
   double diff_length = 0.0;
-  bool result = getDiff(RIGHT_END_EFFECTOR_INDEX, BASE_INDEX, diff_length);
+  bool result = getDiff(op3_kinematics_, RIGHT_END_EFFECTOR_INDEX, BASE_INDEX, diff_length);
 
   // check collision
-  if(result == true && diff_length < 0.07)
+  if(result == true && diff_length < collision_boundary)
   {
     //    // handling exception : allow when the length is increasing.
     //    if(r_min_diff_ < diff_length)
@@ -450,7 +487,7 @@ bool DirectControlModule::checkSelfCollision()
     //      r_min_diff_ = diff_length;
     //      collision_result = true;
     //    }
-    ROS_ERROR_STREAM_THROTTLE(1, "Self Collision : RIGHT_ARM and BASE | " << diff_length);
+    ROS_ERROR_STREAM_THROTTLE(1, "Self Collision : RIGHT_ARM and BASE | "  << diff_length << " / " << collision_boundary);
     collision_["r_sho_pitch"] = true;
     collision_["r_sho_roll"] = true;
     collision_["r_el"] = true;
@@ -461,12 +498,12 @@ bool DirectControlModule::checkSelfCollision()
   // right arm : elbow
   // get length between right elbow and base
   diff_length = 0.0;
-  result = getDiff(RIGHT_ELBOW_INDEX, BASE_INDEX, diff_length);
+  result = getDiff(op3_kinematics_, RIGHT_ELBOW_INDEX, BASE_INDEX, diff_length);
 
   // check collision
-  if(result == true && diff_length < 0.07)
+  if(result == true && diff_length < collision_boundary)
   {
-    ROS_ERROR_STREAM_THROTTLE(1, "Self Collision : RIGHT_ELBOW and BASE | " << diff_length);
+    ROS_ERROR_STREAM_THROTTLE(1, "Self Collision : RIGHT_ELBOW and BASE | " << diff_length << " / " << collision_boundary);
     collision_["r_sho_pitch"] = true;
     collision_["r_sho_roll"] = true;
 
@@ -476,10 +513,10 @@ bool DirectControlModule::checkSelfCollision()
   // left arm : end-effector
   // get left arm end effect position
   diff_length = 0.0;
-  result = getDiff(LEFT_END_EFFECTOR_INDEX, BASE_INDEX, diff_length);
+  result = getDiff(op3_kinematics_, LEFT_END_EFFECTOR_INDEX, BASE_INDEX, diff_length);
 
   // check collision
-  if(result == true && diff_length < 0.07)
+  if(result == true && diff_length < collision_boundary)
   {
     //    if(l_min_diff_ < diff_length)
     //    {
@@ -492,7 +529,7 @@ bool DirectControlModule::checkSelfCollision()
     //      //l_min_diff_ = diff_length;
     //      collision_result = true;
     //    }
-    ROS_ERROR_STREAM_THROTTLE(1, "Self Collision : LEFT_ARM and BASE | " << diff_length);
+    ROS_ERROR_STREAM_THROTTLE(1, "Self Collision : LEFT_ARM and BASE | " << diff_length << " / " << collision_boundary);
     collision_["l_sho_pitch"] = true;
     collision_["l_sho_roll"] = true;
     collision_["l_el"] = true;
@@ -503,12 +540,12 @@ bool DirectControlModule::checkSelfCollision()
   // left arm : elbow
   // get length between left elbow and base
   diff_length = 0.0;
-  result = getDiff(LEFT_ELBOW_INDEX, BASE_INDEX, diff_length);
+  result = getDiff(op3_kinematics_, LEFT_ELBOW_INDEX, BASE_INDEX, diff_length);
 
   // check collision
-  if(result == true && diff_length < 0.07)
+  if(result == true && diff_length < collision_boundary)
   {
-    ROS_ERROR_STREAM_THROTTLE(1, "Self Collision : LEFT_ELBOW and BASE | " << diff_length);
+    ROS_ERROR_STREAM_THROTTLE(1, "Self Collision : LEFT_ELBOW and BASE | " << diff_length << " / " << collision_boundary);
     collision_["l_sho_pitch"] = true;
     collision_["l_sho_roll"] = true;
 
@@ -521,13 +558,13 @@ bool DirectControlModule::checkSelfCollision()
   return collision_result;
 }
 
-bool DirectControlModule::getDiff(int end_index, int base_index, double &diff)
+bool DirectControlModule::getDiff(OP3KinematicsDynamics *kinematics, int end_index, int base_index, double &diff)
 {
-  if(op3_kinematics_->op3_link_data_[end_index] == NULL | op3_kinematics_->op3_link_data_[base_index] == NULL)
+  if(kinematics->op3_link_data_[end_index] == NULL | kinematics->op3_link_data_[base_index] == NULL)
     return false;
 
-  Eigen::Vector3d end_position = op3_kinematics_->op3_link_data_[end_index]->position_;
-  Eigen::Vector3d base_position = op3_kinematics_->op3_link_data_[base_index]->position_;
+  Eigen::Vector3d end_position = kinematics->op3_link_data_[end_index]->position_;
+  Eigen::Vector3d base_position = kinematics->op3_link_data_[base_index]->position_;
   Eigen::Vector3d diff_vec = base_position - end_position;
   diff_vec.coeffRef(2) = 0;
 

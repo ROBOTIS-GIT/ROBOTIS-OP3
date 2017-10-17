@@ -98,7 +98,7 @@ class DirectControlModule : public robotis_framework::MotionModule, public robot
   std::map<std::string, bool> collision_;
 
   bool checkSelfCollision();
-  bool getDiff(int end_index, int base_index, double &diff);
+  bool getDiff(OP3KinematicsDynamics *kinematics, int end_index, int base_index, double &diff);
 
   double default_moving_time_;
   double default_moving_angle_;
@@ -113,6 +113,7 @@ class DirectControlModule : public robotis_framework::MotionModule, public robot
   bool is_moving_;
   bool is_updated_;
   bool is_blocked_;
+  bool will_be_collision_;
   int tra_count_, tra_size_;
   double moving_time_;
   double r_min_diff_, l_min_diff_;

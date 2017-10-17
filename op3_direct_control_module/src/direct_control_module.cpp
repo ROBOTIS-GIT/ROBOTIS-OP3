@@ -438,19 +438,19 @@ bool DirectControlModule::checkSelfCollision()
   // check collision
   if(result == true && diff_length < 0.07)
   {
-//    // handling exception : allow when the length is increasing.
-//    if(r_min_diff_ < diff_length)
-//    {
-//      r_min_diff_ = diff_length;
-//      collision_result = false;
-//    }
-//    else
-//    {
-//      ROS_ERROR("Self Collision : RIGHT_ARM and BASE");
-//      r_min_diff_ = diff_length;
-//      collision_result = true;
-//    }
-    ROS_ERROR("Self Collision : RIGHT_ARM and BASE");
+    //    // handling exception : allow when the length is increasing.
+    //    if(r_min_diff_ < diff_length)
+    //    {
+    //      r_min_diff_ = diff_length;
+    //      collision_result = false;
+    //    }
+    //    else
+    //    {
+    //      ROS_ERROR("Self Collision : RIGHT_ARM and BASE");
+    //      r_min_diff_ = diff_length;
+    //      collision_result = true;
+    //    }
+    ROS_ERROR_STREAM_THROTTLE(1, "Self Collision : RIGHT_ARM and BASE | " << diff_length);
     collision_["r_sho_pitch"] = true;
     collision_["r_sho_roll"] = true;
     collision_["r_el"] = true;
@@ -466,7 +466,7 @@ bool DirectControlModule::checkSelfCollision()
   // check collision
   if(result == true && diff_length < 0.07)
   {
-    ROS_ERROR("Self Collision : RIGHT_ELBOW and BASE");
+    ROS_ERROR_STREAM_THROTTLE(1, "Self Collision : RIGHT_ELBOW and BASE | " << diff_length);
     collision_["r_sho_pitch"] = true;
     collision_["r_sho_roll"] = true;
 
@@ -481,18 +481,18 @@ bool DirectControlModule::checkSelfCollision()
   // check collision
   if(result == true && diff_length < 0.07)
   {
-//    if(l_min_diff_ < diff_length)
-//    {
-//      l_min_diff_ = diff_length;
-//      collision_result = false;
-//    }
-//    else
-//    {
-//      ROS_ERROR("Self Collision : LEFT_ARM and BASE");
-//      //l_min_diff_ = diff_length;
-//      collision_result = true;
-//    }
-    ROS_ERROR("Self Collision : LEFT_ARM and BASE");
+    //    if(l_min_diff_ < diff_length)
+    //    {
+    //      l_min_diff_ = diff_length;
+    //      collision_result = false;
+    //    }
+    //    else
+    //    {
+    //      ROS_ERROR("Self Collision : LEFT_ARM and BASE");
+    //      //l_min_diff_ = diff_length;
+    //      collision_result = true;
+    //    }
+    ROS_ERROR_STREAM_THROTTLE(1, "Self Collision : LEFT_ARM and BASE | " << diff_length);
     collision_["l_sho_pitch"] = true;
     collision_["l_sho_roll"] = true;
     collision_["l_el"] = true;
@@ -508,12 +508,15 @@ bool DirectControlModule::checkSelfCollision()
   // check collision
   if(result == true && diff_length < 0.07)
   {
-    ROS_ERROR("Self Collision : LEFT_ELBOW and BASE");
+    ROS_ERROR_STREAM_THROTTLE(1, "Self Collision : LEFT_ELBOW and BASE | " << diff_length);
     collision_["l_sho_pitch"] = true;
     collision_["l_sho_roll"] = true;
 
     collision_result = true;
   }
+
+  if(collision_result == false)
+    ROS_WARN("============================================");
 
   return collision_result;
 }

@@ -102,6 +102,7 @@ class DirectControlModule : public robotis_framework::MotionModule, public robot
 
   double default_moving_time_;
   double default_moving_angle_;
+  bool check_collision_;
 
   int control_cycle_msec_;
   boost::thread queue_thread_;

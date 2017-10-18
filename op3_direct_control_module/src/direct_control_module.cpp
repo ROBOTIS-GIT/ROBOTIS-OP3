@@ -46,8 +46,9 @@ DirectControlModule::DirectControlModule()
     l_min_diff_(0.07),
     tra_count_(0),
     tra_size_(0),
-    default_moving_time_(1.0),
-    default_moving_angle_(45),
+    default_moving_time_(0.5),
+    default_moving_angle_(30),
+    check_collision_(true),
     moving_time_(3.0),
     BASE_INDEX(0),
     HEAD_INDEX(20),
@@ -105,6 +106,7 @@ void DirectControlModule::initialize(const int control_cycle_msec, robotis_frame
   /* get Param */
   ros_node.param<double>("/robotis/direct_control/default_moving_time", default_moving_time_, default_moving_time_);
   ros_node.param<double>("/robotis/direct_control/default_moving_angle", default_moving_angle_, default_moving_angle_);
+  ros_node.param<bool>("/robotis/direct_control/check_collision", check_collision_, check_collision_);
 
   /* publish topics */
   status_msg_pub_ = ros_node.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 0);
@@ -158,7 +160,7 @@ void DirectControlModule::setJointCallback(const sensor_msgs::JointState::ConstP
   }
 
   // moving time
-  moving_time_ = 0.5;               // default : 0.5 sec
+  moving_time_ = default_moving_time_;               // default : 0.5 sec
 
   // set target joint angle
   target_position_ = goal_position_;        // default is goal position
@@ -182,7 +184,7 @@ void DirectControlModule::setJointCallback(const sensor_msgs::JointState::ConstP
       target_position_.coeffRef(0, joint_index) = target_position;
 
       // set time
-      double angle_unit = 30 * M_PI / 180;
+      double angle_unit = default_moving_angle_ * M_PI / 180;
       double calc_moving_time = fabs(goal_position_.coeff(0, joint_index) - target_position_.coeff(0, joint_index))
           / angle_unit;
       if (calc_moving_time > moving_time_)
@@ -201,33 +203,36 @@ void DirectControlModule::setJointCallback(const sensor_msgs::JointState::ConstP
     }
   }
 
-  // check collision of target angle
-  will_be_collision_ = false;
-  OP3KinematicsDynamics *op3_kinematics_for_target = new OP3KinematicsDynamics(WholeBody);
-  // set goal angle and run forward kinematics
-  for ( std::map<std::string, int>::iterator joint_index_it = using_joint_name_.begin();
-       joint_index_it != using_joint_name_.end(); joint_index_it++)
+  if(check_collision_ == true)
   {
-    std::string joint_name = joint_index_it->first;
-    int index = joint_index_it->second;
-    double target_position = target_position_.coeff(0, index);
+    // check collision of target angle
+    will_be_collision_ = false;
+    OP3KinematicsDynamics *op3_kinematics_for_target = new OP3KinematicsDynamics(WholeBody);
+    // set goal angle and run forward kinematics
+    for ( std::map<std::string, int>::iterator joint_index_it = using_joint_name_.begin();
+          joint_index_it != using_joint_name_.end(); joint_index_it++)
+    {
+      std::string joint_name = joint_index_it->first;
+      int index = joint_index_it->second;
+      double target_position = target_position_.coeff(0, index);
 
-    LinkData *op3_link = op3_kinematics_for_target->getLinkData(joint_name);
-    if(op3_link != NULL)
-      op3_link->joint_angle_ = target_position;
+      LinkData *op3_link = op3_kinematics_for_target->getLinkData(joint_name);
+      if(op3_link != NULL)
+        op3_link->joint_angle_ = target_position;
+    }
+
+    op3_kinematics_for_target->calcForwardKinematics(0);
+
+    double diff_length = 0.0;
+    bool result = getDiff(op3_kinematics_for_target, RIGHT_END_EFFECTOR_INDEX, BASE_INDEX, diff_length);
+    if(result == true && diff_length < 0.075)
+      will_be_collision_ = true;
+
+    diff_length = 0.0;
+    result = getDiff(op3_kinematics_for_target, LEFT_END_EFFECTOR_INDEX, BASE_INDEX, diff_length);
+    if(result == true && diff_length < 0.075)
+      will_be_collision_ = true;
   }
-
-  op3_kinematics_for_target->calcForwardKinematics(0);
-
-  double diff_length = 0.0;
-  bool result = getDiff(op3_kinematics_for_target, RIGHT_END_EFFECTOR_INDEX, BASE_INDEX, diff_length);
-  if(result == true && diff_length < 0.075)
-    will_be_collision_ = true;
-
-  diff_length = 0.0;
-  result = getDiff(op3_kinematics_for_target, LEFT_END_EFFECTOR_INDEX, BASE_INDEX, diff_length);
-  if(result == true && diff_length < 0.075)
-    will_be_collision_ = true;
 
   // generate trajectory
   tra_gene_thread_ = new boost::thread(boost::bind(&DirectControlModule::jointTraGeneThread, this));
@@ -295,31 +300,26 @@ void DirectControlModule::process(std::map<std::string, robotis_framework::Dynam
   }
   tra_lock_.unlock();
 
-  // set goal angle and run forward kinematics
-  for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_it = result_.begin();
-       state_it != result_.end(); state_it++)
+  if(check_collision_ == true)
   {
-    std::string joint_name = state_it->first;
-    int index = using_joint_name_[joint_name];
-    double goal_position = goal_position_.coeff(0, index);
+    // set goal angle and run forward kinematics
+    for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_it = result_.begin();
+         state_it != result_.end(); state_it++)
+    {
+      std::string joint_name = state_it->first;
+      int index = using_joint_name_[joint_name];
+      double goal_position = goal_position_.coeff(0, index);
 
-    LinkData *op3_link = op3_kinematics_->getLinkData(joint_name);
-    if(op3_link != NULL)
-      op3_link->joint_angle_ = goal_position;
+      LinkData *op3_link = op3_kinematics_->getLinkData(joint_name);
+      if(op3_link != NULL)
+        op3_link->joint_angle_ = goal_position;
+    }
+
+    op3_kinematics_->calcForwardKinematics(0);
+
+    // check self collision
+    bool collision_result = checkSelfCollision();
   }
-
-  op3_kinematics_->calcForwardKinematics(0);
-
-  // check self collision
-  bool collision_result = checkSelfCollision();
-
-  //  if(collision_result == true)
-  //  {
-  //    is_blocked_ = true;
-  //    return;
-  //  }
-  //  else
-  //    is_blocked_ = false;
 
   // set joint data to robot
   for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_it = result_.begin();
@@ -329,7 +329,7 @@ void DirectControlModule::process(std::map<std::string, robotis_framework::Dynam
     int index = using_joint_name_[joint_name];
     double goal_position = goal_position_.coeff(0, index);
 
-    if(collision_[joint_name] == false)
+    if(collision_[joint_name] == false || check_collision_ == false)
       result_[joint_name]->goal_position_ = goal_position;
   }
 }
@@ -475,19 +475,8 @@ bool DirectControlModule::checkSelfCollision()
   // check collision
   if(result == true && diff_length < collision_boundary)
   {
-    //    // handling exception : allow when the length is increasing.
-    //    if(r_min_diff_ < diff_length)
-    //    {
-    //      r_min_diff_ = diff_length;
-    //      collision_result = false;
-    //    }
-    //    else
-    //    {
-    //      ROS_ERROR("Self Collision : RIGHT_ARM and BASE");
-    //      r_min_diff_ = diff_length;
-    //      collision_result = true;
-    //    }
-    ROS_ERROR_STREAM_THROTTLE(1, "Self Collision : RIGHT_ARM and BASE | "  << diff_length << " / " << collision_boundary);
+    if(DEBUG == true)
+      ROS_WARN_STREAM_THROTTLE(1, "Self Collision : RIGHT_ARM and BASE | "  << diff_length << " / " << collision_boundary);
     collision_["r_sho_pitch"] = true;
     collision_["r_sho_roll"] = true;
     collision_["r_el"] = true;
@@ -503,7 +492,8 @@ bool DirectControlModule::checkSelfCollision()
   // check collision
   if(result == true && diff_length < collision_boundary)
   {
-    ROS_ERROR_STREAM_THROTTLE(1, "Self Collision : RIGHT_ELBOW and BASE | " << diff_length << " / " << collision_boundary);
+    if(DEBUG == true)
+      ROS_WARN_STREAM_THROTTLE(1, "Self Collision : RIGHT_ELBOW and BASE | " << diff_length << " / " << collision_boundary);
     collision_["r_sho_pitch"] = true;
     collision_["r_sho_roll"] = true;
 
@@ -518,18 +508,8 @@ bool DirectControlModule::checkSelfCollision()
   // check collision
   if(result == true && diff_length < collision_boundary)
   {
-    //    if(l_min_diff_ < diff_length)
-    //    {
-    //      l_min_diff_ = diff_length;
-    //      collision_result = false;
-    //    }
-    //    else
-    //    {
-    //      ROS_ERROR("Self Collision : LEFT_ARM and BASE");
-    //      //l_min_diff_ = diff_length;
-    //      collision_result = true;
-    //    }
-    ROS_ERROR_STREAM_THROTTLE(1, "Self Collision : LEFT_ARM and BASE | " << diff_length << " / " << collision_boundary);
+    if(DEBUG == true)
+      ROS_WARN_STREAM_THROTTLE(1, "Self Collision : LEFT_ARM and BASE | " << diff_length << " / " << collision_boundary);
     collision_["l_sho_pitch"] = true;
     collision_["l_sho_roll"] = true;
     collision_["l_el"] = true;
@@ -545,14 +525,15 @@ bool DirectControlModule::checkSelfCollision()
   // check collision
   if(result == true && diff_length < collision_boundary)
   {
-    ROS_ERROR_STREAM_THROTTLE(1, "Self Collision : LEFT_ELBOW and BASE | " << diff_length << " / " << collision_boundary);
+    if(DEBUG == true)
+      ROS_WARN_STREAM_THROTTLE(1, "Self Collision : LEFT_ELBOW and BASE | " << diff_length << " / " << collision_boundary);
     collision_["l_sho_pitch"] = true;
     collision_["l_sho_roll"] = true;
 
     collision_result = true;
   }
 
-  if(collision_result == false)
+  if(collision_result == false && DEBUG = true)
     ROS_WARN("============================================");
 
   return collision_result;

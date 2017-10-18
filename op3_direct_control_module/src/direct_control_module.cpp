@@ -533,7 +533,7 @@ bool DirectControlModule::checkSelfCollision()
     collision_result = true;
   }
 
-  if(collision_result == false && DEBUG = true)
+  if(collision_result == false && DEBUG == true)
     ROS_WARN("============================================");
 
   return collision_result;

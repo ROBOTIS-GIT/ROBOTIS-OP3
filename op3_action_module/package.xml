@@ -5,11 +5,12 @@
   <description>The op3_action_module package</description>
 
 
-  <maintainer email="kmjung@robotis.com">Kaymanm Jung</maintainer>
 
-  <license>BSD</license>
+  <license>Apache License 2.0</license>
 
+  <author email="kmjung@robotis.com">Kaymanm Jung</author>
   <author email="hjsong@robotis.com">Jay Song</author>
+  <maintainer email="pyo@robotis.com">Pyo</maintainer>
 
   <buildtool_depend>catkin</buildtool_depend>
   

@@ -6,7 +6,7 @@
     ROS packages for the robotis_op3 (meta package)
   </description>
 
-  <license>BSD</license>
+  <license>Apache License 2.0</license>
   <author email="kmjung@robotis.com">Kayman</author>
   <maintainer email="pyo@robotis.com">Pyo</maintainer>
 

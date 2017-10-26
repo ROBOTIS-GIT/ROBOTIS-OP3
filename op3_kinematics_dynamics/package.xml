@@ -3,7 +3,7 @@
   <name>op3_kinematics_dynamics</name>
   <version>0.1.0</version>
   <description>The op3_kinematics_dynamics package</description>
-  <license>BSD</license>
+  <license>Apache License 2.0</license>
   <author email="hjsong@robotis.com">jay song</author>
   <author email="kmjung@robotis.com">kayman</author>
   <author email="sch@robotis.com">sch</author>

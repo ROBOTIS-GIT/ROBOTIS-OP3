@@ -228,7 +228,7 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
 
     // left arm shoulder pitch
     op3_link_data_[2]->name_ = "l_sho_pitch";
-    op3_link_data_[2]->parent_ = 27;
+    op3_link_data_[2]->parent_ = 29;
     op3_link_data_[2]->sibling_ = -1;
     op3_link_data_[2]->child_ = 4;
     op3_link_data_[2]->mass_ = 0.194;
@@ -285,7 +285,7 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
 
     // right leg hip yaw
     op3_link_data_[7]->name_ = "r_hip_yaw";
-    op3_link_data_[7]->parent_ = 27;
+    op3_link_data_[7]->parent_ = 29;
     op3_link_data_[7]->sibling_ = 8;
     op3_link_data_[7]->child_ = 9;
     op3_link_data_[7]->mass_ = 0.243;
@@ -384,7 +384,7 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
 
     // left leg hip yaw
     op3_link_data_[8]->name_ = "l_hip_yaw";
-    op3_link_data_[8]->parent_ = 27;
+    op3_link_data_[8]->parent_ = 29;
     op3_link_data_[8]->sibling_ = -1;
     op3_link_data_[8]->child_ = 10;
     op3_link_data_[8]->mass_ = 0.243;

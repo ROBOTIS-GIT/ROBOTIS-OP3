@@ -3,10 +3,13 @@
   <name>op3_base_module</name>
   <version>0.1.0</version>
   <description>The op3_base_module package</description>
-  <license>BSD</license>
-  <author email="kmjung@robotis.com">kayman</author>
-  <author email="sch@robotis.com">sch</author>
+  <license>Apache License 2.0</license>
+  <author email="kmjung@robotis.com">Kayman</author>
+  <author email="sch@robotis.com">SCH</author>
   <maintainer email="pyo@robotis.com">Pyo</maintainer>
+  <url type="bugtracker">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3/issues</url>
+  <url type="repository">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3</url>
+  <url type="website">http://wiki.ros.org/robotis_op3</url>
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>robotis_device</build_depend>
   <build_depend>robotis_math</build_depend>

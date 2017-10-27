@@ -16,8 +16,8 @@
 
 /* Author: Kayman Jung */
 
-#ifndef HEAD_CONTROL_MODULE_H_
-#define HEAD_CONTROL_MODULE_H_
+#ifndef DIRECT_CONTROL_MODULE_H_
+#define DIRECT_CONTROL_MODULE_H_
 
 #include <boost/thread.hpp>
 
@@ -31,14 +31,15 @@
 #include "robotis_math/robotis_math.h"
 #include "robotis_controller_msgs/StatusMsg.h"
 
+#include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
 namespace robotis_op
 {
 
-class HeadControlModule : public robotis_framework::MotionModule, public robotis_framework::Singleton<HeadControlModule>
+class DirectControlModule : public robotis_framework::MotionModule, public robotis_framework::Singleton<DirectControlModule>
 {
  public:
-  HeadControlModule();
-  virtual ~HeadControlModule();
+  DirectControlModule();
+  virtual ~DirectControlModule();
 
   void initialize(const int control_cycle_msec, robotis_framework::Robot *robot);
   void process(std::map<std::string, robotis_framework::Dynamixel *> dxls, std::map<std::string, double> sensors);
@@ -50,25 +51,26 @@ class HeadControlModule : public robotis_framework::MotionModule, public robotis
   void onModuleDisable();
 
  private:
-  enum
-  {
-    NoScan = 0,
-    BottomToTop = 1,
-    RightToLeft = 2,
-    TopToBottom = 3,
-    LeftToRight = 4,
-  };
+   enum TraIndex
+   {
+     Position = 0,
+     Velocity = 1,
+     Acceleration = 2,
+     Count
+   };
+
+   const int BASE_INDEX;
+   const int HEAD_INDEX;
+   const int RIGHT_END_EFFECTOR_INDEX;
+   const int RIGHT_ELBOW_INDEX;
+   const int LEFT_END_EFFECTOR_INDEX;
+   const int LEFT_ELBOW_INDEX;
 
   /* ROS Topic Callback Functions */
-  void setHeadJointCallback(const sensor_msgs::JointState::ConstPtr &msg);
-  void setHeadJointOffsetCallback(const sensor_msgs::JointState::ConstPtr &msg);
-  void setHeadScanCallback(const std_msgs::String::ConstPtr &msg);
+  void setJointCallback(const sensor_msgs::JointState::ConstPtr &msg);
 
   void queueThread();
   void jointTraGeneThread();
-  void setHeadJoint(const sensor_msgs::JointState::ConstPtr &msg, bool is_offset);
-  bool checkAngleLimit(const int joint_index, double &goal_position);
-  void generateScanTra(const int head_direction);
 
   void startMoving();
   void finishMoving();
@@ -79,6 +81,15 @@ class HeadControlModule : public robotis_framework::MotionModule, public robotis
   Eigen::MatrixXd calcMinimumJerkTraPVA(double pos_start, double vel_start, double accel_start, double pos_end,
                                         double vel_end, double accel_end, double smp_time, double mov_time);
 
+  std::map<std::string, bool> collision_;
+
+  bool checkSelfCollision();
+  bool getDiff(OP3KinematicsDynamics *kinematics, int end_index, int base_index, double &diff);
+
+  double default_moving_time_;
+  double default_moving_angle_;
+  bool check_collision_;
+
   int control_cycle_msec_;
   boost::thread queue_thread_;
   boost::thread *tra_gene_thread_;
@@ -87,13 +98,15 @@ class HeadControlModule : public robotis_framework::MotionModule, public robotis
   const bool DEBUG;
   bool stop_process_;
   bool is_moving_;
-  bool is_direct_control_;
+  bool is_updated_;
+  bool is_blocked_;
+  bool will_be_collision_;
   int tra_count_, tra_size_;
   double moving_time_;
-  int scan_state_;
+  double r_min_diff_, l_min_diff_;
 
   Eigen::MatrixXd target_position_;
-  Eigen::MatrixXd current_position_;
+  Eigen::MatrixXd present_position_;
   Eigen::MatrixXd goal_position_;
   Eigen::MatrixXd goal_velocity_;
   Eigen::MatrixXd goal_acceleration_;
@@ -107,6 +120,8 @@ class HeadControlModule : public robotis_framework::MotionModule, public robotis
 
   ros::Time last_msg_time_;
   std::string last_msg_;
+
+  OP3KinematicsDynamics *op3_kinematics_;
 };
 
 }

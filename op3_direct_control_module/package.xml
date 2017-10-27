@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package>
+  <name>op3_direct_control_module</name>
+  <version>0.1.0</version>
+  <description>The op3_direct_control_module package</description>
+  <license>Apache License 2.0</license>
+  <author email="kmjung@robotis.com">kayman</author>
+  <maintainer email="pyo@robotis.com">Pyo</maintainer>
+  <buildtool_depend>catkin</buildtool_depend>  
+  <build_depend>robotis_device</build_depend>
+  <build_depend>robotis_math</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>cmake_modules</build_depend>
+  <build_depend>dynamixel_sdk</build_depend>
+  <build_depend>op3_kinematics_dynamics</build_depend>
+  <run_depend>robotis_device</run_depend>
+  <run_depend>robotis_math</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>cmake_modules</run_depend>
+  <run_depend>dynamixel_sdk</run_depend>
+  <run_depend>op3_kinematics_dynamics</run_depend>
+</package>

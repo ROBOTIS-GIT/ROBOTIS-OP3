@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 
 <launch>    
-    <param name="gazebo"                   value="false"    type="bool"/>
+    <param name="gazebo"                   value="true"    type="bool"/>
     <param name="gazebo_robot_name"        value="robotis_op3"/>
     
     <param name="offset_file_path"         value="$(find op3_manager)/config/offset.yaml"/>

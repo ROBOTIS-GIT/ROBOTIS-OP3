@@ -26,7 +26,10 @@ find_package(catkin REQUIRED COMPONENTS
   op3_base_module
   op3_head_control_module
   op3_action_module
+  op3_action_module_msgs
   op3_walking_module
+  op3_walking_module_msgs
+  op3_direct_control_module
   op3_kinematics_dynamics
 )
 

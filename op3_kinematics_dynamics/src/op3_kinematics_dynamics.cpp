@@ -1,32 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2016, ROBOTIS CO., LTD.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
- *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
- *
- * * Neither the name of ROBOTIS nor the names of its
- *   contributors may be used to endorse or promote products derived from
- *   this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *******************************************************************************/
+* Copyright 2017 ROBOTIS CO., LTD.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*******************************************************************************/
 
 /* Author: sch, Jay Song, Kayman */
 
@@ -93,7 +79,7 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
     op3_link_data_[25]->sibling_ = -1;
     op3_link_data_[25]->child_ = 26;
     op3_link_data_[25]->mass_ = 0.0;
-    op3_link_data_[25]->relative_position_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.801);
+    op3_link_data_[25]->relative_position_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.385);
     op3_link_data_[25]->joint_axis_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.0);
     op3_link_data_[25]->center_of_mass_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.0);
     op3_link_data_[25]->joint_limit_max_ = 100.0;
@@ -217,8 +203,8 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
     op3_link_data_[5]->sibling_ = -1;
     op3_link_data_[5]->child_ = 21;
     op3_link_data_[5]->mass_ = 1.122;
-    op3_link_data_[5]->relative_position_ = robotis_framework::getTransitionXYZ(0.016, 0.0, -0.06);
-    op3_link_data_[5]->joint_axis_ = robotis_framework::getTransitionXYZ(0.0, -1.0, 0.0);
+    op3_link_data_[5]->relative_position_ = robotis_framework::getTransitionXYZ(0.0, -0.09, 0.0);
+    op3_link_data_[5]->joint_axis_ = robotis_framework::getTransitionXYZ(1.0, 0.0, 0.0);
     op3_link_data_[5]->center_of_mass_ = robotis_framework::getTransitionXYZ(0.000, -0.073, 0.000);
     op3_link_data_[5]->joint_limit_max_ = 0.5 * M_PI;
     op3_link_data_[5]->joint_limit_min_ = -0.5 * M_PI;
@@ -231,7 +217,7 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
     op3_link_data_[21]->sibling_ = -1;
     op3_link_data_[21]->child_ = -1;
     op3_link_data_[21]->mass_ = 0.0;
-    op3_link_data_[21]->relative_position_ = robotis_framework::getTransitionXYZ(0.0, 0.0, -0.06);
+    op3_link_data_[21]->relative_position_ = robotis_framework::getTransitionXYZ(0.0, -0.15, 0.0);
     op3_link_data_[21]->joint_axis_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.0);
     op3_link_data_[21]->center_of_mass_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.0);
     op3_link_data_[21]->joint_limit_max_ = 100.0;
@@ -242,7 +228,7 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
 
     // left arm shoulder pitch
     op3_link_data_[2]->name_ = "l_sho_pitch";
-    op3_link_data_[2]->parent_ = 27;
+    op3_link_data_[2]->parent_ = 29;
     op3_link_data_[2]->sibling_ = -1;
     op3_link_data_[2]->child_ = 4;
     op3_link_data_[2]->mass_ = 0.194;
@@ -274,8 +260,8 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
     op3_link_data_[6]->sibling_ = -1;
     op3_link_data_[6]->child_ = 22;
     op3_link_data_[6]->mass_ = 1.122;
-    op3_link_data_[6]->relative_position_ = robotis_framework::getTransitionXYZ(0.016, 0.0, -0.06);
-    op3_link_data_[6]->joint_axis_ = robotis_framework::getTransitionXYZ(0.0, 1.0, 0.0);
+    op3_link_data_[6]->relative_position_ = robotis_framework::getTransitionXYZ(0.0, 0.09, 0.0);
+    op3_link_data_[6]->joint_axis_ = robotis_framework::getTransitionXYZ(1.0, 0.0, 0.0);
     op3_link_data_[6]->center_of_mass_ = robotis_framework::getTransitionXYZ(0.000, 0.073, 0.000);
     op3_link_data_[6]->joint_limit_max_ = 0.5 * M_PI;
     op3_link_data_[6]->joint_limit_min_ = -0.5 * M_PI;
@@ -288,7 +274,7 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
     op3_link_data_[22]->sibling_ = -1;
     op3_link_data_[22]->child_ = -1;
     op3_link_data_[22]->mass_ = 0.0;
-    op3_link_data_[22]->relative_position_ = robotis_framework::getTransitionXYZ(0.0, 0.0, -0.06);
+    op3_link_data_[22]->relative_position_ = robotis_framework::getTransitionXYZ(0.0, 0.15, 0.0);
     op3_link_data_[22]->joint_axis_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.0);
     op3_link_data_[22]->center_of_mass_ = robotis_framework::getTransitionXYZ(0.0, 0.0, 0.0);
     op3_link_data_[22]->joint_limit_max_ = 100.0;
@@ -299,7 +285,7 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
 
     // right leg hip yaw
     op3_link_data_[7]->name_ = "r_hip_yaw";
-    op3_link_data_[7]->parent_ = 27;
+    op3_link_data_[7]->parent_ = 29;
     op3_link_data_[7]->sibling_ = 8;
     op3_link_data_[7]->child_ = 9;
     op3_link_data_[7]->mass_ = 0.243;
@@ -398,7 +384,7 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
 
     // left leg hip yaw
     op3_link_data_[8]->name_ = "l_hip_yaw";
-    op3_link_data_[8]->parent_ = 27;
+    op3_link_data_[8]->parent_ = 29;
     op3_link_data_[8]->sibling_ = -1;
     op3_link_data_[8]->child_ = 10;
     op3_link_data_[8]->mass_ = 0.243;

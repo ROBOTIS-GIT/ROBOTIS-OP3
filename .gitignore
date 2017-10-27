@@ -9,3 +9,4 @@ qtcreator-build
 *.backup
 *.user
 *.autosave
+/op3_manager/config/offset.yaml

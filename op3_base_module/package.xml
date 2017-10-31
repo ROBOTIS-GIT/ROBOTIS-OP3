@@ -19,10 +19,16 @@
   <build_depend>cmake_modules</build_depend>
   <build_depend>op3_kinematics_dynamics</build_depend>
   <build_depend>dynamixel_sdk</build_depend>
+  <build_depend>robotis_controller_msgs</build_depend>
+  <build_depend>robotis_framework_common</build_depend>
   <run_depend>robotis_device</run_depend>
+  <run_depend>robotis_math</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>geometry_msgs</run_depend>
   <run_depend>cmake_modules</run_depend>
+  <run_depend>op3_kinematics_dynamics</run_depend>
   <run_depend>dynamixel_sdk</run_depend>
+  <run_depend>robotis_controller_msgs</run_depend>
+  <run_depend>robotis_framework_common</run_depend>
 </package>

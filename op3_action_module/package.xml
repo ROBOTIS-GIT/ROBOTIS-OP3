@@ -22,6 +22,9 @@
   <run_depend>std_msgs</run_depend>
   <run_depend>robotis_device</run_depend>
   <run_depend>dynamixel_sdk</run_depend>
+  <run_depend>robotis_controller_msgs</run_depend>
+  <run_depend>robotis_framework_common</run_depend>
+  <run_depend>op3_action_module_msgs</run_depend>
   <export>
   </export>
 </package>

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package>
+  <name>op3_optimization</name>
+  <version>0.0.0</version>
+  <description>The op3_optimization package</description>
+  <license>Apache License 2.0</license>
+  <author email="sch@robotis.com">SCH</author>
+  <maintainer email="sch@robotis.com">SCH</maintainer>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>thormang3_wholebody_module_msgs</build_depend>
+  <build_depend>robotis_math</build_depend>
+  <build_depend>scilab_optimization</build_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+</package>

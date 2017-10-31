@@ -1,0 +1,3 @@
+string    name
+---
+op3_wholebody_module_msgs/KinematicsPose pose

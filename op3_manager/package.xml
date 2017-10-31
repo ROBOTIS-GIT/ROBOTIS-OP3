@@ -18,6 +18,7 @@
   <build_depend>robotis_controller_msgs</build_depend>
   <build_depend>robotis_math</build_depend>
   <build_depend>op3_kinematics_dynamics</build_depend>
+  <build_depend>op3_balance_control</build_depend>
   <build_depend>op3_base_module</build_depend>
   <build_depend>op3_head_control_module</build_depend>
   <build_depend>op3_action_module</build_depend>
@@ -25,6 +26,8 @@
   <build_depend>op3_walking_module</build_depend>
   <build_depend>op3_walking_module_msgs</build_depend>
   <build_depend>op3_direct_control_module</build_depend>
+  <build_depend>op3_wholebody_module</build_depend>
+  <build_depend>op3_wholebody_module_msgs</build_depend>
   <build_depend>cm_740_module</build_depend>
   <build_depend>open_cr_module</build_depend>
   <build_depend>cmake_modules</build_depend>

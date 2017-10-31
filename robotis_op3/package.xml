@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>robotis_op3</name>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
   <description>
     ROS packages for the robotis_op3 (meta package)
   </description>
@@ -16,9 +16,10 @@
   <run_depend>open_cr_module</run_depend>
   <run_depend>op3_action_module</run_depend>
   <run_depend>op3_base_module</run_depend>
+  <run_depend>op3_direct_control_module</run_depend>
   <run_depend>op3_head_control_module</run_depend>
-  <run_depend>op3_walking_module</run_depend>
   <run_depend>op3_kinematics_dynamics</run_depend>
   <run_depend>op3_manager</run_depend>
+  <run_depend>op3_walking_module</run_depend>
   <export><metapackage/></export>
 </package>

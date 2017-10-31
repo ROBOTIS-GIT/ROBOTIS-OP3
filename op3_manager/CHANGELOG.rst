@@ -2,6 +2,18 @@
 Changelog for package op3_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.1.1 (2017-10-31)
+-----------
+* Changed License from BSD to Apache 2.0
+* Added a launch file for gazebo
+* fixed typo.
+* added test code about collision check
+* added direct_control_module
+* added direct_control_module
+* deleted offset.yaml
+* fixed action_module bug.
+* Contributors: Kayman, Pyo
+
 0.1.0 (2017-10-27)
 -----------
 * clear offset file

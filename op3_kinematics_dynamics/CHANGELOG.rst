@@ -2,6 +2,17 @@
 Changelog for package op3_kinematics_dynamics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.1.1 (2017-10-31)
+-----------
+* fixed wrong index of op3 kinematics tree
+* Changed License from BSD to Apache 2.0
+* added to check collision
+* changed collision range
+  fixed some bug
+* added test code about collision check
+* added direct_control_module
+* Contributors: Kayman
+
 0.1.0 (2017-10-27)
 -----------
 * cleaned up the code.

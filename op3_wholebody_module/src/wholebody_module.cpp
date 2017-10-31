@@ -46,7 +46,7 @@ WholebodyModule::WholebodyModule()
     walking_phase_(DSP),
     body_offset_x_(0.0),
     body_offset_y_(0.0),
-    total_mass_(42.533)
+    total_mass_(3.5)
 {
   enable_       = false;
   module_name_  = "wholebody_module";
@@ -57,32 +57,32 @@ WholebodyModule::WholebodyModule()
   op3_kdl_ = new OP3Kinematics();
 
   /* leg */
-  result_["r_hip_yaw"]      = new robotis_framework::DynamixelState();
-  result_["r_hip_roll"]     = new robotis_framework::DynamixelState();
-  result_["r_hip_pitch"]    = new robotis_framework::DynamixelState();
-  result_["r_knee"]         = new robotis_framework::DynamixelState();
-  result_["r_ankle_pitch"]  = new robotis_framework::DynamixelState();
-  result_["r_ankle_roll"]   = new robotis_framework::DynamixelState();
-  result_["l_hip_yaw"]      = new robotis_framework::DynamixelState();
-  result_["l_hip_roll"]     = new robotis_framework::DynamixelState();
-  result_["l_hip_pitch"]    = new robotis_framework::DynamixelState();
-  result_["l_knee"]         = new robotis_framework::DynamixelState();
-  result_["l_ankle_pitch"]  = new robotis_framework::DynamixelState();
-  result_["l_ankle_roll"]   = new robotis_framework::DynamixelState();
+  result_["r_hip_yaw"]    = new robotis_framework::DynamixelState();
+  result_["r_hip_roll"]   = new robotis_framework::DynamixelState();
+  result_["r_hip_pitch"]  = new robotis_framework::DynamixelState();
+  result_["r_knee"]       = new robotis_framework::DynamixelState();
+  result_["r_ank_pitch"]  = new robotis_framework::DynamixelState();
+  result_["r_ank_roll"]   = new robotis_framework::DynamixelState();
+  result_["l_hip_yaw"]    = new robotis_framework::DynamixelState();
+  result_["l_hip_roll"]   = new robotis_framework::DynamixelState();
+  result_["l_hip_pitch"]  = new robotis_framework::DynamixelState();
+  result_["l_knee"]       = new robotis_framework::DynamixelState();
+  result_["l_ank_pitch"]  = new robotis_framework::DynamixelState();
+  result_["l_ank_roll"]   = new robotis_framework::DynamixelState();
 
   /* leg */
-  joint_name_to_id_["r_hip_yaw"]      = 1;
-  joint_name_to_id_["l_hip_yaw"]      = 2;
-  joint_name_to_id_["r_hip_roll"]     = 3;
-  joint_name_to_id_["l_hip_roll"]     = 4;
-  joint_name_to_id_["r_hip_pitch"]    = 5;
-  joint_name_to_id_["l_hip_pitch"]    = 6;
-  joint_name_to_id_["r_knee"]         = 7;
-  joint_name_to_id_["l_knee"]         = 8;
-  joint_name_to_id_["r_ankle_pitch"]  = 9;
-  joint_name_to_id_["l_ankle_pitch"]  = 10;
-  joint_name_to_id_["r_ankle_roll"]   = 11;
-  joint_name_to_id_["l_ankle_roll"]   = 12;
+  joint_name_to_id_["r_hip_yaw"]    = 1;
+  joint_name_to_id_["l_hip_yaw"]    = 2;
+  joint_name_to_id_["r_hip_roll"]   = 3;
+  joint_name_to_id_["l_hip_roll"]   = 4;
+  joint_name_to_id_["r_hip_pitch"]  = 5;
+  joint_name_to_id_["l_hip_pitch"]  = 6;
+  joint_name_to_id_["r_knee"]       = 7;
+  joint_name_to_id_["l_knee"]       = 8;
+  joint_name_to_id_["r_ank_pitch"]  = 9;
+  joint_name_to_id_["l_ank_pitch"]  = 10;
+  joint_name_to_id_["r_ank_roll"]   = 11;
+  joint_name_to_id_["l_ank_roll"]   = 12;
 
   /* parameter */
   number_of_joints_ = 12;
@@ -341,10 +341,10 @@ void WholebodyModule::parseJointFeedbackGainData(const std::string &path)
   joint_feedback_[joint_name_to_id_["r_hip_pitch"]-1].d_gain_     = doc["r_hip_pitch_d_gain"].as<double>();
   joint_feedback_[joint_name_to_id_["r_knee"]-1].p_gain_          = doc["r_knee_p_gain"].as<double>();
   joint_feedback_[joint_name_to_id_["r_knee"]-1].d_gain_          = doc["r_knee_d_gain"].as<double>();
-  joint_feedback_[joint_name_to_id_["r_ankle_pitch"]-1].p_gain_   = doc["r_ankle_pitch_p_gain"].as<double>();
-  joint_feedback_[joint_name_to_id_["r_ankle_pitch"]-1].d_gain_   = doc["r_ankle_pitch_d_gain"].as<double>();
-  joint_feedback_[joint_name_to_id_["r_ankle_roll"]-1].p_gain_    = doc["r_ankle_roll_p_gain"].as<double>();
-  joint_feedback_[joint_name_to_id_["r_ankle_roll"]-1].d_gain_    = doc["r_ankle_roll_d_gain"].as<double>();
+  joint_feedback_[joint_name_to_id_["r_ank_pitch"]-1].p_gain_   = doc["r_ank_pitch_p_gain"].as<double>();
+  joint_feedback_[joint_name_to_id_["r_ank_pitch"]-1].d_gain_   = doc["r_ank_pitch_d_gain"].as<double>();
+  joint_feedback_[joint_name_to_id_["r_ank_roll"]-1].p_gain_    = doc["r_ank_roll_p_gain"].as<double>();
+  joint_feedback_[joint_name_to_id_["r_ank_roll"]-1].d_gain_    = doc["r_ank_roll_d_gain"].as<double>();
 
   joint_feedback_[joint_name_to_id_["l_hip_yaw"]-1].p_gain_       = doc["l_hip_yaw_p_gain"].as<double>();
   joint_feedback_[joint_name_to_id_["l_hip_yaw"]-1].d_gain_       = doc["l_hip_yaw_d_gain"].as<double>();
@@ -354,10 +354,10 @@ void WholebodyModule::parseJointFeedbackGainData(const std::string &path)
   joint_feedback_[joint_name_to_id_["l_hip_pitch"]-1].d_gain_     = doc["l_hip_pitch_d_gain"].as<double>();
   joint_feedback_[joint_name_to_id_["l_knee"]-1].p_gain_          = doc["l_knee_p_gain"].as<double>();
   joint_feedback_[joint_name_to_id_["l_knee"]-1].d_gain_          = doc["l_knee_d_gain"].as<double>();
-  joint_feedback_[joint_name_to_id_["l_ankle_pitch"]-1].p_gain_   = doc["l_ankle_pitch_p_gain"].as<double>();
-  joint_feedback_[joint_name_to_id_["l_ankle_pitch"]-1].d_gain_   = doc["l_ankle_pitch_d_gain"].as<double>();
-  joint_feedback_[joint_name_to_id_["l_ankle_roll"]-1].p_gain_    = doc["l_ankle_roll_p_gain"].as<double>();
-  joint_feedback_[joint_name_to_id_["l_ankle_roll"]-1].d_gain_    = doc["l_ankle_roll_d_gain"].as<double>();
+  joint_feedback_[joint_name_to_id_["l_ank_pitch"]-1].p_gain_   = doc["l_ank_pitch_p_gain"].as<double>();
+  joint_feedback_[joint_name_to_id_["l_ank_pitch"]-1].d_gain_   = doc["l_ank_pitch_d_gain"].as<double>();
+  joint_feedback_[joint_name_to_id_["l_ank_roll"]-1].p_gain_    = doc["l_ank_roll_p_gain"].as<double>();
+  joint_feedback_[joint_name_to_id_["l_ank_roll"]-1].d_gain_    = doc["l_ank_roll_d_gain"].as<double>();
 }
 
 void WholebodyModule::setWholebodyBalanceMsgCallback(const std_msgs::String::ConstPtr& msg)
@@ -971,16 +971,16 @@ void WholebodyModule::calcRobotPose()
   r_leg_joint_pos(1) = des_joint_pos_[joint_name_to_id_["r_hip_roll"]-1];
   r_leg_joint_pos(2) = des_joint_pos_[joint_name_to_id_["r_hip_pitch"]-1];
   r_leg_joint_pos(3) = des_joint_pos_[joint_name_to_id_["r_knee"]-1];
-  r_leg_joint_pos(4) = des_joint_pos_[joint_name_to_id_["r_ankle_pitch"]-1];
-  r_leg_joint_pos(5) = des_joint_pos_[joint_name_to_id_["r_ankle_roll"]-1];
+  r_leg_joint_pos(4) = des_joint_pos_[joint_name_to_id_["r_ank_pitch"]-1];
+  r_leg_joint_pos(5) = des_joint_pos_[joint_name_to_id_["r_ank_roll"]-1];
 
   l_leg_joint_pos.resize(6);
   l_leg_joint_pos(0) = des_joint_pos_[joint_name_to_id_["l_hip_yaw"]-1];
   l_leg_joint_pos(1) = des_joint_pos_[joint_name_to_id_["l_hip_roll"]-1];
   l_leg_joint_pos(2) = des_joint_pos_[joint_name_to_id_["l_hip_pitch"]-1];
   l_leg_joint_pos(3) = des_joint_pos_[joint_name_to_id_["l_knee"]-1];
-  l_leg_joint_pos(4) = des_joint_pos_[joint_name_to_id_["l_ankle_pitch"]-1];
-  l_leg_joint_pos(5) = des_joint_pos_[joint_name_to_id_["l_ankle_roll"]-1];
+  l_leg_joint_pos(4) = des_joint_pos_[joint_name_to_id_["l_ank_pitch"]-1];
+  l_leg_joint_pos(5) = des_joint_pos_[joint_name_to_id_["l_ank_roll"]-1];
 
   op3_kdl_->setJointPosition(r_leg_joint_pos, l_leg_joint_pos);
 
@@ -1314,16 +1314,16 @@ bool WholebodyModule::setBalanceControl()
   r_leg_joint_pos(1) = des_joint_pos_[joint_name_to_id_["r_hip_roll"]-1];
   r_leg_joint_pos(2) = des_joint_pos_[joint_name_to_id_["r_hip_pitch"]-1];
   r_leg_joint_pos(3) = des_joint_pos_[joint_name_to_id_["r_knee"]-1];
-  r_leg_joint_pos(4) = des_joint_pos_[joint_name_to_id_["r_ankle_pitch"]-1];
-  r_leg_joint_pos(5) = des_joint_pos_[joint_name_to_id_["r_ankle_roll"]-1];
+  r_leg_joint_pos(4) = des_joint_pos_[joint_name_to_id_["r_ank_pitch"]-1];
+  r_leg_joint_pos(5) = des_joint_pos_[joint_name_to_id_["r_ank_roll"]-1];
 
   l_leg_joint_pos.resize(6);
   l_leg_joint_pos(0) = des_joint_pos_[joint_name_to_id_["l_hip_yaw"]-1];
   l_leg_joint_pos(1) = des_joint_pos_[joint_name_to_id_["l_hip_roll"]-1];
   l_leg_joint_pos(2) = des_joint_pos_[joint_name_to_id_["l_hip_pitch"]-1];
   l_leg_joint_pos(3) = des_joint_pos_[joint_name_to_id_["l_knee"]-1];
-  l_leg_joint_pos(4) = des_joint_pos_[joint_name_to_id_["l_ankle_pitch"]-1];
-  l_leg_joint_pos(5) = des_joint_pos_[joint_name_to_id_["l_ankle_roll"]-1];
+  l_leg_joint_pos(4) = des_joint_pos_[joint_name_to_id_["l_ank_pitch"]-1];
+  l_leg_joint_pos(5) = des_joint_pos_[joint_name_to_id_["l_ank_roll"]-1];
 
   op3_kdl_->setJointPosition(r_leg_joint_pos, l_leg_joint_pos);
 
@@ -1345,15 +1345,15 @@ bool WholebodyModule::setBalanceControl()
     des_joint_pos_[joint_name_to_id_["r_hip_roll"]-1]     = r_leg_output[1];
     des_joint_pos_[joint_name_to_id_["r_hip_pitch"]-1]    = r_leg_output[2];
     des_joint_pos_[joint_name_to_id_["r_knee"]-1]         = r_leg_output[3];
-    des_joint_pos_[joint_name_to_id_["r_ankle_pitch"]-1]  = r_leg_output[4];
-    des_joint_pos_[joint_name_to_id_["r_ankle_roll"]-1]   = r_leg_output[5];
+    des_joint_pos_[joint_name_to_id_["r_ank_pitch"]-1]  = r_leg_output[4];
+    des_joint_pos_[joint_name_to_id_["r_ank_roll"]-1]   = r_leg_output[5];
 
     des_joint_pos_[joint_name_to_id_["l_hip_yaw"]-1]      = l_leg_output[0];
     des_joint_pos_[joint_name_to_id_["l_hip_roll"]-1]     = l_leg_output[1];
     des_joint_pos_[joint_name_to_id_["l_hip_pitch"]-1]    = l_leg_output[2];
     des_joint_pos_[joint_name_to_id_["l_knee"]-1]         = l_leg_output[3];
-    des_joint_pos_[joint_name_to_id_["l_ankle_pitch"]-1]  = l_leg_output[4];
-    des_joint_pos_[joint_name_to_id_["l_ankle_roll"]-1]   = l_leg_output[5];
+    des_joint_pos_[joint_name_to_id_["l_ank_pitch"]-1]  = l_leg_output[4];
+    des_joint_pos_[joint_name_to_id_["l_ank_roll"]-1]   = l_leg_output[5];
   }
 
   return ik_success;

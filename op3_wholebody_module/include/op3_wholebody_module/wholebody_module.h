@@ -151,6 +151,8 @@ private:
   void initFeedforwardControl();
   void setFeedforwardControl();
 
+  void sensoryFeedback(const double &rlGyroErr, const double &fbGyroErr, double *balance_angle);
+
   void calcRobotPose();
 
   void setTargetForceTorque();
@@ -282,6 +284,11 @@ private:
 
   double foot_roll_torque_cut_off_frequency_;
   double foot_pitch_torque_cut_off_frequency_;
+
+  double balance_hip_roll_gain_;
+  double balance_knee_gain_;
+  double balance_ankle_roll_gain_;
+  double balance_ankle_pitch_gain_;
 
   // Balance Control : Desired Force
   double balance_l_foot_force_x_;

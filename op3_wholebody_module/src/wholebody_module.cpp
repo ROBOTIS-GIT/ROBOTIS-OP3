@@ -321,6 +321,11 @@ void WholebodyModule::parseBalanceGainData(const std::string &path)
 
   foot_roll_torque_cut_off_frequency_   = doc["foot_roll_torque_cut_off_frequency"].as<double>();
   foot_pitch_torque_cut_off_frequency_  = doc["foot_pitch_torque_cut_off_frequency"].as<double>();
+
+  balance_hip_roll_gain_ = doc["balance_hip_roll_gain_"].as<double>();
+  balance_knee_gain_ = doc["balance_knee_gain_"].as<double>();
+  balance_ankle_roll_gain_ = doc["balance_ankle_roll_gain_"].as<double>();
+  balance_ankle_pitch_gain_ = doc["balance_ankle_pitch_gain_"].as<double>();
 }
 
 void WholebodyModule::parseJointFeedbackGainData(const std::string &path)
@@ -1481,12 +1486,49 @@ void WholebodyModule::setFeedforwardControl()
     des_joint_feedforward_[i] = joint_feedforward_gain_[i] * feed_forward_value[0] * support_leg_gain[i];
 }
 
+void WholebodyModule::sensoryFeedback(const double &rlGyroErr, const double &fbGyroErr, double *balance_angle)
+{
+  // adjust balance offset
+//  if (walking_param_.balance_enable == false)
+//    return;
+
+  double internal_gain = 0.05;
+
+  balance_angle[joint_name_to_id_["r_hip_roll"]] =
+      -1.0 * internal_gain * rlGyroErr * balance_hip_roll_gain_;  // R_HIP_ROLL
+  balance_angle[joint_name_to_id_["l_hip_roll"]] =
+      -1.0 * internal_gain * rlGyroErr * balance_hip_roll_gain_;  // L_HIP_ROLL
+
+  balance_angle[joint_name_to_id_["r_knee"]] =
+      1.0 * internal_gain * fbGyroErr * balance_knee_gain_;  // R_KNEE
+  balance_angle[joint_name_to_id_["l_knee"]] =
+      -1.0 * internal_gain * fbGyroErr * balance_knee_gain_;  // L_KNEE
+
+  balance_angle[joint_name_to_id_["r_ank_pitch"]] =
+      -1.0 * internal_gain * fbGyroErr * balance_ankle_pitch_gain_;  // R_ANKLE_PITCH
+  balance_angle[joint_name_to_id_["l_ank_pitch"]] =
+      1.0 * internal_gain * fbGyroErr * balance_ankle_pitch_gain_;  // L_ANKLE_PITCH
+
+  balance_angle[joint_name_to_id_["r_ank_roll"]] =
+      -1.0 * internal_gain * rlGyroErr * balance_ankle_roll_gain_;  // R_ANKLE_ROLL
+  balance_angle[joint_name_to_id_["l_ank_roll"]] =
+      -1.0 * internal_gain * rlGyroErr * balance_ankle_roll_gain_;  // L_ANKLE_ROLL
+}
+
 
 void WholebodyModule::process(std::map<std::string, robotis_framework::Dynamixel *> dxls,
                               std::map<std::string, double> sensors)
 {
   if (enable_ == false)
     return;
+
+  double balance_angle[number_of_joints_];
+
+  double rl_gyro_err = 0.0 - sensors["gyro_x"];
+  double fb_gyro_err = 0.0 - sensors["gyro_y"];
+
+  sensoryFeedback(rl_gyro_err, fb_gyro_err, balance_angle);
+
 
   // Get Sensor Data
   //  l_foot_ft_data_msg_.force.x = sensors["l_foot_fx_scaled_N"];
@@ -1591,6 +1633,9 @@ void WholebodyModule::process(std::map<std::string, robotis_framework::Dynamixel
     ROS_INFO("[Wholebody Module] Calc Time: %f", time_duration.toSec());
 
   setFeedbackControl();
+
+  for (int i=0; i<number_of_joints_; i++)
+    des_joint_pos_to_robot_[i] += balance_angle[i];
 
   sensor_msgs::JointState goal_joint_msg;
 

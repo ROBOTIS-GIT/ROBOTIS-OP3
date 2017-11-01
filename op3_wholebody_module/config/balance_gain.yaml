@@ -44,3 +44,10 @@ foot_y_force_cut_off_frequency : 30.0
 foot_z_force_cut_off_frequency : 30.0
 foot_roll_torque_cut_off_frequency : 30.0
 foot_pitch_torque_cut_off_frequency : 30.0
+
+###
+
+balance_hip_roll_gain    : 0.0 #0.35
+balance_knee_gain        : 0.0 #0.3
+balance_ankle_roll_gain  : 0.0 #0.7
+balance_ankle_pitch_gain : 0.0 #0.9

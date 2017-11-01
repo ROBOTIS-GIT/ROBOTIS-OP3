@@ -908,6 +908,8 @@ void WholebodyModule::initWalkingControl()
       walking_control_->calcPreviewParam(preview_response_);
       is_moving_ = true;
 
+      initFeedforwardControl();
+
       ROS_INFO("[START] Walking Control (%d/%d)", walking_step_+1, walking_size_);
     }
 
@@ -1551,7 +1553,10 @@ void WholebodyModule::process(std::map<std::string, robotis_framework::Dynamixel
   else if (control_type_ == WALKING_CONTROL)
   {
     if(walking_initialize_ == true)
+    {
       calcWalkingControl();
+      setFeedforwardControl();
+    }
   }
   else if (control_type_ == OFFSET_CONTROL)
   {

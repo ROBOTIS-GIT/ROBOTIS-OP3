@@ -12,7 +12,7 @@
 
 #include <geometry_msgs/Pose.h>
 
-#include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
+//#include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
 #include "robotis_math/robotis_math.h"
 
 class WholebodyControl

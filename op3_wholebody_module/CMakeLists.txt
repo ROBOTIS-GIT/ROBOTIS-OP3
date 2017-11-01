@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   robotis_math
   robotis_controller_msgs
   robotis_framework_common
-  op3_kinematics_dynamics
+#  op3_kinematics_dynamics
   op3_balance_control
   op3_wholebody_module_msgs
 )

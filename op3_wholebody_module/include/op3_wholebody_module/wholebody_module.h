@@ -56,7 +56,7 @@
 #include "robotis_controller_msgs/JointCtrlModule.h"
 #include "robotis_controller_msgs/StatusMsg.h"
 
-#include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
+//#include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
 #include "op3_balance_control/op3_balance_control.h"
 
 #include "op3_wholebody_module_msgs/JointPose.h"
@@ -123,6 +123,7 @@ public:
   /* yaml Functions */
   void parseBalanceGainData(const std::string &path);
   void parseJointFeedbackGainData(const std::string &path);
+  void parseJointFeedforwardGainData(const std::string &path);
 
   /* ROS Publish Functions */
   void publishStatusMsg(unsigned int type, std::string msg);
@@ -146,6 +147,9 @@ private:
   void calcWalkingControl();
   void initBalanceControl();
   void calcBalanceControl();
+
+  void initFeedforwardControl();
+  void setFeedforwardControl();
 
   void calcRobotPose();
 
@@ -189,6 +193,7 @@ private:
   robotis_framework::MinimumJerk *joint_tra_;
   robotis_framework::MinimumJerk *balance_tra_;
   robotis_framework::MinimumJerk *body_offset_tra_;
+  robotis_framework::MinimumJerkViaPoint *feed_forward_tra_;
 
   size_t number_of_joints_;
   std::vector<std::string> joint_name_;
@@ -200,6 +205,7 @@ private:
   std::vector<double_t> goal_joint_accel_, goal_joint_vel_, goal_joint_pos_;
 
   std::vector<double_t> des_joint_feedback_;
+  std::vector<double_t> des_joint_feedforward_;
   std::vector<double_t> des_joint_pos_to_robot_;
 
   std::vector<double_t> des_l_arm_pos_, des_l_arm_vel_, des_l_arm_accel_, des_l_arm_Q_;
@@ -227,7 +233,9 @@ private:
   int   balance_step_, balance_size_;
 
   BalanceControlUsingPDController balance_control_;
-  BalancePDController joint_feedback_[MAX_JOINT_ID];
+  BalancePDController joint_feedback_[12];
+
+  std::vector<double_t> joint_feedforward_gain_;
 
   std::vector<double_t> des_balance_gain_ratio_;
   std::vector<double_t> goal_balance_gain_ratio_;
@@ -291,7 +299,6 @@ private:
   double balance_r_foot_torque_z_;
 
   Eigen::MatrixXd g_to_r_leg_, g_to_l_leg_;
-
 
   // Sensor msgs
   sensor_msgs::Imu imu_data_msg_;

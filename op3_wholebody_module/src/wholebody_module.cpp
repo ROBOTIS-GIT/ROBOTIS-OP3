@@ -100,6 +100,7 @@ WholebodyModule::WholebodyModule()
   goal_joint_pos_.resize(number_of_joints_, 0.0);
 
   des_joint_feedback_.resize(number_of_joints_, 0.0);
+  des_joint_feedforward_.resize(number_of_joints_, 0.0);
   des_joint_pos_to_robot_.resize(number_of_joints_, 0.0);
 
   // body position default
@@ -163,6 +164,9 @@ WholebodyModule::WholebodyModule()
 
   std::string joint_feedback_gain_path = ros::package::getPath("op3_wholebody_module") + "/config/joint_feedback_gain.yaml";
   parseJointFeedbackGainData(joint_feedback_gain_path);
+
+  std::string joint_feedforward_gain_path = ros::package::getPath("op3_wholebody_module") + "/config/joint_feedforward_gain.yaml";
+  parseJointFeedforwardGainData(joint_feedforward_gain_path);
 }
 
 WholebodyModule::~WholebodyModule()
@@ -360,6 +364,35 @@ void WholebodyModule::parseJointFeedbackGainData(const std::string &path)
   joint_feedback_[joint_name_to_id_["l_ank_roll"]-1].d_gain_    = doc["l_ank_roll_d_gain"].as<double>();
 }
 
+void WholebodyModule::parseJointFeedforwardGainData(const std::string &path)
+{
+  YAML::Node doc;
+  try
+  {
+    // load yaml
+    doc = YAML::LoadFile(path.c_str());
+  }
+  catch (const std::exception& e)
+  {
+    ROS_ERROR("Fail to load yaml file.");
+    return;
+  }
+
+  joint_feedforward_gain_[joint_name_to_id_["r_hip_yaw"]-1]   = doc["r_hip_yaw_gain"].as<double>();
+  joint_feedforward_gain_[joint_name_to_id_["r_hip_roll"]-1]  = doc["r_hip_roll_gain"].as<double>();
+  joint_feedforward_gain_[joint_name_to_id_["r_hip_pitch"]-1] = doc["r_hip_pitch_gain"].as<double>();
+  joint_feedforward_gain_[joint_name_to_id_["r_knee"]-1]      = doc["r_knee_gain"].as<double>();
+  joint_feedforward_gain_[joint_name_to_id_["r_ank_pitch"]-1] = doc["r_ank_pitch_gain"].as<double>();
+  joint_feedforward_gain_[joint_name_to_id_["r_ank_roll"]-1]  = doc["r_ank_roll_gain"].as<double>();
+
+  joint_feedforward_gain_[joint_name_to_id_["l_hip_yaw"]-1]   = doc["l_hip_yaw_gain"].as<double>();
+  joint_feedforward_gain_[joint_name_to_id_["l_hip_roll"]-1]  = doc["l_hip_roll_gain"].as<double>();
+  joint_feedforward_gain_[joint_name_to_id_["l_hip_pitch"]-1] = doc["l_hip_pitch_gain"].as<double>();
+  joint_feedforward_gain_[joint_name_to_id_["l_knee"]-1]      = doc["l_knee_gain"].as<double>();
+  joint_feedforward_gain_[joint_name_to_id_["l_ank_pitch"]-1] = doc["l_ank_pitch_gain"].as<double>();
+  joint_feedforward_gain_[joint_name_to_id_["l_ank_roll"]-1]  = doc["l_ank_roll_gain"].as<double>();
+}
+
 void WholebodyModule::setWholebodyBalanceMsgCallback(const std_msgs::String::ConstPtr& msg)
 {
   if (enable_ == false)
@@ -370,6 +403,9 @@ void WholebodyModule::setWholebodyBalanceMsgCallback(const std_msgs::String::Con
 
   std::string joint_feedback_gain_path = ros::package::getPath("op3_wholebody_module") + "/config/joint_feedback_gain.yaml";
   parseJointFeedbackGainData(joint_feedback_gain_path);
+
+  std::string joint_feedforward_gain_path = ros::package::getPath("op3_wholebody_module") + "/config/joint_feedforward_gain.yaml";
+  parseJointFeedforwardGainData(joint_feedforward_gain_path);
 
   if (msg->data == "balance_on")
     goal_balance_gain_ratio_[0] = 1.0;
@@ -951,6 +987,28 @@ void WholebodyModule::calcWalkingControl()
   }
 }
 
+void WholebodyModule::initFeedforwardControl()
+{
+  // feedforward trajectory
+  std::vector<double_t> zero_vector;
+  zero_vector.resize(1,0.0);
+
+  std::vector<double_t> via_pos;
+  via_pos.resize(3, 0.0);
+  via_pos[0] = 1.0 * DEGREE2RADIAN;
+
+  double init_time = 0.0;
+  double fin_time = foot_step_command_.step_time;
+  double via_time = 0.5 * (init_time + fin_time);
+  double dsp_ratio = walking_param_.dsp_ratio;
+
+  feed_forward_tra_ =
+      new robotis_framework::MinimumJerkViaPoint(init_time, fin_time, via_time, dsp_ratio,
+                                                 zero_vector, zero_vector, zero_vector,
+                                                 zero_vector, zero_vector, zero_vector,
+                                                 via_pos, zero_vector, zero_vector);
+}
+
 void WholebodyModule::calcRobotPose()
 {
   Eigen::MatrixXd des_body_pos = Eigen::MatrixXd::Zero(3,1);
@@ -1361,16 +1419,66 @@ bool WholebodyModule::setBalanceControl()
 
 void WholebodyModule::setFeedbackControl()
 {
-  des_joint_pos_to_robot_ = des_joint_pos_;
-
   for (int i=0; i<number_of_joints_; i++)
   {
+    des_joint_pos_to_robot_[i] = des_joint_pos_[i] + des_joint_feedforward_[i];
+
     joint_feedback_[i].desired_ = des_joint_pos_[i];
     des_joint_feedback_[i] = joint_feedback_[i].getFeedBack(curr_joint_pos_[i]);
 
     des_joint_pos_to_robot_[i] += des_joint_feedback_[i];
   }
 }
+
+void WholebodyModule::setFeedforwardControl()
+{
+  double cur_time = (double) mov_step_ * control_cycle_sec_;
+
+  std::vector<double_t> feed_forward_value = feed_forward_tra_->getPosition(cur_time);
+
+  if (walking_phase_ == DSP)
+    feed_forward_value[0] = 0.0;
+
+  std::vector<double_t> support_leg_gain;
+  support_leg_gain.resize(number_of_joints_, 0.0);
+
+  if (walking_leg_ == LEFT_LEG)
+  {
+    support_leg_gain[joint_name_to_id_["r_hip_yaw"]-1]    = 1.0;
+    support_leg_gain[joint_name_to_id_["r_hip_roll"]-1]   = 1.0;
+    support_leg_gain[joint_name_to_id_["r_hip_pitch"]-1]  = 1.0;
+    support_leg_gain[joint_name_to_id_["r_knee"]-1]       = 1.0;
+    support_leg_gain[joint_name_to_id_["r_ank_pitch"]-1]  = 1.0;
+    support_leg_gain[joint_name_to_id_["r_ank_roll"]-1]   = 1.0;
+
+    support_leg_gain[joint_name_to_id_["l_hip_yaw"]-1]    = 0.0;
+    support_leg_gain[joint_name_to_id_["l_hip_roll"]-1]   = 0.0;
+    support_leg_gain[joint_name_to_id_["l_hip_pitch"]-1]  = 0.0;
+    support_leg_gain[joint_name_to_id_["l_knee"]-1]       = 0.0;
+    support_leg_gain[joint_name_to_id_["l_ank_pitch"]-1]  = 0.0;
+    support_leg_gain[joint_name_to_id_["l_ank_roll"]-1]   = 0.0;
+  }
+  else if (walking_leg_ == RIGHT_LEG)
+  {
+    support_leg_gain[joint_name_to_id_["r_hip_yaw"]-1]    = 0.0;
+    support_leg_gain[joint_name_to_id_["r_hip_roll"]-1]   = 0.0;
+    support_leg_gain[joint_name_to_id_["r_hip_pitch"]-1]  = 0.0;
+    support_leg_gain[joint_name_to_id_["r_knee"]-1]       = 0.0;
+    support_leg_gain[joint_name_to_id_["r_ank_pitch"]-1]  = 0.0;
+    support_leg_gain[joint_name_to_id_["r_ank_roll"]-1]   = 0.0;
+
+    support_leg_gain[joint_name_to_id_["l_hip_yaw"]-1]    = 1.0;
+    support_leg_gain[joint_name_to_id_["l_hip_roll"]-1]   = 1.0;
+    support_leg_gain[joint_name_to_id_["l_hip_pitch"]-1]  = 1.0;
+    support_leg_gain[joint_name_to_id_["l_knee"]-1]       = 1.0;
+    support_leg_gain[joint_name_to_id_["l_ank_pitch"]-1]  = 1.0;
+    support_leg_gain[joint_name_to_id_["l_ank_roll"]-1]   = 1.0;
+  }
+
+  for (int i=0; i<number_of_joints_; i++)
+    des_joint_feedforward_[i] = joint_feedforward_gain_[i] * feed_forward_value[0] * support_leg_gain[i];
+}
+
 
 void WholebodyModule::process(std::map<std::string, robotis_framework::Dynamixel *> dxls,
                               std::map<std::string, double> sensors)

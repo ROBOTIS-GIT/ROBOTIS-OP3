@@ -51,7 +51,8 @@ void OP3Kinematics::initialize(Eigen::MatrixXd pelvis_position, Eigen::MatrixXd 
                         );
   rleg_chain.addSegment(KDL::Segment("pelvis",
                                      KDL::Joint(KDL::Joint::None),
-                                     KDL::Frame(KDL::Vector(-0.005, -0.035, -0.0907)),
+                                     KDL::Frame(KDL::Vector(0.0, -0.035, -0.0907)),
+//                                     KDL::Frame(KDL::Vector(-0.005, -0.035, -0.0907)),
                                      KDL::RigidBodyInertia(0.72235,
                                                            KDL::Vector(0.0, 0.0, 0.0),
                                                            KDL::RotationalInertia(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
@@ -137,7 +138,8 @@ void OP3Kinematics::initialize(Eigen::MatrixXd pelvis_position, Eigen::MatrixXd 
                         );
   lleg_chain.addSegment(KDL::Segment("pelvis",
                                      KDL::Joint(KDL::Joint::None),
-                                     KDL::Frame(KDL::Vector(-0.005, 0.035, -0.0907)),
+                                     KDL::Frame(KDL::Vector(0.0, 0.035, -0.0907)),
+//                                     KDL::Frame(KDL::Vector(-0.005, 0.035, -0.0907)),
                                      KDL::RigidBodyInertia(0.72235,
                                                            KDL::Vector(0.0, 0.0, 0.0),
                                                            KDL::RotationalInertia(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)

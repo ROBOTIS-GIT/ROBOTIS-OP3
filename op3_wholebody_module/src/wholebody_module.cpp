@@ -129,11 +129,11 @@ WholebodyModule::WholebodyModule()
   resetBodyPose();
 
   // walking parameter default
-  walking_param_.dsp_ratio = 0.1;
+  walking_param_.dsp_ratio = 0.2;
   walking_param_.lipm_height = 0.12;
-  walking_param_.foot_height_max = 0.03;
+  walking_param_.foot_height_max = 0.05;
   walking_param_.zmp_offset_x = 0.0; // not applied
-  walking_param_.zmp_offset_y = 0.015;
+  walking_param_.zmp_offset_y = 0.0;
 
   des_balance_gain_ratio_.resize(1, 0.0);
   goal_balance_gain_ratio_.resize(1, 0.0);
@@ -158,8 +158,8 @@ WholebodyModule::WholebodyModule()
   balance_r_foot_torque_z_  = 0.0;
 
   // Body Offset
-  des_body_offset_.resize(2, 0.0);
-  goal_body_offset_.resize(2, 0.0);
+  des_body_offset_.resize(3, 0.0);
+  goal_body_offset_.resize(3, 0.0);
 
   std::string balance_gain_path = ros::package::getPath("op3_wholebody_module") + "/config/balance_gain.yaml";
   parseBalanceGainData(balance_gain_path);
@@ -245,7 +245,7 @@ void WholebodyModule::resetBodyPose()
   des_body_Q_[3] = 1.0;
 
   des_r_leg_pos_[0] = 0.0;
-  des_r_leg_pos_[1] = -0.035;
+  des_r_leg_pos_[1] = -0.045; //-0.035;
   des_r_leg_pos_[2] = 0.0;
 
   des_r_leg_Q_[0] = 0.0;
@@ -254,7 +254,7 @@ void WholebodyModule::resetBodyPose()
   des_r_leg_Q_[3] = 1.0;
 
   des_l_leg_pos_[0] = 0.0;
-  des_l_leg_pos_[1] = 0.035;
+  des_l_leg_pos_[1] = 0.045; //0.035;
   des_l_leg_pos_[2] = 0.0;
 
   des_l_leg_Q_[0] = 0.0;
@@ -573,6 +573,7 @@ void WholebodyModule::setResetBodyCallback(const std_msgs::Bool::ConstPtr& msg)
   {
     des_body_offset_[0] = 0.0;
     des_body_offset_[1] = 0.0;
+    des_body_offset_[2] = 0.0;
 
     resetBodyPose();
   }
@@ -679,6 +680,7 @@ void WholebodyModule::setBodyOffsetCallback(const geometry_msgs::Pose::ConstPtr&
   {
     goal_body_offset_[0] = msg->position.x;
     goal_body_offset_[1] = msg->position.y;
+    goal_body_offset_[2] = msg->position.z;
 
     body_offset_initialize_ = false;
     control_type_ = OFFSET_CONTROL;
@@ -1193,7 +1195,7 @@ bool WholebodyModule::setBalanceControl()
   balance_control_.setOrientationBalanceEnable(true);
   balance_control_.setForceTorqueBalanceEnable(true);
 
-  balance_control_.setCOBManualAdjustment(des_body_offset_[0], des_body_offset_[1], 0.0);
+  balance_control_.setCOBManualAdjustment(des_body_offset_[0], des_body_offset_[1], des_body_offset_[2]);
 
   setBalanceControlGain();
   setTargetForceTorque();

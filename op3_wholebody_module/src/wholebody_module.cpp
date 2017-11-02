@@ -236,8 +236,8 @@ void WholebodyModule::queueThread()
 
 void WholebodyModule::resetBodyPose()
 {
-  des_body_pos_[0] = 0.0; //body_offset_x_;
-  des_body_pos_[1] = 0.0; //body_offset_y_;
+  des_body_pos_[0] = 0.0;
+  des_body_pos_[1] = 0.0;
   des_body_pos_[2] = 0.3402256;
 
   des_body_Q_[0] = 0.0;
@@ -696,6 +696,8 @@ void WholebodyModule::setFootDistanceCallback(const std_msgs::Float64::ConstPtr&
     return;
 
   foot_distance_ = msg->data;
+
+  resetBodyPose();
 }
 
 void WholebodyModule::initOffsetControl()

@@ -44,9 +44,8 @@ WholebodyModule::WholebodyModule()
     wholebody_initialize_(false),
     walking_initialize_(false),
     walking_phase_(DSP),
-    body_offset_x_(0.0),
-    body_offset_y_(0.0),
-    total_mass_(3.5)
+    total_mass_(3.5),
+    foot_distance_(0.07)
 {
   enable_       = false;
   module_name_  = "wholebody_module";
@@ -214,6 +213,8 @@ void WholebodyModule::queueThread()
                                                                  &WholebodyModule::setWholebodyBalanceMsgCallback, this);
   ros::Subscriber body_offset_msg_sub = ros_node.subscribe("/robotis/wholebody/body_offset", 5,
                                                            &WholebodyModule::setBodyOffsetCallback, this);
+  ros::Subscriber foot_distance_msg_sub = ros_node.subscribe("/robotis/wholebody/foot_distance", 5,
+                                                             &WholebodyModule::setFootDistanceCallback, this);
 
   ros::Subscriber imu_data_sub = ros_node.subscribe("/robotis/sensor/imu/imu", 5,
                                                     &WholebodyModule::imuDataCallback, this);
@@ -245,7 +246,7 @@ void WholebodyModule::resetBodyPose()
   des_body_Q_[3] = 1.0;
 
   des_r_leg_pos_[0] = 0.0;
-  des_r_leg_pos_[1] = -0.045; //-0.035;
+  des_r_leg_pos_[1] = -0.5 * foot_distance_; //-0.045; //-0.035;
   des_r_leg_pos_[2] = 0.0;
 
   des_r_leg_Q_[0] = 0.0;
@@ -254,7 +255,7 @@ void WholebodyModule::resetBodyPose()
   des_r_leg_Q_[3] = 1.0;
 
   des_l_leg_pos_[0] = 0.0;
-  des_l_leg_pos_[1] = 0.045; //0.035;
+  des_l_leg_pos_[1] = 0.5 * foot_distance_; //0.045; //0.035;
   des_l_leg_pos_[2] = 0.0;
 
   des_l_leg_Q_[0] = 0.0;
@@ -689,6 +690,14 @@ void WholebodyModule::setBodyOffsetCallback(const geometry_msgs::Pose::ConstPtr&
     ROS_WARN("[WARN] Control type is different!");
 }
 
+void WholebodyModule::setFootDistanceCallback(const std_msgs::Float64::ConstPtr& msg)
+{
+  if (enable_ == false)
+    return;
+
+  foot_distance_ = msg->data;
+}
+
 void WholebodyModule::initOffsetControl()
 {
   if (body_offset_initialize_ == true)
@@ -885,7 +894,8 @@ void WholebodyModule::initWalkingControl()
   walking_control_ = new WalkingControl(control_cycle_sec_,
                                         walking_param_.dsp_ratio, walking_param_.lipm_height, walking_param_.foot_height_max,
                                         walking_param_.zmp_offset_x, walking_param_.zmp_offset_y,
-                                        x_lipm_, y_lipm_);
+                                        x_lipm_, y_lipm_,
+                                        foot_distance_);
 
   double lipm_height = walking_control_->getLipmHeight();
   preview_request_.lipm_height = lipm_height;

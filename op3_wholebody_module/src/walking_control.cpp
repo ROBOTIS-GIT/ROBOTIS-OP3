@@ -3,7 +3,8 @@
 
 WalkingControl::WalkingControl(double control_cycle,
                                double dsp_ratio, double lipm_height, double foot_height_max, double zmp_offset_x, double zmp_offset_y,
-                               std::vector<double_t> x_lipm, std::vector<double_t> y_lipm)
+                               std::vector<double_t> x_lipm, std::vector<double_t> y_lipm,
+                               double foot_distance)
   : walking_leg_(LEG_COUNT),
     walking_phase_(PHASE_COUNT)
 {
@@ -19,7 +20,7 @@ WalkingControl::WalkingControl(double control_cycle,
   foot_size_x_ = 0.127;
   foot_size_y_ = 0.0125;
   foot_origin_shift_x_ = 0.0;
-  foot_origin_shift_y_ = 0.09; //0.07;
+  foot_origin_shift_y_ = foot_distance; //0.09; //0.07;
 
   // Foot Trajectory Parameter
   dsp_ratio_ = dsp_ratio; // default:

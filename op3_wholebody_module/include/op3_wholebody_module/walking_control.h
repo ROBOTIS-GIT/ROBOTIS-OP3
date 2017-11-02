@@ -36,7 +36,8 @@ class WalkingControl
 public:
   WalkingControl(double control_cycle,
                  double dsp_ratio, double lipm_height, double foot_height_max, double zmp_offset_x, double zmp_offset_y,
-                 std::vector<double_t> x_lipm, std::vector<double_t> y_lipm);
+                 std::vector<double_t> x_lipm, std::vector<double_t> y_lipm,
+                 double foot_distance);
   virtual ~WalkingControl();
 
   void initialize(op3_wholebody_module_msgs::FootStepCommand foot_step_command,

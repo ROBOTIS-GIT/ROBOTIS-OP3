@@ -97,6 +97,7 @@ public:
   void setResetBodyCallback(const std_msgs::Bool::ConstPtr& msg);
   void setWholebodyBalanceMsgCallback(const std_msgs::String::ConstPtr& msg);
   void setBodyOffsetCallback(const geometry_msgs::Pose::ConstPtr& msg);
+  void setFootDistanceCallback(const std_msgs::Float64::ConstPtr& msg);
 
   void goalJointPoseCallback(const op3_wholebody_module_msgs::JointPose &msg);
   void goalKinematicsPoseCallback(const op3_wholebody_module_msgs::KinematicsPose& msg);
@@ -217,7 +218,6 @@ private:
   std::vector<double_t> des_body_pos_,  des_body_vel_,  des_body_accel_,  des_body_Q_;
 
   // Walking Control
-  double body_offset_x_, body_offset_y_;
   std::vector<double_t> x_lipm_, y_lipm_;
 
   op3_wholebody_module_msgs::FootStepCommand foot_step_command_;
@@ -248,6 +248,9 @@ private:
 
   bool  is_offset_updating_;
   int   body_offset_step_, body_offset_size_;
+
+  //
+  double foot_distance_;
 
   // Balance Gain
   double foot_roll_gyro_p_gain_;

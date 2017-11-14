@@ -22,7 +22,6 @@ WalkingControl::WalkingControl(double control_cycle,
   foot_origin_shift_x_ = 0.0;
   foot_origin_shift_y_ = foot_distance; //0.09; //0.07;
 
-
   // Foot Trajectory Parameter
   dsp_ratio_ = dsp_ratio; // default:
   foot_tra_max_z_ = foot_height_max; // default:

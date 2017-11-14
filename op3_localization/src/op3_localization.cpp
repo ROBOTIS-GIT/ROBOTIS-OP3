@@ -23,7 +23,7 @@ OP3Localization::OP3Localization()
 
   pelvis_pose_offset_.pose.position.x = 0.0;
   pelvis_pose_offset_.pose.position.y = 0.0;
-  pelvis_pose_offset_.pose.position.z = 0.3402256;
+  pelvis_pose_offset_.pose.position.z = 0.3402256 - 0.0907;
   pelvis_pose_offset_.pose.orientation.x = 0.0;
   pelvis_pose_offset_.pose.orientation.y = 0.0;
   pelvis_pose_offset_.pose.orientation.z = 0.0;
@@ -149,7 +149,7 @@ void OP3Localization::process()
   ros::Duration transform_tolerance(transform_tolerance_);
   ros::Time transform_expiration = (pelvis_pose_.header.stamp + transform_tolerance);
 
-  tf::StampedTransform tmp_tf_stamped(pelvis_trans_, transform_expiration, "world", "pelvis_link");
+  tf::StampedTransform tmp_tf_stamped(pelvis_trans_, transform_expiration, "world", "body_link");
 
   broadcaster_.sendTransform(tmp_tf_stamped);
 }

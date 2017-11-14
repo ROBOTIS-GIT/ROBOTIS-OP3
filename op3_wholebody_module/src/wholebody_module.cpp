@@ -43,6 +43,7 @@ WholebodyModule::WholebodyModule()
     joint_control_initialize_(false),
     wholebody_initialize_(false),
     walking_initialize_(false),
+    is_foot_step_2d_(false),
     walking_phase_(DSP),
     total_mass_(3.5),
     foot_distance_(0.07)
@@ -1004,6 +1005,8 @@ void WholebodyModule::footStepCommandCallback(const op3_wholebody_module_msgs::F
     return;
   }
 
+  is_foot_step_2d_ = false;
+
   if (control_type_ == NONE || control_type_ == WALKING_CONTROL)
   {
     walking_size_ = msg.step_num + 2;
@@ -1777,7 +1780,7 @@ void WholebodyModule::process(std::map<std::string, robotis_framework::Dynamixel
 
   pelvis_pose_msg.pose.position.x = des_body_pos_[0];
   pelvis_pose_msg.pose.position.y = des_body_pos_[1];
-  pelvis_pose_msg.pose.position.z = des_body_pos_[2];
+  pelvis_pose_msg.pose.position.z = des_body_pos_[2] - 0.0907;
 
   pelvis_pose_msg.pose.orientation.x = des_body_Q_[0];
   pelvis_pose_msg.pose.orientation.y = des_body_Q_[1];

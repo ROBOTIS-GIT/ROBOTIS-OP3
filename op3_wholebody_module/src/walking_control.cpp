@@ -12,7 +12,7 @@ WalkingControl::WalkingControl(double control_cycle,
 
   // Trajectory
   init_time_ = 0.0;
-  fin_time_ = 0.0;
+  fin_time_ = 1.0;
 
   // Foot Paramater
   foot_step_size_ = 0;
@@ -21,6 +21,7 @@ WalkingControl::WalkingControl(double control_cycle,
   foot_size_y_ = 0.0125;
   foot_origin_shift_x_ = 0.0;
   foot_origin_shift_y_ = foot_distance; //0.09; //0.07;
+
 
   // Foot Trajectory Parameter
   dsp_ratio_ = dsp_ratio; // default:
@@ -68,7 +69,7 @@ WalkingControl::WalkingControl(double control_cycle,
 
   init_body_yaw_angle_ = 0.0;
 
-//  robot_ = new robotis_op::OP3KinematicsDynamics(robotis_op::WholeBody);
+//  robot_ = new thormang3::KinematicsDynamics(thormang3::WholeBody);
 
   x_lipm_.resize(3,1);
   y_lipm_.resize(3,1);
@@ -135,6 +136,50 @@ void WalkingControl::initialize(op3_wholebody_module_msgs::FootStepCommand foot_
   u_y_.fill(0.0);
 }
 
+void WalkingControl::initialize(op3_wholebody_module_msgs::Step2DArray foot_step_2d,
+                                std::vector<double_t> init_body_pos, std::vector<double_t> init_body_Q,
+                                std::vector<double_t> init_r_foot_pos, std::vector<double_t> init_r_foot_Q,
+                                std::vector<double_t> init_l_foot_pos, std::vector<double_t> init_l_foot_Q)
+{
+  init_body_pos_ = init_body_pos;
+  des_body_pos_ = init_body_pos;
+
+  Eigen::Quaterniond body_Q(init_body_Q[3],init_body_Q[0],init_body_Q[1],init_body_Q[2]);
+  init_body_Q_ = body_Q;
+  des_body_Q_ = body_Q;
+
+  Eigen::MatrixXd init_body_rpy = robotis_framework::convertQuaternionToRPY(init_body_Q_);
+  init_body_yaw_angle_ = init_body_rpy.coeff(2,0);
+
+  init_r_foot_pos_ = init_r_foot_pos;
+  init_l_foot_pos_ = init_l_foot_pos;
+
+  des_l_foot_pos_ = init_l_foot_pos_;
+  des_r_foot_pos_ = init_r_foot_pos_;
+
+  Eigen::Quaterniond l_foot_Q(init_l_foot_Q[3],init_l_foot_Q[0],init_l_foot_Q[1],init_l_foot_Q[2]);
+  init_l_foot_Q_ = l_foot_Q;
+  des_l_foot_Q_ = l_foot_Q;
+
+  Eigen::Quaterniond r_foot_Q(init_r_foot_Q[3],init_r_foot_Q[0],init_r_foot_Q[1],init_r_foot_Q[2]);
+  init_r_foot_Q_ = r_foot_Q;
+  des_r_foot_Q_ = r_foot_Q;
+
+  // Calculation Foot Step
+  foot_step_2d_ = foot_step_2d;
+  transformFootStep2D();
+
+  sum_of_zmp_x_ = 0.0;
+  sum_of_zmp_y_ = 0.0;
+  sum_of_cx_ = 0.0;
+  sum_of_cy_ = 0.0;
+
+  u_x_.resize(1,1);
+  u_y_.resize(1,1);
+  u_x_.fill(0.0);
+  u_y_.fill(0.0);
+}
+
 void WalkingControl::next()
 {
   init_r_foot_pos_    = goal_r_foot_pos_;
@@ -156,7 +201,7 @@ void WalkingControl::finalize()
 
 }
 
-void WalkingControl::set(double time, int step)
+void WalkingControl::set(double time, int step, bool foot_step_2d)
 {
   if (time == 0.0)
     calcFootTrajectory(step);
@@ -165,10 +210,10 @@ void WalkingControl::set(double time, int step)
   calcRefZMP(step);
   calcPreviewControl(time,step);
 
-  //  if (walking_leg_ == LEFT_LEG)
-  //    ROS_INFO("walking_leg_ : LEFT");
-  //  else if (walking_leg_ == RIGHT_LEG)
-  //    ROS_INFO("walking_leg_ : RIGHT");
+//  if (walking_leg_ == LEFT_LEG)
+//    ROS_INFO("walking_leg_ : LEFT");
+//  else if (walking_leg_ == RIGHT_LEG)
+//    ROS_INFO("walking_leg_ : RIGHT");
 
   /* ----- Inverse Kinematics ---- */
   double dsp_length = 0.5*(fin_time_ - init_time_)*dsp_ratio_;
@@ -357,6 +402,79 @@ void WalkingControl::calcFootStepParam()
 //  }
 }
 
+void WalkingControl::transformFootStep2D()
+{
+  foot_step_size_ = foot_step_2d_.footsteps_2d.size();
+
+  goal_r_foot_pos_buffer_ = Eigen::MatrixXd::Zero(foot_step_size_,2);
+  goal_l_foot_pos_buffer_ = Eigen::MatrixXd::Zero(foot_step_size_,2);
+
+  std::vector<double_t> init_r_foot_pos, init_l_foot_pos;
+  init_r_foot_pos.resize(2, 0.0);
+  init_r_foot_pos[0] = init_r_foot_pos_[0];
+  init_r_foot_pos[1] = init_r_foot_pos_[1];
+
+  init_l_foot_pos.resize(2, 0.0);
+  init_l_foot_pos[0] = init_l_foot_pos_[0];
+  init_l_foot_pos[1] = init_l_foot_pos_[1];
+
+  std::vector<double_t> goal_r_foot_pos, goal_l_foot_pos;
+  goal_r_foot_pos.resize(2, 0.0);
+  goal_l_foot_pos.resize(2, 0.0);
+
+  op3_wholebody_module_msgs::FootStepArray foot_step_param;
+
+  for (int step=0; step<foot_step_size_; step++)
+  {
+    op3_wholebody_module_msgs::Step2D msg = foot_step_2d_.footsteps_2d[step];
+
+    foot_step_param.moving_foot.push_back(msg.moving_foot);
+    geometry_msgs::Pose2D foot_pose_2d;
+    foot_pose_2d.theta = msg.step2d.theta;
+    foot_step_param.data.push_back(foot_pose_2d);
+
+    if (step == foot_step_size_ - 1)
+    {
+      goal_r_foot_pos = init_r_foot_pos;
+      goal_l_foot_pos = init_l_foot_pos;
+    }
+    else
+    {
+      if (msg.moving_foot == LEFT_LEG)
+      {
+//        ROS_INFO("L");
+
+        goal_l_foot_pos[0] = msg.step2d.x;
+        goal_l_foot_pos[1] = msg.step2d.y;
+
+        goal_r_foot_pos = init_r_foot_pos;
+      }
+      else if(msg.moving_foot == RIGHT_LEG)
+      {
+//        ROS_INFO("R");
+
+        goal_r_foot_pos[0] = msg.step2d.x;
+        goal_r_foot_pos[1] = msg.step2d.y;
+
+        goal_l_foot_pos = init_l_foot_pos;
+      }
+    }
+
+    goal_r_foot_pos_buffer_.coeffRef(step,0) = goal_r_foot_pos[0];
+    goal_r_foot_pos_buffer_.coeffRef(step,1) = goal_r_foot_pos[1];
+    goal_l_foot_pos_buffer_.coeffRef(step,0) = goal_l_foot_pos[0];
+    goal_l_foot_pos_buffer_.coeffRef(step,1) = goal_l_foot_pos[1];
+
+    init_r_foot_pos = goal_r_foot_pos;
+    init_l_foot_pos = goal_l_foot_pos;
+  }
+
+  foot_step_param_ = foot_step_param;
+
+//  PRINT_MAT(goal_r_foot_pos_buffer_);
+//  PRINT_MAT(goal_l_foot_pos_buffer_);
+}
+
 void WalkingControl::calcFootTrajectory(int step)
 {
   Eigen::MatrixXd body_rot = robotis_framework::convertQuaternionToRotation(des_body_Q_);
@@ -372,12 +490,16 @@ void WalkingControl::calcFootTrajectory(int step)
     double angle = foot_step_param_.data[step].theta;
 
     // Goal
-    goal_l_foot_pos_[0] = init_r_foot_pos_[0]
-        + cos(angle) * foot_step_param_.data[step].x
-        - sin(angle) * foot_step_param_.data[step].y;
-    goal_l_foot_pos_[1] = init_r_foot_pos_[1]
-        + sin(angle) * foot_step_param_.data[step].x
-        + cos(angle) * foot_step_param_.data[step].y;
+//    goal_l_foot_pos_[0] = init_r_foot_pos_[0]
+//        + cos(angle) * foot_step_param_.data[step].x
+//        - sin(angle) * foot_step_param_.data[step].y;
+//    goal_l_foot_pos_[1] = init_r_foot_pos_[1]
+//        + sin(angle) * foot_step_param_.data[step].x
+//        + cos(angle) * foot_step_param_.data[step].y;
+//    goal_l_foot_pos_[2] = init_r_foot_pos_[2];
+
+    goal_l_foot_pos_[0] = goal_l_foot_pos_buffer_.coeff(step,0);
+    goal_l_foot_pos_[1] = goal_l_foot_pos_buffer_.coeff(step,1);
     goal_l_foot_pos_[2] = init_r_foot_pos_[2];
 
     goal_l_foot_Q_ = robotis_framework::convertRPYToQuaternion(0.0, 0.0, angle);
@@ -418,13 +540,15 @@ void WalkingControl::calcFootTrajectory(int step)
     double angle = foot_step_param_.data[step].theta;
 
     // Goal
-    goal_r_foot_pos_[0] = init_l_foot_pos_[0]
-        + cos(angle) * foot_step_param_.data[step].x
-        + sin(angle) * foot_step_param_.data[step].y;
-    goal_r_foot_pos_[1] = init_l_foot_pos_[1]
-        + sin(angle) * foot_step_param_.data[step].x
-        - cos(angle) * foot_step_param_.data[step].y;
-    goal_r_foot_pos_[2] = init_l_foot_pos_[2];
+    goal_r_foot_pos_[0] = goal_r_foot_pos_buffer_.coeff(step,0);
+    goal_r_foot_pos_[1] = goal_r_foot_pos_buffer_.coeff(step,1);
+//    goal_r_foot_pos_[0] = init_l_foot_pos_[0]
+//        + cos(angle) * foot_step_param_.data[step].x
+//        + sin(angle) * foot_step_param_.data[step].y;
+//    goal_r_foot_pos_[1] = init_l_foot_pos_[1]
+//        + sin(angle) * foot_step_param_.data[step].x
+//        - cos(angle) * foot_step_param_.data[step].y;
+//    goal_r_foot_pos_[2] = init_l_foot_pos_[2];
 
     goal_r_foot_Q_ = robotis_framework::convertRPYToQuaternion(0.0, 0.0, angle);
 
@@ -512,13 +636,13 @@ void WalkingControl::calcRefZMP(int step)
   {
     if (foot_step_param_.moving_foot[step] == LEFT_LEG)
     {
-      ref_zmp_x_ = goal_r_foot_pos_[0]; // + zmp_offset_x_;
-      ref_zmp_y_ = goal_r_foot_pos_[1] + zmp_offset_y_;
+      ref_zmp_x_ = goal_r_foot_pos_[0];
+      ref_zmp_y_ = goal_r_foot_pos_[1] - zmp_offset_y_;
     }
     else if (foot_step_param_.moving_foot[step] == RIGHT_LEG)
     {
-      ref_zmp_x_ = goal_l_foot_pos_[0]; // + zmp_offset_x_;
-      ref_zmp_y_ = goal_l_foot_pos_[1] - zmp_offset_y_;
+      ref_zmp_x_ = goal_l_foot_pos_[0];
+      ref_zmp_y_ = goal_l_foot_pos_[1] + zmp_offset_y_;
     }
   }
 
@@ -549,6 +673,8 @@ void WalkingControl::calcGoalFootPose()
 
     if (foot_step_param_.moving_foot[step] == LEFT_LEG)
     {
+      ROS_INFO("L");
+
       goal_l_foot_pos[0] = init_r_foot_pos[0]
           + cos(angle) * foot_step_param_.data[step].x
           - sin(angle) * foot_step_param_.data[step].y;
@@ -560,6 +686,8 @@ void WalkingControl::calcGoalFootPose()
     }
     else if(foot_step_param_.moving_foot[step] == RIGHT_LEG)
     {
+      ROS_INFO("R");
+
       goal_r_foot_pos[0] = init_l_foot_pos[0]
           + cos(angle) * foot_step_param_.data[step].x
           + sin(angle) * foot_step_param_.data[step].y;
@@ -579,8 +707,8 @@ void WalkingControl::calcGoalFootPose()
     init_l_foot_pos = goal_l_foot_pos;
   }
 
-//  PRINT_MAT(goal_r_foot_pos_buffer_);
-//  PRINT_MAT(goal_l_foot_pos_buffer_);
+  PRINT_MAT(goal_r_foot_pos_buffer_);
+  PRINT_MAT(goal_l_foot_pos_buffer_);
 }
 
 double WalkingControl::calcRefZMPx(int step)
@@ -598,9 +726,9 @@ double WalkingControl::calcRefZMPx(int step)
   else
   {
     if (foot_step_param_.moving_foot[step] == LEFT_LEG)
-      ref_zmp_x = goal_r_foot_pos_buffer_.coeff(step,0); // + zmp_offset_x_;
+      ref_zmp_x = goal_r_foot_pos_buffer_.coeff(step,0);
     else if (foot_step_param_.moving_foot[step] == RIGHT_LEG)
-      ref_zmp_x = goal_l_foot_pos_buffer_.coeff(step,0); // + zmp_offset_x_;
+      ref_zmp_x = goal_l_foot_pos_buffer_.coeff(step,0);
   }
 
   return ref_zmp_x;
@@ -621,9 +749,9 @@ double WalkingControl::calcRefZMPy(int step)
   else
   {
     if (foot_step_param_.moving_foot[step] == LEFT_LEG)
-      ref_zmp_y = goal_r_foot_pos_buffer_.coeff(step,1) + zmp_offset_y_;
+      ref_zmp_y = goal_r_foot_pos_buffer_.coeff(step,1) - zmp_offset_y_;
     else if (foot_step_param_.moving_foot[step] == RIGHT_LEG)
-      ref_zmp_y = goal_l_foot_pos_buffer_.coeff(step,1) - zmp_offset_y_;
+      ref_zmp_y = goal_l_foot_pos_buffer_.coeff(step,1) + zmp_offset_y_;
   }
 
   return ref_zmp_y;

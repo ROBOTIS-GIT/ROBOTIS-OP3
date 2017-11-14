@@ -23,6 +23,8 @@ add_message_files(
   PreviewRequest.msg
   PreviewResponse.msg
   WalkingParam.msg
+  Step2D.msg
+  Step2DArray.msg
 )
 
 add_service_files(

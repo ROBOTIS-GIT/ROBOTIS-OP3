@@ -16,6 +16,9 @@
 #include "op3_wholebody_module_msgs/FootStepArray.h"
 #include "op3_wholebody_module_msgs/PreviewResponse.h"
 
+#include "op3_wholebody_module_msgs/Step2D.h"
+#include "op3_wholebody_module_msgs/Step2DArray.h"
+
 //#include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
 #include "robotis_math/robotis_math.h"
 
@@ -44,13 +47,20 @@ public:
                   std::vector<double_t> init_body_pos, std::vector<double_t> init_body_Q,
                   std::vector<double_t> init_r_foot_pos, std::vector<double_t> init_r_foot_Q,
                   std::vector<double_t> init_l_foot_pos, std::vector<double_t> init_l_foot_Q);
+  void initialize(op3_wholebody_module_msgs::Step2DArray foot_step_2d,
+                  std::vector<double_t> init_body_pos, std::vector<double_t> init_body_Q,
+                  std::vector<double_t> init_r_foot_pos, std::vector<double_t> init_r_foot_Q,
+                  std::vector<double_t> init_l_foot_pos, std::vector<double_t> init_l_foot_Q);
   void next();
   void finalize();
-  void set(double time, int step);
+  void set(double time, int step, bool foot_step_2d);
 
   double getLipmHeight();
 
   void calcFootStepParam();
+
+  void transformFootStep2D();
+
   void calcFootTrajectory(int step);
   void calcFootStepPose(double time,  int step);
   void calcRefZMP(int step);
@@ -78,7 +88,7 @@ public:
   void getWalkingState(int &walking_leg, int &walking_phase);
 
 protected:
-//  robotis_op::OP3KinematicsDynamics *robot_;
+//  thormang3::KinematicsDynamics *robot_;
 
   robotis_framework::MinimumJerk *body_trajectory_;
   robotis_framework::MinimumJerkViaPoint *r_foot_tra_;
@@ -105,6 +115,8 @@ protected:
   op3_wholebody_module_msgs::FootStepCommand foot_step_command_;
   op3_wholebody_module_msgs::FootStepArray foot_step_param_;
   op3_wholebody_module_msgs::PreviewResponse preview_response_;
+
+  op3_wholebody_module_msgs::Step2DArray foot_step_2d_;
 
   // Preview Control
   int preview_size_;

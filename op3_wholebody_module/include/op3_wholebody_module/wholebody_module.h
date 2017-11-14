@@ -42,6 +42,7 @@
 #include <sensor_msgs/Imu.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/WrenchStamped.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <boost/thread.hpp>
 #include <yaml-cpp/yaml.h>
 
@@ -69,6 +70,9 @@
 #include "op3_wholebody_module_msgs/GetJointPose.h"
 #include "op3_wholebody_module_msgs/GetKinematicsPose.h"
 #include "op3_wholebody_module_msgs/GetPreviewMatrix.h"
+
+#include "op3_wholebody_module_msgs/Step2D.h"
+#include "op3_wholebody_module_msgs/Step2DArray.h"
 
 namespace robotis_op
 {
@@ -103,6 +107,8 @@ public:
   void goalKinematicsPoseCallback(const op3_wholebody_module_msgs::KinematicsPose& msg);
   void footStepCommandCallback(const op3_wholebody_module_msgs::FootStepCommand& msg);
   void walkingParamCallback(const op3_wholebody_module_msgs::WalkingParam& msg);
+
+  void footStep2DCallback(const op3_wholebody_module_msgs::Step2DArray& msg);
 
   void imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg);
   void leftFootForceTorqueOutputCallback(const geometry_msgs::WrenchStamped::ConstPtr &msg);
@@ -174,6 +180,7 @@ private:
   ros::Publisher  status_msg_pub_;
   ros::Publisher  movement_done_pub_;
   ros::Publisher  goal_joint_state_pub_;
+  ros::Publisher  pelvis_pose_pub_;
 
   ros::ServiceClient get_preview_matrix_client_;
 
@@ -224,6 +231,9 @@ private:
   op3_wholebody_module_msgs::PreviewRequest preview_request_;
   op3_wholebody_module_msgs::PreviewResponse preview_response_;
   op3_wholebody_module_msgs::WalkingParam walking_param_;
+
+  op3_wholebody_module_msgs::Step2DArray foot_step_2d_;
+  bool is_foot_step_2d_;
 
   // Wholebody Control
   geometry_msgs::Pose wholebody_goal_msg_;

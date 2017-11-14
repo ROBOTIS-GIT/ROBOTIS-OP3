@@ -186,6 +186,7 @@ void WholebodyModule::initialize(const int control_cycle_msec, robotis_framework
   status_msg_pub_       = ros_node.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 1);
   movement_done_pub_    = ros_node.advertise<std_msgs::String>("/robotis/movement_done", 1);
   goal_joint_state_pub_ = ros_node.advertise<sensor_msgs::JointState>("/robotis/wholebody/goal_joint_states", 1);
+  pelvis_pose_pub_      = ros_node.advertise<geometry_msgs::PoseStamped>("/robotis/pelvis_pose_offset", 1);
 
   // Service
   get_preview_matrix_client_ = ros_node.serviceClient<op3_wholebody_module_msgs::GetPreviewMatrix>("/robotis/get_preview_matrix", 0);
@@ -215,6 +216,9 @@ void WholebodyModule::queueThread()
                                                            &WholebodyModule::setBodyOffsetCallback, this);
   ros::Subscriber foot_distance_msg_sub = ros_node.subscribe("/robotis/wholebody/foot_distance", 5,
                                                              &WholebodyModule::setFootDistanceCallback, this);
+
+  ros::Subscriber footsteps_sub = ros_node.subscribe("/robotis/wholebody/footsteps_2d", 5,
+                                                     &WholebodyModule::footStep2DCallback, this);
 
   ros::Subscriber imu_data_sub = ros_node.subscribe("/robotis/sensor/imu/imu", 5,
                                                     &WholebodyModule::imuDataCallback, this);
@@ -854,6 +858,141 @@ void WholebodyModule::calcWholebodyControl()
   }
 }
 
+void WholebodyModule::footStep2DCallback(const op3_wholebody_module_msgs::Step2DArray& msg)
+{
+  if (enable_ == false)
+    return;
+
+  if (balance_type_ == OFF)
+  {
+    ROS_WARN("[WARN] Balance is off!");
+    return;
+  }
+
+  Eigen::Quaterniond body_Q(des_body_Q_[3],des_body_Q_[0],des_body_Q_[1],des_body_Q_[2]);
+  Eigen::MatrixXd body_R = robotis_framework::convertQuaternionToRotation(body_Q);
+  Eigen::MatrixXd body_rpy = robotis_framework::convertQuaternionToRPY(body_Q);
+  Eigen::MatrixXd body_T = Eigen::MatrixXd::Identity(4,4);
+  body_T.block(0,0,3,3) = body_R;
+  body_T.coeffRef(0,3) = des_body_pos_[0];
+  body_T.coeffRef(1,3) = des_body_pos_[1];
+
+  op3_wholebody_module_msgs::Step2DArray foot_step_msg;
+
+  int old_size = msg.footsteps_2d.size();
+  int new_size = old_size + 3;
+
+  op3_wholebody_module_msgs::Step2D first_msg;
+  op3_wholebody_module_msgs::Step2D second_msg;
+
+  first_msg.moving_foot = msg.footsteps_2d[0].moving_foot - 1;
+  second_msg.moving_foot = first_msg.moving_foot + 1;
+
+  if (first_msg.moving_foot == LEFT_LEG)
+  {
+    first_msg.step2d.x = des_l_leg_pos_[0];
+    first_msg.step2d.y = des_l_leg_pos_[1];
+    first_msg.step2d.theta = body_rpy.coeff(2,0); //0.0;
+
+    second_msg.step2d.x = des_r_leg_pos_[0];
+    second_msg.step2d.y = des_r_leg_pos_[1];
+    second_msg.step2d.theta = body_rpy.coeff(2,0); //0.0;
+  }
+  else if (first_msg.moving_foot == RIGHT_LEG)
+  {
+    first_msg.step2d.x = des_r_leg_pos_[0];
+    first_msg.step2d.y = des_r_leg_pos_[1];
+    first_msg.step2d.theta = body_rpy.coeff(2,0); //0.0;
+
+    second_msg.step2d.x = des_l_leg_pos_[0];
+    second_msg.step2d.y = des_l_leg_pos_[1];
+    second_msg.step2d.theta = body_rpy.coeff(2,0); //0.0;
+  }
+
+  foot_step_msg.footsteps_2d.push_back(first_msg);
+  foot_step_msg.footsteps_2d.push_back(second_msg);
+
+  double step_final_theta;
+
+  if (control_type_ == NONE || control_type_ == WALKING_CONTROL)
+  {
+    for (int i=0; i<old_size; i++)
+    {
+      op3_wholebody_module_msgs::Step2D step_msg = msg.footsteps_2d[i];
+      step_msg.moving_foot -= 1;
+
+      Eigen::MatrixXd step_R = robotis_framework::convertRPYToRotation(0.0,0.0,step_msg.step2d.theta);
+      Eigen::MatrixXd step_T = Eigen::MatrixXd::Identity(4,4);
+      step_T.block(0,0,3,3) = step_R;
+      step_T.coeffRef(0,3) = step_msg.step2d.x;
+      step_T.coeffRef(1,3) = step_msg.step2d.y;
+
+      Eigen::MatrixXd step_T_new = body_T*step_T;
+      Eigen::MatrixXd step_R_new = step_T_new.block(0,0,3,3);
+
+      double step_new_x = step_T_new.coeff(0,3);
+      double step_new_y = step_T_new.coeff(1,3);
+      Eigen::MatrixXd step_new_rpy = robotis_framework::convertRotationToRPY(step_R_new);
+      double step_new_theta = step_new_rpy.coeff(2,0);
+
+      step_msg.step2d.x = step_new_x;
+      step_msg.step2d.y = step_new_y;
+      step_msg.step2d.theta = step_new_theta;
+
+      if (i == old_size-1)
+        step_final_theta = step_new_theta;
+
+      foot_step_msg.footsteps_2d.push_back(step_msg);
+
+//      ROS_INFO("===== OLD =====");
+//      ROS_INFO("step: %d", i);
+//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].moving_foot: %d", i, step_msg.moving_foot);
+//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d x: %f", i, step_msg.step2d.x);
+//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d y: %f", i, step_msg.step2d.y);
+//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d theta: %f", i, step_msg.step2d.theta);
+    }
+
+    op3_wholebody_module_msgs::Step2D step_msg = msg.footsteps_2d[old_size-1];
+
+    if (step_msg.moving_foot - 1 == LEFT_LEG)
+      first_msg.moving_foot = RIGHT_LEG;
+    else
+      first_msg.moving_foot = LEFT_LEG;
+
+    first_msg.step2d.x      = 0.0;
+    first_msg.step2d.y      = 0.0;
+    first_msg.step2d.theta  = step_final_theta; //step_msg.step2d.theta;
+
+    foot_step_msg.footsteps_2d.push_back(first_msg);
+
+//    for (int i=0; i<new_size; i++)
+//    {
+//      op3_wholebody_module_msgs::Step2D step_msg = foot_step_msg.footsteps_2d[i];
+
+//      ROS_INFO("===== NEW =====");
+//      ROS_INFO("step: %d", i);
+//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].moving_foot: %d", i, step_msg.moving_foot);
+//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d x: %f", i, step_msg.step2d.x);
+//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d y: %f", i, step_msg.step2d.y);
+//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d theta: %f", i, step_msg.step2d.theta);
+//    }
+
+    foot_step_2d_ = foot_step_msg;
+
+    walking_size_ = new_size;
+    mov_time_ = msg.step_time; //1.0;
+    is_foot_step_2d_ = true;
+    control_type_ = WALKING_CONTROL;
+
+    if (is_moving_ == false)
+      initWalkingControl();
+    else
+      ROS_WARN("[WARN] Previous task is alive!");
+  }
+  else
+    ROS_WARN("[WARN] Control type is different!");
+}
+
 void WholebodyModule::footStepCommandCallback(const op3_wholebody_module_msgs::FootStepCommand& msg)
 {
   if (enable_ == false)
@@ -922,10 +1061,21 @@ void WholebodyModule::initWalkingControl()
     }
     else
     {
-      walking_control_->initialize(foot_step_command_,
-                                   des_body_pos_, des_body_Q_,
-                                   des_r_leg_pos_, des_r_leg_Q_,
-                                   des_l_leg_pos_, des_l_leg_Q_);
+      if (is_foot_step_2d_ == true)
+      {
+        walking_control_->initialize(foot_step_2d_,
+                                     des_body_pos_, des_body_Q_,
+                                     des_r_leg_pos_, des_r_leg_Q_,
+                                     des_l_leg_pos_, des_l_leg_Q_);
+      }
+      else
+      {
+        walking_control_->initialize(foot_step_command_,
+                                     des_body_pos_, des_body_Q_,
+                                     des_r_leg_pos_, des_r_leg_Q_,
+                                     des_l_leg_pos_, des_l_leg_Q_);
+      }
+
       walking_control_->calcPreviewParam(preview_response_);
       is_moving_ = true;
 
@@ -945,9 +1095,9 @@ void WholebodyModule::calcWalkingControl()
   if (is_moving_ == true)
   {
     double cur_time = (double) mov_step_ * control_cycle_sec_;
-    walking_control_->set(cur_time, walking_step_);
+    walking_control_->set(cur_time, walking_step_,is_foot_step_2d_);
 
-    //    ROS_INFO("cur_time: %f", cur_time);
+//    ROS_INFO("cur_time: %f", cur_time);
 
     //      queue_mutex_.lock();
 
@@ -993,8 +1143,9 @@ void WholebodyModule::calcWalkingControl()
       if (walking_step_ == walking_size_-1)
       {
         is_moving_ = false;
+        is_foot_step_2d_ = false;
         walking_control_->finalize();
-        resetBodyPose();
+//        resetBodyPose();
 
         control_type_ = NONE;
         walking_phase_ = DSP;
@@ -1538,42 +1689,6 @@ void WholebodyModule::process(std::map<std::string, robotis_framework::Dynamixel
   if (enable_ == false)
     return;
 
-  double balance_angle[number_of_joints_];
-
-  for (int i=0; i<number_of_joints_; i++)
-    balance_angle[i] = 0.0;
-
-  double rl_gyro_err = 0.0 - sensors["gyro_x"];
-  double fb_gyro_err = 0.0 - sensors["gyro_y"];
-
-  sensoryFeedback(rl_gyro_err, fb_gyro_err, balance_angle);
-
-
-  // Get Sensor Data
-  //  l_foot_ft_data_msg_.force.x = sensors["l_foot_fx_scaled_N"];
-  //  l_foot_ft_data_msg_.force.y = sensors["l_foot_fy_scaled_N"];
-  //  l_foot_ft_data_msg_.force.z = sensors["l_foot_fz_scaled_N"];
-  //  l_foot_ft_data_msg_.torque.x = sensors["l_foot_tx_scaled_Nm"];
-  //  l_foot_ft_data_msg_.torque.y = sensors["l_foot_ty_scaled_Nm"];
-  //  l_foot_ft_data_msg_.torque.z = sensors["l_foot_tz_scaled_Nm"];
-
-  //  r_foot_ft_data_msg_.force.x = sensors["r_foot_fx_scaled_N"];
-  //  r_foot_ft_data_msg_.force.y = sensors["r_foot_fy_scaled_N"];
-  //  r_foot_ft_data_msg_.force.z = sensors["r_foot_fz_scaled_N"];
-  //  r_foot_ft_data_msg_.torque.x = sensors["r_foot_tx_scaled_Nm"];
-  //  r_foot_ft_data_msg_.torque.y = sensors["r_foot_ty_scaled_Nm"];
-  //  r_foot_ft_data_msg_.torque.z = sensors["r_foot_tz_scaled_Nm"];
-
-  //  Eigen::MatrixXd test1 = Eigen::MatrixXd::Identity(3,3);
-  //  Eigen::Quaterniond test1_Q = robotis_framework::convertRotationToQuaternion(test1);
-
-  //  ROS_INFO("test1_Q x: %f , y: %f , z: %f , w: %f", test1_Q.x(), test1_Q.y(), test1_Q.z(), test1_Q.w());
-
-  //  Eigen::Quaterniond test2_Q(-1.0, 0.0, 0.0, 0.0);
-  //  Eigen::MatrixXd test2 = robotis_framework::convertQuaternionToRotation(test2_Q);
-
-  //  PRINT_MAT(test2);
-
   /*----- write curr position -----*/
   for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_iter = result_.begin();
        state_iter != result_.end(); state_iter++)
@@ -1625,7 +1740,7 @@ void WholebodyModule::process(std::map<std::string, robotis_framework::Dynamixel
     calcOffsetControl();
   }
 
-//  calcRobotPose();
+  //  calcRobotPose();
 
   if (balance_type_ == ON)
   {
@@ -1636,6 +1751,7 @@ void WholebodyModule::process(std::map<std::string, robotis_framework::Dynamixel
     {
       is_moving_ = false;
       is_balancing_ = false;
+      is_foot_step_2d_ = false;
 
       balance_type_ = OFF;
       control_type_ = NONE;
@@ -1653,12 +1769,21 @@ void WholebodyModule::process(std::map<std::string, robotis_framework::Dynamixel
 
   setFeedbackControl();
 
-  for (int i=0; i<number_of_joints_; i++)
-    des_joint_pos_to_robot_[i] += balance_angle[i];
-
   sensor_msgs::JointState goal_joint_msg;
+  geometry_msgs::PoseStamped pelvis_pose_msg;
 
   goal_joint_msg.header.stamp = ros::Time::now();
+  pelvis_pose_msg.header.stamp = ros::Time::now();
+
+  pelvis_pose_msg.pose.position.x = des_body_pos_[0];
+  pelvis_pose_msg.pose.position.y = des_body_pos_[1];
+  pelvis_pose_msg.pose.position.z = des_body_pos_[2];
+
+  pelvis_pose_msg.pose.orientation.x = des_body_Q_[0];
+  pelvis_pose_msg.pose.orientation.y = des_body_Q_[1];
+  pelvis_pose_msg.pose.orientation.z = des_body_Q_[2];
+  pelvis_pose_msg.pose.orientation.w = des_body_Q_[3];
+
   /*----- set joint data -----*/
   for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_iter = result_.begin();
        state_iter != result_.end(); state_iter++)
@@ -1671,6 +1796,7 @@ void WholebodyModule::process(std::map<std::string, robotis_framework::Dynamixel
     goal_joint_msg.position.push_back(des_joint_pos_[joint_name_to_id_[joint_name]-1]);
   }
 
+  pelvis_pose_pub_.publish(pelvis_pose_msg);
   goal_joint_state_pub_.publish(goal_joint_msg);
 }
 

@@ -12,7 +12,6 @@
 
 #include <geometry_msgs/Pose.h>
 
-//#include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
 #include "robotis_math/robotis_math.h"
 
 class WholebodyControl
@@ -26,8 +25,7 @@ public:
   void initialize(std::vector<double_t> init_body_pos, std::vector<double_t> init_body_rot,
                   std::vector<double_t> init_r_foot_pos, std::vector<double_t> init_r_foot_Q,
                   std::vector<double_t> init_l_foot_pos, std::vector<double_t> init_l_foot_Q);
-//  void update(std::vector<double_t> init_body_pos, std::vector<double_t> init_body_rot,
-//              std::vector<double_t> init_task_pos, std::vector<double_t> init_task_vel, std::vector<double_t> init_task_accel);
+  void update();
   void finalize();
 
   void set(double time);

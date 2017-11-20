@@ -719,7 +719,7 @@ void WholebodyModule::initOffsetControl()
   body_offset_size_ = (int) (mov_time / control_cycle_sec_) + 1;
 
   std::vector<double_t> offset_zero;
-  offset_zero.resize(2, 0.0);
+  offset_zero.resize(3, 0.0);
 
   body_offset_tra_ =
       new robotis_framework::MinimumJerk(ini_time, mov_time,

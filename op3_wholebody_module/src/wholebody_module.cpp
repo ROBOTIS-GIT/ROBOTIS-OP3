@@ -1692,6 +1692,16 @@ void WholebodyModule::process(std::map<std::string, robotis_framework::Dynamixel
   if (enable_ == false)
     return;
 
+  double balance_angle[number_of_joints_];
+
+  for (int i=0; i<number_of_joints_; i++)
+    balance_angle[i] = 0.0;
+
+  double rl_gyro_err = 0.0 - sensors["gyro_x"];
+  double fb_gyro_err = 0.0 - sensors["gyro_y"];
+
+  sensoryFeedback(rl_gyro_err, fb_gyro_err, balance_angle);
+
   /*----- write curr position -----*/
   for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_iter = result_.begin();
        state_iter != result_.end(); state_iter++)
@@ -1771,6 +1781,9 @@ void WholebodyModule::process(std::map<std::string, robotis_framework::Dynamixel
     ROS_INFO("[Wholebody Module] Calc Time: %f", time_duration.toSec());
 
   setFeedbackControl();
+
+  for (int i=0; i<number_of_joints_; i++)
+    des_joint_pos_to_robot_[i] += balance_angle[i];
 
   sensor_msgs::JointState goal_joint_msg;
   geometry_msgs::PoseStamped pelvis_pose_msg;

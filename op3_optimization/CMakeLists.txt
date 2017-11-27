@@ -9,7 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   sensor_msgs
   geometry_msgs
-  op3_wholebody_module_msgs
+  op3_online_walking_module_msgs
   robotis_math
   scilab_optimization
 )

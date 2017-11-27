@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef OP3_WHOLEBODY_MODULE_WHOLEBODY_MODULE_H_
-#define OP3_WHOLEBODY_MODULE_WHOLEBODY_MODULE_H_
+#ifndef OP3_ONLINE_WALKING_MODULE_ONLINE_WALKING_MODULE_H_
+#define OP3_ONLINE_WALKING_MODULE_ONLINE_WALKING_MODULE_H_
 
 #include <map>
 #include <ros/ros.h>
@@ -60,19 +60,19 @@
 //#include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
 #include "op3_balance_control/op3_balance_control.h"
 
-#include "op3_wholebody_module_msgs/JointPose.h"
-#include "op3_wholebody_module_msgs/KinematicsPose.h"
-#include "op3_wholebody_module_msgs/FootStepCommand.h"
-#include "op3_wholebody_module_msgs/PreviewRequest.h"
-#include "op3_wholebody_module_msgs/PreviewResponse.h"
-#include "op3_wholebody_module_msgs/WalkingParam.h"
+#include "op3_online_walking_module_msgs/JointPose.h"
+#include "op3_online_walking_module_msgs/KinematicsPose.h"
+#include "op3_online_walking_module_msgs/FootStepCommand.h"
+#include "op3_online_walking_module_msgs/PreviewRequest.h"
+#include "op3_online_walking_module_msgs/PreviewResponse.h"
+#include "op3_online_walking_module_msgs/WalkingParam.h"
 
-#include "op3_wholebody_module_msgs/GetJointPose.h"
-#include "op3_wholebody_module_msgs/GetKinematicsPose.h"
-#include "op3_wholebody_module_msgs/GetPreviewMatrix.h"
+#include "op3_online_walking_module_msgs/GetJointPose.h"
+#include "op3_online_walking_module_msgs/GetKinematicsPose.h"
+#include "op3_online_walking_module_msgs/GetPreviewMatrix.h"
 
-#include "op3_wholebody_module_msgs/Step2D.h"
-#include "op3_wholebody_module_msgs/Step2DArray.h"
+#include "op3_online_walking_module_msgs/Step2D.h"
+#include "op3_online_walking_module_msgs/Step2DArray.h"
 
 namespace robotis_op
 {
@@ -90,12 +90,12 @@ enum BALANCE_TYPE {
   OFF
 };
 
-class WholebodyModule: public robotis_framework::MotionModule,
-                       public robotis_framework::Singleton<WholebodyModule>
+class OnlineWalkingModule: public robotis_framework::MotionModule,
+                       public robotis_framework::Singleton<OnlineWalkingModule>
 {
 public:
-  WholebodyModule();
-  virtual ~WholebodyModule();
+  OnlineWalkingModule();
+  virtual ~OnlineWalkingModule();
 
   /* ROS Topic Callback Functions */
   void setResetBodyCallback(const std_msgs::Bool::ConstPtr& msg);
@@ -103,23 +103,23 @@ public:
   void setBodyOffsetCallback(const geometry_msgs::Pose::ConstPtr& msg);
   void setFootDistanceCallback(const std_msgs::Float64::ConstPtr& msg);
 
-  void goalJointPoseCallback(const op3_wholebody_module_msgs::JointPose &msg);
-  void goalKinematicsPoseCallback(const op3_wholebody_module_msgs::KinematicsPose& msg);
-  void footStepCommandCallback(const op3_wholebody_module_msgs::FootStepCommand& msg);
-  void walkingParamCallback(const op3_wholebody_module_msgs::WalkingParam& msg);
+  void goalJointPoseCallback(const op3_online_walking_module_msgs::JointPose &msg);
+  void goalKinematicsPoseCallback(const op3_online_walking_module_msgs::KinematicsPose& msg);
+  void footStepCommandCallback(const op3_online_walking_module_msgs::FootStepCommand& msg);
+  void walkingParamCallback(const op3_online_walking_module_msgs::WalkingParam& msg);
 
-  void footStep2DCallback(const op3_wholebody_module_msgs::Step2DArray& msg);
+  void footStep2DCallback(const op3_online_walking_module_msgs::Step2DArray& msg);
 
   void imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg);
   void leftFootForceTorqueOutputCallback(const geometry_msgs::WrenchStamped::ConstPtr &msg);
   void rightFootForceTorqueOutputCallback(const geometry_msgs::WrenchStamped::ConstPtr &msg);
 
   /* ROS Service Functions */
-  bool getJointPoseCallback(op3_wholebody_module_msgs::GetJointPose::Request &req,
-                            op3_wholebody_module_msgs::GetJointPose::Response &res);
-  bool getKinematicsPoseCallback(op3_wholebody_module_msgs::GetKinematicsPose::Request &req,
-                                 op3_wholebody_module_msgs::GetKinematicsPose::Response &res);
-  bool getPreviewMatrix(op3_wholebody_module_msgs::PreviewRequest msg);
+  bool getJointPoseCallback(op3_online_walking_module_msgs::GetJointPose::Request &req,
+                            op3_online_walking_module_msgs::GetJointPose::Response &res);
+  bool getKinematicsPoseCallback(op3_online_walking_module_msgs::GetKinematicsPose::Request &req,
+                                 op3_online_walking_module_msgs::GetKinematicsPose::Response &res);
+  bool getPreviewMatrix(op3_online_walking_module_msgs::PreviewRequest msg);
 
   /* ROS Framework Functions */
   void initialize(const int control_cycle_msec, robotis_framework::Robot *robot);
@@ -227,12 +227,12 @@ private:
   // Walking Control
   std::vector<double_t> x_lipm_, y_lipm_;
 
-  op3_wholebody_module_msgs::FootStepCommand foot_step_command_;
-  op3_wholebody_module_msgs::PreviewRequest preview_request_;
-  op3_wholebody_module_msgs::PreviewResponse preview_response_;
-  op3_wholebody_module_msgs::WalkingParam walking_param_;
+  op3_online_walking_module_msgs::FootStepCommand foot_step_command_;
+  op3_online_walking_module_msgs::PreviewRequest preview_request_;
+  op3_online_walking_module_msgs::PreviewResponse preview_response_;
+  op3_online_walking_module_msgs::WalkingParam walking_param_;
 
-  op3_wholebody_module_msgs::Step2DArray foot_step_2d_;
+  op3_online_walking_module_msgs::Step2DArray foot_step_2d_;
   bool is_foot_step_2d_;
 
   // Wholebody Control

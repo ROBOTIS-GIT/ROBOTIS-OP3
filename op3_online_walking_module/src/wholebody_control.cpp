@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "op3_wholebody_module/wholebody_control.h"
+#include "op3_online_walking_module/wholebody_control.h"
 
 WholebodyControl::WholebodyControl(std::string control_group,
                                    double init_time, double fin_time,

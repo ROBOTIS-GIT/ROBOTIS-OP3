@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "op3_wholebody_module/walking_control.h"
+#include "op3_online_walking_module/walking_control.h"
 
 WalkingControl::WalkingControl(double control_cycle,
                                double dsp_ratio, double lipm_height, double foot_height_max, double zmp_offset_x, double zmp_offset_y,
@@ -91,7 +91,7 @@ WalkingControl::~WalkingControl()
 
 }
 
-void WalkingControl::initialize(op3_wholebody_module_msgs::FootStepCommand foot_step_command,
+void WalkingControl::initialize(op3_online_walking_module_msgs::FootStepCommand foot_step_command,
                                 std::vector<double_t> init_body_pos, std::vector<double_t> init_body_Q,
                                 std::vector<double_t> init_r_foot_pos, std::vector<double_t> init_r_foot_Q,
                                 std::vector<double_t> init_l_foot_pos, std::vector<double_t> init_l_foot_Q)
@@ -135,7 +135,7 @@ void WalkingControl::initialize(op3_wholebody_module_msgs::FootStepCommand foot_
   u_y_.fill(0.0);
 }
 
-void WalkingControl::initialize(op3_wholebody_module_msgs::Step2DArray foot_step_2d,
+void WalkingControl::initialize(op3_online_walking_module_msgs::Step2DArray foot_step_2d,
                                 std::vector<double_t> init_body_pos, std::vector<double_t> init_body_Q,
                                 std::vector<double_t> init_r_foot_pos, std::vector<double_t> init_r_foot_Q,
                                 std::vector<double_t> init_l_foot_pos, std::vector<double_t> init_l_foot_Q)
@@ -421,11 +421,11 @@ void WalkingControl::transformFootStep2D()
   goal_r_foot_pos.resize(2, 0.0);
   goal_l_foot_pos.resize(2, 0.0);
 
-  op3_wholebody_module_msgs::FootStepArray foot_step_param;
+  op3_online_walking_module_msgs::FootStepArray foot_step_param;
 
   for (int step=0; step<foot_step_size_; step++)
   {
-    op3_wholebody_module_msgs::Step2D msg = foot_step_2d_.footsteps_2d[step];
+    op3_online_walking_module_msgs::Step2D msg = foot_step_2d_.footsteps_2d[step];
 
     foot_step_param.moving_foot.push_back(msg.moving_foot);
     geometry_msgs::Pose2D foot_pose_2d;
@@ -756,7 +756,7 @@ double WalkingControl::calcRefZMPy(int step)
   return ref_zmp_y;
 }
 
-void WalkingControl::calcPreviewParam(op3_wholebody_module_msgs::PreviewResponse msg)
+void WalkingControl::calcPreviewParam(op3_online_walking_module_msgs::PreviewResponse msg)
 {
   //
 //  ROS_INFO("lipm_height_ : %f", lipm_height_);

@@ -4,9 +4,9 @@
 #include "robotis_math/robotis_math.h"
 #include "scilab_optimization/scilab_optimization.h"
 
-#include "op3_wholebody_module_msgs/PreviewRequest.h"
-#include "op3_wholebody_module_msgs/PreviewResponse.h"
-#include "op3_wholebody_module_msgs/GetPreviewMatrix.h"
+#include "op3_online_walking_module_msgs/PreviewRequest.h"
+#include "op3_online_walking_module_msgs/PreviewResponse.h"
+#include "op3_online_walking_module_msgs/GetPreviewMatrix.h"
 
 double P_row_, P_col_;
 std::vector<double_t> P_;
@@ -117,8 +117,8 @@ bool calcPreviewParam(double control_cycle, double lipm_height)
   return true;
 }
 
-bool getPreviewMatrixCallback(op3_wholebody_module_msgs::GetPreviewMatrix::Request& req,
-                              op3_wholebody_module_msgs::GetPreviewMatrix::Response& res)
+bool getPreviewMatrixCallback(op3_online_walking_module_msgs::GetPreviewMatrix::Request& req,
+                              op3_online_walking_module_msgs::GetPreviewMatrix::Response& res)
 {
   double control_cycle = req.req.control_cycle;
   double lipm_height = req.req.lipm_height;

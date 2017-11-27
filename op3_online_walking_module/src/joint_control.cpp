@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "op3_wholebody_module/joint_control.h"
+#include "op3_online_walking_module/joint_control.h"
 
 JointControl::JointControl()
 {

@@ -28,11 +28,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "op3_wholebody_module/wholebody_module.h"
+#include "op3_online_walking_module/online_walking_module.h"
 
 using namespace robotis_op;
 
-WholebodyModule::WholebodyModule()
+OnlineWalkingModule::OnlineWalkingModule()
   : control_cycle_sec_(0.008),
     is_moving_(false),
     is_balancing_(false),
@@ -49,7 +49,7 @@ WholebodyModule::WholebodyModule()
     foot_distance_(0.07)
 {
   enable_       = false;
-  module_name_  = "wholebody_module";
+  module_name_  = "online_walking_module";
   control_mode_ = robotis_framework::PositionControl;
   control_type_ = NONE;
   balance_type_ = OFF;
@@ -161,39 +161,39 @@ WholebodyModule::WholebodyModule()
   des_body_offset_.resize(3, 0.0);
   goal_body_offset_.resize(3, 0.0);
 
-  std::string balance_gain_path = ros::package::getPath("op3_wholebody_module") + "/config/balance_gain.yaml";
+  std::string balance_gain_path = ros::package::getPath("op3_online_walking_module") + "/config/balance_gain.yaml";
   parseBalanceGainData(balance_gain_path);
 
-  std::string joint_feedback_gain_path = ros::package::getPath("op3_wholebody_module") + "/config/joint_feedback_gain.yaml";
+  std::string joint_feedback_gain_path = ros::package::getPath("op3_online_walking_module") + "/config/joint_feedback_gain.yaml";
   parseJointFeedbackGainData(joint_feedback_gain_path);
 
-  std::string joint_feedforward_gain_path = ros::package::getPath("op3_wholebody_module") + "/config/joint_feedforward_gain.yaml";
+  std::string joint_feedforward_gain_path = ros::package::getPath("op3_online_walking_module") + "/config/joint_feedforward_gain.yaml";
   parseJointFeedforwardGainData(joint_feedforward_gain_path);
 }
 
-WholebodyModule::~WholebodyModule()
+OnlineWalkingModule::~OnlineWalkingModule()
 {
   queue_thread_.join();
 }
 
-void WholebodyModule::initialize(const int control_cycle_msec, robotis_framework::Robot *robot)
+void OnlineWalkingModule::initialize(const int control_cycle_msec, robotis_framework::Robot *robot)
 {
   control_cycle_sec_ = control_cycle_msec * 0.001;
-  queue_thread_      = boost::thread(boost::bind(&WholebodyModule::queueThread, this));
+  queue_thread_      = boost::thread(boost::bind(&OnlineWalkingModule::queueThread, this));
 
   ros::NodeHandle ros_node;
 
   // Publisher
   status_msg_pub_       = ros_node.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 1);
   movement_done_pub_    = ros_node.advertise<std_msgs::String>("/robotis/movement_done", 1);
-  goal_joint_state_pub_ = ros_node.advertise<sensor_msgs::JointState>("/robotis/wholebody/goal_joint_states", 1);
-  pelvis_pose_pub_      = ros_node.advertise<geometry_msgs::PoseStamped>("/robotis/pelvis_pose_offset", 1);
+  goal_joint_state_pub_ = ros_node.advertise<sensor_msgs::JointState>("/robotis/online_walking/goal_joint_states", 1);
+  pelvis_pose_pub_      = ros_node.advertise<geometry_msgs::PoseStamped>("/robotis/pelvis_pose", 1);
 
   // Service
-  get_preview_matrix_client_ = ros_node.serviceClient<op3_wholebody_module_msgs::GetPreviewMatrix>("/robotis/get_preview_matrix", 0);
+  get_preview_matrix_client_ = ros_node.serviceClient<op3_online_walking_module_msgs::GetPreviewMatrix>("/robotis/online_walking/get_preview_matrix", 0);
 }
 
-void WholebodyModule::queueThread()
+void OnlineWalkingModule::queueThread()
 {
   ros::NodeHandle     ros_node;
   ros::CallbackQueue  callback_queue;
@@ -201,45 +201,45 @@ void WholebodyModule::queueThread()
   ros_node.setCallbackQueue(&callback_queue);
 
   // Subscriber
-  ros::Subscriber reset_body_sub_ = ros_node.subscribe("/robotis/reset_body", 5,
-                                                       &WholebodyModule::setResetBodyCallback, this);
-  ros::Subscriber joint_pose_sub_ = ros_node.subscribe("/robotis/goal_joint_pose", 5,
-                                                       &WholebodyModule::goalJointPoseCallback, this);
-  ros::Subscriber kinematics_pose_sub_ = ros_node.subscribe("/robotis/goal_kinematics_pose", 5,
-                                                            &WholebodyModule::goalKinematicsPoseCallback, this);
-  ros::Subscriber foot_step_command_sub_ = ros_node.subscribe("/robotis/foot_step_command", 5,
-                                                              &WholebodyModule::footStepCommandCallback, this);
-  ros::Subscriber walking_param_sub_ = ros_node.subscribe("/robotis/walking_param", 5,
-                                                          &WholebodyModule::walkingParamCallback, this);
-  ros::Subscriber wholebody_balance_msg_sub = ros_node.subscribe("/robotis/wholebody_balance_msg", 5,
-                                                                 &WholebodyModule::setWholebodyBalanceMsgCallback, this);
-  ros::Subscriber body_offset_msg_sub = ros_node.subscribe("/robotis/wholebody/body_offset", 5,
-                                                           &WholebodyModule::setBodyOffsetCallback, this);
-  ros::Subscriber foot_distance_msg_sub = ros_node.subscribe("/robotis/wholebody/foot_distance", 5,
-                                                             &WholebodyModule::setFootDistanceCallback, this);
+  ros::Subscriber reset_body_sub_ = ros_node.subscribe("/robotis/online_walking/reset_body", 5,
+                                                       &OnlineWalkingModule::setResetBodyCallback, this);
+  ros::Subscriber joint_pose_sub_ = ros_node.subscribe("/robotis/online_walking/goal_joint_pose", 5,
+                                                       &OnlineWalkingModule::goalJointPoseCallback, this);
+  ros::Subscriber kinematics_pose_sub_ = ros_node.subscribe("/robotis/online_walking/goal_kinematics_pose", 5,
+                                                            &OnlineWalkingModule::goalKinematicsPoseCallback, this);
+  ros::Subscriber foot_step_command_sub_ = ros_node.subscribe("/robotis/online_walking/foot_step_command", 5,
+                                                              &OnlineWalkingModule::footStepCommandCallback, this);
+  ros::Subscriber walking_param_sub_ = ros_node.subscribe("/robotis/online_walking/walking_param", 5,
+                                                          &OnlineWalkingModule::walkingParamCallback, this);
+  ros::Subscriber wholebody_balance_msg_sub = ros_node.subscribe("/robotis/online_walking/wholebody_balance_msg", 5,
+                                                                 &OnlineWalkingModule::setWholebodyBalanceMsgCallback, this);
+  ros::Subscriber body_offset_msg_sub = ros_node.subscribe("/robotis/online_walking/body_offset", 5,
+                                                           &OnlineWalkingModule::setBodyOffsetCallback, this);
+  ros::Subscriber foot_distance_msg_sub = ros_node.subscribe("/robotis/online_walking/foot_distance", 5,
+                                                             &OnlineWalkingModule::setFootDistanceCallback, this);
 
-  ros::Subscriber footsteps_sub = ros_node.subscribe("/robotis/wholebody/footsteps_2d", 5,
-                                                     &WholebodyModule::footStep2DCallback, this);
+  ros::Subscriber footsteps_sub = ros_node.subscribe("/robotis/online_walking/footsteps_2d", 5,
+                                                     &OnlineWalkingModule::footStep2DCallback, this);
 
   ros::Subscriber imu_data_sub = ros_node.subscribe("/robotis/sensor/imu/imu", 5,
-                                                    &WholebodyModule::imuDataCallback, this);
+                                                    &OnlineWalkingModule::imuDataCallback, this);
   ros::Subscriber l_foot_ft_sub = ros_node.subscribe("/robotis/sensor/l_foot_ft", 3,
-                                                     &WholebodyModule::leftFootForceTorqueOutputCallback, this);
+                                                     &OnlineWalkingModule::leftFootForceTorqueOutputCallback, this);
   ros::Subscriber r_foot_ft_sub = ros_node.subscribe("/robotis/sensor/r_foot_ft", 3,
-                                                     &WholebodyModule::rightFootForceTorqueOutputCallback, this);
+                                                     &OnlineWalkingModule::rightFootForceTorqueOutputCallback, this);
 
   // Service
-  ros::ServiceServer get_joint_pose_server = ros_node.advertiseService("/robotis/get_joint_pose",
-                                                                       &WholebodyModule::getJointPoseCallback, this);
-  ros::ServiceServer get_kinematics_pose_server = ros_node.advertiseService("/robotis/get_kinematics_pose",
-                                                                            &WholebodyModule::getKinematicsPoseCallback, this);
+  ros::ServiceServer get_joint_pose_server = ros_node.advertiseService("/robotis/online_walking/get_joint_pose",
+                                                                       &OnlineWalkingModule::getJointPoseCallback, this);
+  ros::ServiceServer get_kinematics_pose_server = ros_node.advertiseService("/robotis/online_walking/get_kinematics_pose",
+                                                                            &OnlineWalkingModule::getKinematicsPoseCallback, this);
 
   ros::WallDuration duration(control_cycle_sec_);
   while(ros_node.ok())
     callback_queue.callAvailable(duration);
 }
 
-void WholebodyModule::resetBodyPose()
+void OnlineWalkingModule::resetBodyPose()
 {
   des_body_pos_[0] = 0.0;
   des_body_pos_[1] = 0.0;
@@ -279,7 +279,7 @@ void WholebodyModule::resetBodyPose()
   walking_param_.zmp_offset_x = des_body_pos_[0];
 }
 
-void WholebodyModule::parseBalanceGainData(const std::string &path)
+void OnlineWalkingModule::parseBalanceGainData(const std::string &path)
 {
   YAML::Node doc;
   try
@@ -336,7 +336,7 @@ void WholebodyModule::parseBalanceGainData(const std::string &path)
   balance_ankle_pitch_gain_ = doc["balance_ankle_pitch_gain"].as<double>();
 }
 
-void WholebodyModule::parseJointFeedbackGainData(const std::string &path)
+void OnlineWalkingModule::parseJointFeedbackGainData(const std::string &path)
 {
   YAML::Node doc;
   try
@@ -377,7 +377,7 @@ void WholebodyModule::parseJointFeedbackGainData(const std::string &path)
   joint_feedback_[joint_name_to_id_["l_ank_roll"]-1].d_gain_    = doc["l_ank_roll_d_gain"].as<double>();
 }
 
-void WholebodyModule::parseJointFeedforwardGainData(const std::string &path)
+void OnlineWalkingModule::parseJointFeedforwardGainData(const std::string &path)
 {
   YAML::Node doc;
   try
@@ -406,18 +406,18 @@ void WholebodyModule::parseJointFeedforwardGainData(const std::string &path)
   joint_feedforward_gain_[joint_name_to_id_["l_ank_roll"]-1]  = doc["l_ank_roll_gain"].as<double>();
 }
 
-void WholebodyModule::setWholebodyBalanceMsgCallback(const std_msgs::String::ConstPtr& msg)
+void OnlineWalkingModule::setWholebodyBalanceMsgCallback(const std_msgs::String::ConstPtr& msg)
 {
   if (enable_ == false)
     return;
 
-  std::string balance_gain_path = ros::package::getPath("op3_wholebody_module") + "/config/balance_gain.yaml";
+  std::string balance_gain_path = ros::package::getPath("op3_online_walking_module") + "/config/balance_gain.yaml";
   parseBalanceGainData(balance_gain_path);
 
-  std::string joint_feedback_gain_path = ros::package::getPath("op3_wholebody_module") + "/config/joint_feedback_gain.yaml";
+  std::string joint_feedback_gain_path = ros::package::getPath("op3_online_walking_module") + "/config/joint_feedback_gain.yaml";
   parseJointFeedbackGainData(joint_feedback_gain_path);
 
-  std::string joint_feedforward_gain_path = ros::package::getPath("op3_wholebody_module") + "/config/joint_feedforward_gain.yaml";
+  std::string joint_feedforward_gain_path = ros::package::getPath("op3_online_walking_module") + "/config/joint_feedforward_gain.yaml";
   parseJointFeedforwardGainData(joint_feedforward_gain_path);
 
   if (msg->data == "balance_on")
@@ -430,7 +430,7 @@ void WholebodyModule::setWholebodyBalanceMsgCallback(const std_msgs::String::Con
   walking_phase_ = DSP;
 }
 
-void WholebodyModule::initBalanceControl()
+void OnlineWalkingModule::initBalanceControl()
 {
   if (balance_control_initialize_ == true)
     return;
@@ -460,7 +460,7 @@ void WholebodyModule::initBalanceControl()
   }
 }
 
-void WholebodyModule::calcBalanceControl()
+void OnlineWalkingModule::calcBalanceControl()
 {
   if (is_balancing_ == true)
   {
@@ -486,7 +486,7 @@ void WholebodyModule::calcBalanceControl()
   }
 }
 
-void WholebodyModule::imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg)
+void OnlineWalkingModule::imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   imu_data_mutex_lock_.lock();
 
@@ -498,7 +498,7 @@ void WholebodyModule::imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg)
   imu_data_mutex_lock_.unlock();
 }
 
-void WholebodyModule::leftFootForceTorqueOutputCallback(const geometry_msgs::WrenchStamped::ConstPtr &msg)
+void OnlineWalkingModule::leftFootForceTorqueOutputCallback(const geometry_msgs::WrenchStamped::ConstPtr &msg)
 {
   Eigen::MatrixXd force = Eigen::MatrixXd::Zero(3,1);
   force.coeffRef(0,0) = msg->wrench.force.x;
@@ -536,7 +536,7 @@ void WholebodyModule::leftFootForceTorqueOutputCallback(const geometry_msgs::Wre
   l_foot_ft_data_msg_.torque.z = l_foot_Tz_Nm;
 }
 
-void WholebodyModule::rightFootForceTorqueOutputCallback(const geometry_msgs::WrenchStamped::ConstPtr &msg)
+void OnlineWalkingModule::rightFootForceTorqueOutputCallback(const geometry_msgs::WrenchStamped::ConstPtr &msg)
 {
   Eigen::MatrixXd force = Eigen::MatrixXd::Zero(3,1);
   force.coeffRef(0,0) = msg->wrench.force.x;
@@ -573,7 +573,7 @@ void WholebodyModule::rightFootForceTorqueOutputCallback(const geometry_msgs::Wr
   r_foot_ft_data_msg_.torque.z = r_foot_Tz_Nm;
 }
 
-void WholebodyModule::setResetBodyCallback(const std_msgs::Bool::ConstPtr& msg)
+void OnlineWalkingModule::setResetBodyCallback(const std_msgs::Bool::ConstPtr& msg)
 {
   if (msg->data == true)
   {
@@ -585,12 +585,12 @@ void WholebodyModule::setResetBodyCallback(const std_msgs::Bool::ConstPtr& msg)
   }
 }
 
-void WholebodyModule::walkingParamCallback(const op3_wholebody_module_msgs::WalkingParam& msg)
+void OnlineWalkingModule::walkingParamCallback(const op3_online_walking_module_msgs::WalkingParam& msg)
 {
   walking_param_ = msg;
 }
 
-void WholebodyModule::goalJointPoseCallback(const op3_wholebody_module_msgs::JointPose& msg)
+void OnlineWalkingModule::goalJointPoseCallback(const op3_online_walking_module_msgs::JointPose& msg)
 {
   if (enable_ == false)
     return;
@@ -616,7 +616,7 @@ void WholebodyModule::goalJointPoseCallback(const op3_wholebody_module_msgs::Joi
     ROS_WARN("[WARN] Control type is different!");
 }
 
-void WholebodyModule::initJointControl()
+void OnlineWalkingModule::initJointControl()
 {
   if (joint_control_initialize_ == true)
     return;
@@ -642,7 +642,7 @@ void WholebodyModule::initJointControl()
   }
 }
 
-void WholebodyModule::calcJointControl()
+void OnlineWalkingModule::calcJointControl()
 {
   if (is_moving_ == true)
   {
@@ -671,7 +671,7 @@ void WholebodyModule::calcJointControl()
   }
 }
 
-void WholebodyModule::setBodyOffsetCallback(const geometry_msgs::Pose::ConstPtr& msg)
+void OnlineWalkingModule::setBodyOffsetCallback(const geometry_msgs::Pose::ConstPtr& msg)
 {
   if (enable_ == false)
     return;
@@ -695,7 +695,7 @@ void WholebodyModule::setBodyOffsetCallback(const geometry_msgs::Pose::ConstPtr&
     ROS_WARN("[WARN] Control type is different!");
 }
 
-void WholebodyModule::setFootDistanceCallback(const std_msgs::Float64::ConstPtr& msg)
+void OnlineWalkingModule::setFootDistanceCallback(const std_msgs::Float64::ConstPtr& msg)
 {
   if (enable_ == false)
     return;
@@ -705,7 +705,7 @@ void WholebodyModule::setFootDistanceCallback(const std_msgs::Float64::ConstPtr&
   resetBodyPose();
 }
 
-void WholebodyModule::initOffsetControl()
+void OnlineWalkingModule::initOffsetControl()
 {
   if (body_offset_initialize_ == true)
     return;
@@ -735,7 +735,7 @@ void WholebodyModule::initOffsetControl()
   }
 }
 
-void WholebodyModule::calcOffsetControl()
+void OnlineWalkingModule::calcOffsetControl()
 {
   if (is_moving_ == true)
   {
@@ -762,7 +762,7 @@ void WholebodyModule::calcOffsetControl()
   }
 }
 
-void WholebodyModule::goalKinematicsPoseCallback(const op3_wholebody_module_msgs::KinematicsPose& msg)
+void OnlineWalkingModule::goalKinematicsPoseCallback(const op3_online_walking_module_msgs::KinematicsPose& msg)
 {
   if (enable_ == false)
     return;
@@ -794,7 +794,7 @@ void WholebodyModule::goalKinematicsPoseCallback(const op3_wholebody_module_msgs
     ROS_WARN("[WARN] Control type is different!");
 }
 
-void WholebodyModule::initWholebodyControl()
+void OnlineWalkingModule::initWholebodyControl()
 {
   if (wholebody_initialize_ == true)
     return;
@@ -829,7 +829,7 @@ void WholebodyModule::initWholebodyControl()
   }
 }
 
-void WholebodyModule::calcWholebodyControl()
+void OnlineWalkingModule::calcWholebodyControl()
 {
   if (is_moving_ == true)
   {
@@ -859,7 +859,7 @@ void WholebodyModule::calcWholebodyControl()
   }
 }
 
-void WholebodyModule::footStep2DCallback(const op3_wholebody_module_msgs::Step2DArray& msg)
+void OnlineWalkingModule::footStep2DCallback(const op3_online_walking_module_msgs::Step2DArray& msg)
 {
   if (enable_ == false)
     return;
@@ -878,13 +878,13 @@ void WholebodyModule::footStep2DCallback(const op3_wholebody_module_msgs::Step2D
   body_T.coeffRef(0,3) = des_body_pos_[0];
   body_T.coeffRef(1,3) = des_body_pos_[1];
 
-  op3_wholebody_module_msgs::Step2DArray foot_step_msg;
+  op3_online_walking_module_msgs::Step2DArray foot_step_msg;
 
   int old_size = msg.footsteps_2d.size();
   int new_size = old_size + 3;
 
-  op3_wholebody_module_msgs::Step2D first_msg;
-  op3_wholebody_module_msgs::Step2D second_msg;
+  op3_online_walking_module_msgs::Step2D first_msg;
+  op3_online_walking_module_msgs::Step2D second_msg;
 
   first_msg.moving_foot = msg.footsteps_2d[0].moving_foot - 1;
   second_msg.moving_foot = first_msg.moving_foot + 1;
@@ -919,7 +919,7 @@ void WholebodyModule::footStep2DCallback(const op3_wholebody_module_msgs::Step2D
   {
     for (int i=0; i<old_size; i++)
     {
-      op3_wholebody_module_msgs::Step2D step_msg = msg.footsteps_2d[i];
+      op3_online_walking_module_msgs::Step2D step_msg = msg.footsteps_2d[i];
       step_msg.moving_foot -= 1;
 
       Eigen::MatrixXd step_R = robotis_framework::convertRPYToRotation(0.0,0.0,step_msg.step2d.theta);
@@ -953,7 +953,7 @@ void WholebodyModule::footStep2DCallback(const op3_wholebody_module_msgs::Step2D
 //      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d theta: %f", i, step_msg.step2d.theta);
     }
 
-    op3_wholebody_module_msgs::Step2D step_msg = msg.footsteps_2d[old_size-1];
+    op3_online_walking_module_msgs::Step2D step_msg = msg.footsteps_2d[old_size-1];
 
     if (step_msg.moving_foot - 1 == LEFT_LEG)
       first_msg.moving_foot = RIGHT_LEG;
@@ -968,7 +968,7 @@ void WholebodyModule::footStep2DCallback(const op3_wholebody_module_msgs::Step2D
 
 //    for (int i=0; i<new_size; i++)
 //    {
-//      op3_wholebody_module_msgs::Step2D step_msg = foot_step_msg.footsteps_2d[i];
+//      op3_online_walking_module_msgs::Step2D step_msg = foot_step_msg.footsteps_2d[i];
 
 //      ROS_INFO("===== NEW =====");
 //      ROS_INFO("step: %d", i);
@@ -994,7 +994,7 @@ void WholebodyModule::footStep2DCallback(const op3_wholebody_module_msgs::Step2D
     ROS_WARN("[WARN] Control type is different!");
 }
 
-void WholebodyModule::footStepCommandCallback(const op3_wholebody_module_msgs::FootStepCommand& msg)
+void OnlineWalkingModule::footStepCommandCallback(const op3_online_walking_module_msgs::FootStepCommand& msg)
 {
   if (enable_ == false)
     return;
@@ -1009,7 +1009,7 @@ void WholebodyModule::footStepCommandCallback(const op3_wholebody_module_msgs::F
 
   if (control_type_ == NONE || control_type_ == WALKING_CONTROL)
   {
-    walking_size_ = msg.step_num + 2;
+    walking_size_ = msg.step_num + 3; //msg.step_num + 2;
     mov_time_ = msg.step_time;
 
     foot_step_command_ = msg;
@@ -1026,7 +1026,7 @@ void WholebodyModule::footStepCommandCallback(const op3_wholebody_module_msgs::F
     ROS_WARN("[WARN] Control type is different!");
 }
 
-void WholebodyModule::initWalkingControl()
+void OnlineWalkingModule::initWalkingControl()
 {
   double mov_time = mov_time_;
 
@@ -1093,7 +1093,7 @@ void WholebodyModule::initWalkingControl()
     ROS_WARN("[FAIL] Cannot get preview matrix");
 }
 
-void WholebodyModule::calcWalkingControl()
+void OnlineWalkingModule::calcWalkingControl()
 {
   if (is_moving_ == true)
   {
@@ -1164,7 +1164,7 @@ void WholebodyModule::calcWalkingControl()
   }
 }
 
-void WholebodyModule::initFeedforwardControl()
+void OnlineWalkingModule::initFeedforwardControl()
 {
   // feedforward trajectory
   std::vector<double_t> zero_vector;
@@ -1186,7 +1186,7 @@ void WholebodyModule::initFeedforwardControl()
                                                  via_pos, zero_vector, zero_vector);
 }
 
-void WholebodyModule::calcRobotPose()
+void OnlineWalkingModule::calcRobotPose()
 {
   Eigen::MatrixXd des_body_pos = Eigen::MatrixXd::Zero(3,1);
   des_body_pos.coeffRef(0,0) = des_body_pos_[0];
@@ -1257,7 +1257,7 @@ void WholebodyModule::calcRobotPose()
   op3_kdl_->finalize();
 }
 
-void WholebodyModule::setTargetForceTorque()
+void OnlineWalkingModule::setTargetForceTorque()
 {
   if (walking_phase_ == DSP)
   {
@@ -1297,7 +1297,7 @@ void WholebodyModule::setTargetForceTorque()
   //  ROS_INFO("l_foot_force x: %f, y: %f, z: %f", balance_l_foot_force_x_, balance_l_foot_force_y_, balance_l_foot_force_z_);
 }
 
-void WholebodyModule::setBalanceControlGain()
+void OnlineWalkingModule::setBalanceControlGain()
 {
   //// set gain
   //gyro
@@ -1354,7 +1354,7 @@ void WholebodyModule::setBalanceControlGain()
   balance_control_.left_foot_torque_pitch_lpf_.setCutOffFrequency(foot_pitch_torque_cut_off_frequency_);
 }
 
-bool WholebodyModule::setBalanceControl()
+bool OnlineWalkingModule::setBalanceControl()
 {
   // Set Balance Control
   balance_control_.setGyroBalanceEnable(true);
@@ -1594,7 +1594,7 @@ bool WholebodyModule::setBalanceControl()
   return ik_success;
 }
 
-void WholebodyModule::setFeedbackControl()
+void OnlineWalkingModule::setFeedbackControl()
 {
   for (int i=0; i<number_of_joints_; i++)
   {
@@ -1607,7 +1607,7 @@ void WholebodyModule::setFeedbackControl()
   }
 }
 
-void WholebodyModule::setFeedforwardControl()
+void OnlineWalkingModule::setFeedforwardControl()
 {
   double cur_time = (double) mov_step_ * control_cycle_sec_;
 
@@ -1656,7 +1656,7 @@ void WholebodyModule::setFeedforwardControl()
     des_joint_feedforward_[i] = joint_feedforward_gain_[i] * feed_forward_value[0] * support_leg_gain[i];
 }
 
-void WholebodyModule::sensoryFeedback(const double &rlGyroErr, const double &fbGyroErr, double *balance_angle)
+void OnlineWalkingModule::sensoryFeedback(const double &rlGyroErr, const double &fbGyroErr, double *balance_angle)
 {
   // adjust balance offset
 //  if (walking_param_.balance_enable == false)
@@ -1686,7 +1686,7 @@ void WholebodyModule::sensoryFeedback(const double &rlGyroErr, const double &fbG
 }
 
 
-void WholebodyModule::process(std::map<std::string, robotis_framework::Dynamixel *> dxls,
+void OnlineWalkingModule::process(std::map<std::string, robotis_framework::Dynamixel *> dxls,
                               std::map<std::string, double> sensors)
 {
   if (enable_ == false)
@@ -1816,7 +1816,7 @@ void WholebodyModule::process(std::map<std::string, robotis_framework::Dynamixel
   goal_joint_state_pub_.publish(goal_joint_msg);
 }
 
-void WholebodyModule::stop()
+void OnlineWalkingModule::stop()
 {
   for (int i=0; i<number_of_joints_; i++)
   {
@@ -1840,12 +1840,12 @@ void WholebodyModule::stop()
   return;
 }
 
-bool WholebodyModule::isRunning()
+bool OnlineWalkingModule::isRunning()
 {
   return is_moving_;
 }
 
-void WholebodyModule::publishStatusMsg(unsigned int type, std::string msg)
+void OnlineWalkingModule::publishStatusMsg(unsigned int type, std::string msg)
 {
   robotis_controller_msgs::StatusMsg status;
   status.header.stamp = ros::Time::now();
@@ -1856,8 +1856,8 @@ void WholebodyModule::publishStatusMsg(unsigned int type, std::string msg)
   status_msg_pub_.publish(status);
 }
 
-bool WholebodyModule::getJointPoseCallback(op3_wholebody_module_msgs::GetJointPose::Request &req,
-                                           op3_wholebody_module_msgs::GetJointPose::Response &res)
+bool OnlineWalkingModule::getJointPoseCallback(op3_online_walking_module_msgs::GetJointPose::Request &req,
+                                           op3_online_walking_module_msgs::GetJointPose::Response &res)
 {
   for (int i=0; i<number_of_joints_; i++)
   {
@@ -1868,8 +1868,8 @@ bool WholebodyModule::getJointPoseCallback(op3_wholebody_module_msgs::GetJointPo
   return true;
 }
 
-bool WholebodyModule::getKinematicsPoseCallback(op3_wholebody_module_msgs::GetKinematicsPose::Request &req,
-                                                op3_wholebody_module_msgs::GetKinematicsPose::Response &res)
+bool OnlineWalkingModule::getKinematicsPoseCallback(op3_online_walking_module_msgs::GetKinematicsPose::Request &req,
+                                                op3_online_walking_module_msgs::GetKinematicsPose::Response &res)
 {
   std::string group_name = req.name;
 
@@ -1914,9 +1914,9 @@ bool WholebodyModule::getKinematicsPoseCallback(op3_wholebody_module_msgs::GetKi
   return true;
 }
 
-bool WholebodyModule::getPreviewMatrix(op3_wholebody_module_msgs::PreviewRequest msg)
+bool OnlineWalkingModule::getPreviewMatrix(op3_online_walking_module_msgs::PreviewRequest msg)
 {
-  op3_wholebody_module_msgs::GetPreviewMatrix get_preview_matrix;
+  op3_online_walking_module_msgs::GetPreviewMatrix get_preview_matrix;
 
   // request
   get_preview_matrix.request.req.control_cycle = msg.control_cycle;

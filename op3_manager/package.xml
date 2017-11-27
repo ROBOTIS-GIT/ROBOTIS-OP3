@@ -26,8 +26,8 @@
   <build_depend>op3_walking_module</build_depend>
   <build_depend>op3_walking_module_msgs</build_depend>
   <build_depend>op3_direct_control_module</build_depend>
-  <build_depend>op3_wholebody_module</build_depend>
-  <build_depend>op3_wholebody_module_msgs</build_depend>
+  <build_depend>op3_online_walking_module</build_depend>
+  <build_depend>op3_online_walking_module_msgs</build_depend>
   <build_depend>cm_740_module</build_depend>
   <build_depend>open_cr_module</build_depend>
   <build_depend>cmake_modules</build_depend>

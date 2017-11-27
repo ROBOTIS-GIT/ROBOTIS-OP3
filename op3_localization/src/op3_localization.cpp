@@ -23,7 +23,7 @@ OP3Localization::OP3Localization()
 
   pelvis_pose_offset_.pose.position.x = 0.0;
   pelvis_pose_offset_.pose.position.y = 0.0;
-  pelvis_pose_offset_.pose.position.z = 0.3402256 - 0.0907;
+  pelvis_pose_offset_.pose.position.z = 0.2495256; //0.3402256 - 0.0907;
   pelvis_pose_offset_.pose.orientation.x = 0.0;
   pelvis_pose_offset_.pose.orientation.y = 0.0;
   pelvis_pose_offset_.pose.orientation.z = 0.0;
@@ -48,8 +48,8 @@ OP3Localization::~OP3Localization()
 void OP3Localization::initialize()
 {
   // subscriber
-  pelvis_offset_msg_sub_ = ros_node_.subscribe("/robotis/pelvis_pose_offset", 5,
-                                                         &OP3Localization::pelvisPoseOffsetCallback, this);
+  pelvis_pose_msg_sub_ = ros_node_.subscribe("/robotis/pelvis_pose", 5,
+                                             &OP3Localization::pelvisPoseCallback, this);
 //  pelvis_base_walking_msg_sub_ = ros_node_.subscribe("/robotis/pelvis_pose_base_walking", 5,
 //                                                               &OP3Localization::pelvisPoseBaseWalkingCallback, this);
 
@@ -58,7 +58,7 @@ void OP3Localization::initialize()
 
 }
 
-void OP3Localization::pelvisPoseOffsetCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
+void OP3Localization::pelvisPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
 {
   mutex_.lock();
 

@@ -29,7 +29,7 @@
 #include "op3_action_module/action_module.h"
 #include "op3_walking_module/op3_walking_module.h"
 #include "op3_direct_control_module/direct_control_module.h"
-#include "op3_wholebody_module/wholebody_module.h"
+#include "op3_online_walking_module/online_walking_module.h"
 
 using namespace robotis_framework;
 using namespace dynamixel;
@@ -236,7 +236,7 @@ int main(int argc, char **argv)
   controller->addMotionModule((MotionModule*) HeadControlModule::getInstance());
   controller->addMotionModule((MotionModule*) WalkingModule::getInstance());
   controller->addMotionModule((MotionModule*) DirectControlModule::getInstance());
-  controller->addMotionModule((MotionModule*) WholebodyModule::getInstance());
+  controller->addMotionModule((MotionModule*) OnlineWalkingModule::getInstance());
 
   // start timer
   controller->startTimer();

@@ -1,6 +1,6 @@
 
-#ifndef OP3_WHOLEBODY_MODULE_WALKING_CONTROL_
-#define OP3_WHOLEBODY_MODULE_WALKING_CONTROL_
+#ifndef OP3_ONLINE_WALKING_MODULE_WALKING_CONTROL_
+#define OP3_ONLINE_WALKING_MODULE_WALKING_CONTROL_
 
 #pragma once
 
@@ -12,12 +12,12 @@
 
 #include <geometry_msgs/Pose2D.h>
 
-#include "op3_wholebody_module_msgs/FootStepCommand.h"
-#include "op3_wholebody_module_msgs/FootStepArray.h"
-#include "op3_wholebody_module_msgs/PreviewResponse.h"
+#include "op3_online_walking_module_msgs/FootStepCommand.h"
+#include "op3_online_walking_module_msgs/FootStepArray.h"
+#include "op3_online_walking_module_msgs/PreviewResponse.h"
 
-#include "op3_wholebody_module_msgs/Step2D.h"
-#include "op3_wholebody_module_msgs/Step2DArray.h"
+#include "op3_online_walking_module_msgs/Step2D.h"
+#include "op3_online_walking_module_msgs/Step2DArray.h"
 
 //#include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
 #include "robotis_math/robotis_math.h"
@@ -43,11 +43,11 @@ public:
                  double foot_distance);
   virtual ~WalkingControl();
 
-  void initialize(op3_wholebody_module_msgs::FootStepCommand foot_step_command,
+  void initialize(op3_online_walking_module_msgs::FootStepCommand foot_step_command,
                   std::vector<double_t> init_body_pos, std::vector<double_t> init_body_Q,
                   std::vector<double_t> init_r_foot_pos, std::vector<double_t> init_r_foot_Q,
                   std::vector<double_t> init_l_foot_pos, std::vector<double_t> init_l_foot_Q);
-  void initialize(op3_wholebody_module_msgs::Step2DArray foot_step_2d,
+  void initialize(op3_online_walking_module_msgs::Step2DArray foot_step_2d,
                   std::vector<double_t> init_body_pos, std::vector<double_t> init_body_Q,
                   std::vector<double_t> init_r_foot_pos, std::vector<double_t> init_r_foot_Q,
                   std::vector<double_t> init_l_foot_pos, std::vector<double_t> init_l_foot_Q);
@@ -64,7 +64,7 @@ public:
   void calcFootTrajectory(int step);
   void calcFootStepPose(double time,  int step);
   void calcRefZMP(int step);
-  void calcPreviewParam(op3_wholebody_module_msgs::PreviewResponse msg);
+  void calcPreviewParam(op3_online_walking_module_msgs::PreviewResponse msg);
   void calcPreviewControl(double time, int step);
 
   void calcGoalFootPose();
@@ -112,11 +112,11 @@ protected:
   double foot_tra_max_z_;
 
   int foot_step_size_;
-  op3_wholebody_module_msgs::FootStepCommand foot_step_command_;
-  op3_wholebody_module_msgs::FootStepArray foot_step_param_;
-  op3_wholebody_module_msgs::PreviewResponse preview_response_;
+  op3_online_walking_module_msgs::FootStepCommand foot_step_command_;
+  op3_online_walking_module_msgs::FootStepArray foot_step_param_;
+  op3_online_walking_module_msgs::PreviewResponse preview_response_;
 
-  op3_wholebody_module_msgs::Step2DArray foot_step_2d_;
+  op3_online_walking_module_msgs::Step2DArray foot_step_2d_;
 
   // Preview Control
   int preview_size_;

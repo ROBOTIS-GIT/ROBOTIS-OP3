@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "op3_wholebody_module/op3_kdl.h"
+#include "op3_online_walking_module/op3_kdl.h"
 
 OP3Kinematics::OP3Kinematics()
 {

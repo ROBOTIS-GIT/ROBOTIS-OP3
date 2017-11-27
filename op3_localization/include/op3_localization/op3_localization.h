@@ -33,7 +33,7 @@ private:
     ros::NodeHandle ros_node_;
 
     //subscriber
-    ros::Subscriber pelvis_offset_msg_sub_;
+    ros::Subscriber pelvis_pose_msg_sub_;
 //    ros::Subscriber pelvis_base_walking_msg_sub_;
     ros::Subscriber pelvis_reset_msg_sub_;
 
@@ -57,7 +57,7 @@ private:
 
 public:
     void initialize();
-    void pelvisPoseOffsetCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+    void pelvisPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
 //    void pelvisPoseBaseWalkingCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
     void pelvisPoseResetCallback(const std_msgs::String::ConstPtr& msg);
     Eigen::MatrixXd calcVWerr(Eigen::MatrixXd tar_position, Eigen::MatrixXd curr_position,

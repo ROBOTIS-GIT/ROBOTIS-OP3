@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>op3_wholebody_module</name>
+  <name>op3_online_walking_module</name>
   <version>0.0.0</version>
-  <description>The op3_wholebody_module package</description>
+  <description>The op3_online_walking_module package</description>
   <license>Apache License 2.0</license>
   <author email="sch@robotis.com">SCH</author>
   <maintainer email="sch@robotis.com">SCH</maintainer>
@@ -13,7 +13,7 @@
   <build_depend>cmake_modules</build_depend>
   <build_depend>robotis_math</build_depend>
   <build_depend>robotis_framework_common</build_depend>
-  <build_depend>op3_wholebody_module_msgs</build_depend>
+  <build_depend>op3_online_walking_module_msgs</build_depend>
 <!--  <build_depend>op3_kinematics_dynamics</build_depend>-->
   <build_depend>op3_balance_control</build_depend>
   <run_depend>roscpp</run_depend>

@@ -1,5 +1,0 @@
-float64 dsp_ratio
-float64 lipm_height
-float64 foot_height_max
-float64 zmp_offset_x
-float64 zmp_offset_y

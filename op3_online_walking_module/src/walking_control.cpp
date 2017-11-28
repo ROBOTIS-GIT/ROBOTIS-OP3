@@ -471,8 +471,8 @@ void WalkingControl::transformFootStep2D()
 
   foot_step_param_ = foot_step_param;
 
-  PRINT_MAT(goal_r_foot_pos_buffer_);
-  PRINT_MAT(goal_l_foot_pos_buffer_);
+  //PRINT_MAT(goal_r_foot_pos_buffer_);
+  //PRINT_MAT(goal_l_foot_pos_buffer_);
 }
 
 void WalkingControl::calcFootTrajectory(int step)

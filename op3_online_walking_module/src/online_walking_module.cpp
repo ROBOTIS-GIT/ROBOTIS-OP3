@@ -945,12 +945,12 @@ void OnlineWalkingModule::footStep2DCallback(const op3_online_walking_module_msg
 
       foot_step_msg.footsteps_2d.push_back(step_msg);
 
-//      ROS_INFO("===== OLD =====");
-//      ROS_INFO("step: %d", i);
-//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].moving_foot: %d", i, step_msg.moving_foot);
-//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d x: %f", i, step_msg.step2d.x);
-//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d y: %f", i, step_msg.step2d.y);
-//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d theta: %f", i, step_msg.step2d.theta);
+      ROS_INFO("===== OLD =====");
+      ROS_INFO("step: %d", i);
+      ROS_INFO("foot_step_2d_.footsteps_2d[%d].moving_foot: %d", i, step_msg.moving_foot);
+      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d x: %f", i, step_msg.step2d.x);
+      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d y: %f", i, step_msg.step2d.y);
+      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d theta: %f", i, step_msg.step2d.theta);
     }
 
     op3_online_walking_module_msgs::Step2D step_msg = msg.footsteps_2d[old_size-1];
@@ -966,19 +966,20 @@ void OnlineWalkingModule::footStep2DCallback(const op3_online_walking_module_msg
 
     foot_step_msg.footsteps_2d.push_back(first_msg);
 
-//    for (int i=0; i<new_size; i++)
-//    {
-//      op3_online_walking_module_msgs::Step2D step_msg = foot_step_msg.footsteps_2d[i];
+    for (int i=0; i<new_size; i++)
+    {
+      op3_online_walking_module_msgs::Step2D step_msg = foot_step_msg.footsteps_2d[i];
 
-//      ROS_INFO("===== NEW =====");
-//      ROS_INFO("step: %d", i);
-//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].moving_foot: %d", i, step_msg.moving_foot);
-//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d x: %f", i, step_msg.step2d.x);
-//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d y: %f", i, step_msg.step2d.y);
-//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d theta: %f", i, step_msg.step2d.theta);
-//    }
+      ROS_INFO("===== NEW =====");
+      ROS_INFO("step: %d", i);
+      ROS_INFO("foot_step_2d_.footsteps_2d[%d].moving_foot: %d", i, step_msg.moving_foot);
+      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d x: %f", i, step_msg.step2d.x);
+      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d y: %f", i, step_msg.step2d.y);
+      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d theta: %f", i, step_msg.step2d.theta);
+    }
 
     foot_step_2d_ = foot_step_msg;
+    foot_step_2d_.step_time = msg.step_time;
 
     walking_size_ = new_size;
     mov_time_ = msg.step_time; //1.0;
@@ -1175,7 +1176,7 @@ void OnlineWalkingModule::initFeedforwardControl()
   via_pos[0] = 1.0 * DEGREE2RADIAN;
 
   double init_time = 0.0;
-  double fin_time = foot_step_command_.step_time;
+  double fin_time = mov_time_;
   double via_time = 0.5 * (init_time + fin_time);
   double dsp_ratio = walking_param_.dsp_ratio;
 

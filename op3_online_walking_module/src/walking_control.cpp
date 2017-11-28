@@ -403,6 +403,7 @@ void WalkingControl::calcFootStepParam()
 
 void WalkingControl::transformFootStep2D()
 {
+  fin_time_ = foot_step_2d_.step_time;
   foot_step_size_ = foot_step_2d_.footsteps_2d.size();
 
   goal_r_foot_pos_buffer_ = Eigen::MatrixXd::Zero(foot_step_size_,2);
@@ -470,8 +471,8 @@ void WalkingControl::transformFootStep2D()
 
   foot_step_param_ = foot_step_param;
 
-//  PRINT_MAT(goal_r_foot_pos_buffer_);
-//  PRINT_MAT(goal_l_foot_pos_buffer_);
+  PRINT_MAT(goal_r_foot_pos_buffer_);
+  PRINT_MAT(goal_l_foot_pos_buffer_);
 }
 
 void WalkingControl::calcFootTrajectory(int step)
@@ -672,7 +673,7 @@ void WalkingControl::calcGoalFootPose()
 
     if (foot_step_param_.moving_foot[step] == LEFT_LEG)
     {
-      ROS_INFO("L");
+      //ROS_INFO("L");
 
       goal_l_foot_pos[0] = init_r_foot_pos[0]
           + cos(angle) * foot_step_param_.data[step].x
@@ -685,7 +686,7 @@ void WalkingControl::calcGoalFootPose()
     }
     else if(foot_step_param_.moving_foot[step] == RIGHT_LEG)
     {
-      ROS_INFO("R");
+      //ROS_INFO("R");
 
       goal_r_foot_pos[0] = init_l_foot_pos[0]
           + cos(angle) * foot_step_param_.data[step].x
@@ -706,8 +707,8 @@ void WalkingControl::calcGoalFootPose()
     init_l_foot_pos = goal_l_foot_pos;
   }
 
-  PRINT_MAT(goal_r_foot_pos_buffer_);
-  PRINT_MAT(goal_l_foot_pos_buffer_);
+  //PRINT_MAT(goal_r_foot_pos_buffer_);
+  //PRINT_MAT(goal_l_foot_pos_buffer_);
 }
 
 double WalkingControl::calcRefZMPx(int step)

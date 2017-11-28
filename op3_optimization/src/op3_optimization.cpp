@@ -152,7 +152,7 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "op3_optimization");
   ros::NodeHandle nh("~");
 
-  ros::ServiceServer get_preview_matrix_server = nh.advertiseService("/robotis/get_preview_matrix", getPreviewMatrixCallback);
+  ros::ServiceServer get_preview_matrix_server = nh.advertiseService("/robotis/online_walking/get_preview_matrix", getPreviewMatrixCallback);
 
   ros::spin();
 

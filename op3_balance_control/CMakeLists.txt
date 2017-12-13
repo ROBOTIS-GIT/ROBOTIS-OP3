@@ -1,8 +1,5 @@
-################################################################################
-# CMake
-################################################################################
 cmake_minimum_required(VERSION 2.8.3)
-project(op3_manager)
+project(op3_balance_control)
 
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
@@ -12,28 +9,7 @@ set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   cmake_modules
-  
-  dynamixel_sdk
-  robotis_framework_common
-  robotis_device
-  robotis_controller
-  robotis_controller_msgs
   robotis_math
-    
-  cm_740_module
-  open_cr_module
-  
-  op3_base_module
-  op3_head_control_module
-  op3_action_module
-  op3_action_module_msgs
-  op3_walking_module
-  op3_walking_module_msgs
-  op3_direct_control_module
-  op3_online_walking_module
-  op3_online_walking_module_msgs
-  op3_kinematics_dynamics
-  op3_balance_control
 )
 
 find_package(Eigen REQUIRED)
@@ -50,7 +26,8 @@ find_package(Eigen REQUIRED)
 # Catkin specific configuration
 ################################################################################
 catkin_package(
-  LIBRARIES op3_manager
+  INCLUDE_DIRS include
+  LIBRARIES op3_balance_control
 )
 
 ################################################################################
@@ -58,21 +35,32 @@ catkin_package(
 ################################################################################
 include_directories(
   include
-  ${Eigen_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
+  ${Eigen_INCLUDE_DIRS}
 )
 
-add_executable(op3_manager src/op3_manager.cpp)
+add_library(op3_balance_control
+  src/op3_balance_control.cpp
+)
 
-add_dependencies(op3_manager ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(op3_balance_control ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-target_link_libraries(op3_manager
+target_link_libraries(op3_balance_control
   ${catkin_LIBRARIES}
 )
 
 ################################################################################
 # Install
 ################################################################################
+install(TARGETS op3_balance_control
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
 
 ################################################################################
 # Test

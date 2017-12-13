@@ -81,6 +81,10 @@ class OP3KinematicsDynamics
   double getJointDirection(const std::string link_name);
   double getJointDirection(const int link_id);
 
+  Eigen::MatrixXd calcPreviewParam(double preview_time, double control_cycle,
+                                   double lipm_height,
+                                   Eigen::MatrixXd K, Eigen::MatrixXd P);
+
   double thigh_length_m_;
   double calf_length_m_;
   double ankle_length_m_;

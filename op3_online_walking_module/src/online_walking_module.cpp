@@ -1,32 +1,20 @@
 /*******************************************************************************
- * Copyright (c) 2016, ROBOTIS CO., LTD.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
- *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
- *
- * * Neither the name of ROBOTIS nor the names of its
- *   contributors may be used to endorse or promote products derived from
- *   this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *******************************************************************************/
+* Copyright 2017 ROBOTIS CO., LTD.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*******************************************************************************/
+
+/* Author: SCH */
 
 #include "op3_online_walking_module/online_walking_module.h"
 
@@ -945,12 +933,12 @@ void OnlineWalkingModule::footStep2DCallback(const op3_online_walking_module_msg
 
       foot_step_msg.footsteps_2d.push_back(step_msg);
 
-//      ROS_INFO("===== OLD =====");
-//      ROS_INFO("step: %d", i);
-//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].moving_foot: %d", i, step_msg.moving_foot);
-//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d x: %f", i, step_msg.step2d.x);
-//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d y: %f", i, step_msg.step2d.y);
-//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d theta: %f", i, step_msg.step2d.theta);
+      //ROS_INFO("===== OLD =====");
+      //ROS_INFO("step: %d", i);
+      //ROS_INFO("foot_step_2d_.footsteps_2d[%d].moving_foot: %d", i, step_msg.moving_foot);
+      //ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d x: %f", i, step_msg.step2d.x);
+      //ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d y: %f", i, step_msg.step2d.y);
+      //ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d theta: %f", i, step_msg.step2d.theta);
     }
 
     op3_online_walking_module_msgs::Step2D step_msg = msg.footsteps_2d[old_size-1];
@@ -966,19 +954,20 @@ void OnlineWalkingModule::footStep2DCallback(const op3_online_walking_module_msg
 
     foot_step_msg.footsteps_2d.push_back(first_msg);
 
-//    for (int i=0; i<new_size; i++)
-//    {
-//      op3_online_walking_module_msgs::Step2D step_msg = foot_step_msg.footsteps_2d[i];
+    for (int i=0; i<new_size; i++)
+    {
+      op3_online_walking_module_msgs::Step2D step_msg = foot_step_msg.footsteps_2d[i];
 
-//      ROS_INFO("===== NEW =====");
-//      ROS_INFO("step: %d", i);
-//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].moving_foot: %d", i, step_msg.moving_foot);
-//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d x: %f", i, step_msg.step2d.x);
-//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d y: %f", i, step_msg.step2d.y);
-//      ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d theta: %f", i, step_msg.step2d.theta);
-//    }
+      //ROS_INFO("===== NEW =====");
+      //ROS_INFO("step: %d", i);
+      //ROS_INFO("foot_step_2d_.footsteps_2d[%d].moving_foot: %d", i, step_msg.moving_foot);
+      //ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d x: %f", i, step_msg.step2d.x);
+      //ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d y: %f", i, step_msg.step2d.y);
+      //ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d theta: %f", i, step_msg.step2d.theta);
+    }
 
     foot_step_2d_ = foot_step_msg;
+    foot_step_2d_.step_time = msg.step_time;
 
     walking_size_ = new_size;
     mov_time_ = msg.step_time; //1.0;
@@ -1175,7 +1164,7 @@ void OnlineWalkingModule::initFeedforwardControl()
   via_pos[0] = 1.0 * DEGREE2RADIAN;
 
   double init_time = 0.0;
-  double fin_time = foot_step_command_.step_time;
+  double fin_time = mov_time_;
   double via_time = 0.5 * (init_time + fin_time);
   double dsp_ratio = walking_param_.dsp_ratio;
 

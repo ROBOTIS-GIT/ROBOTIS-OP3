@@ -1,3 +1,21 @@
+/*******************************************************************************
+* Copyright 2017 ROBOTIS CO., LTD.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*******************************************************************************/
+
+/* Author: SCH */
+
 #include <stdio.h>
 #include "op3_online_walking_module/walking_control.h"
 
@@ -403,6 +421,7 @@ void WalkingControl::calcFootStepParam()
 
 void WalkingControl::transformFootStep2D()
 {
+  fin_time_ = foot_step_2d_.step_time;
   foot_step_size_ = foot_step_2d_.footsteps_2d.size();
 
   goal_r_foot_pos_buffer_ = Eigen::MatrixXd::Zero(foot_step_size_,2);
@@ -470,8 +489,8 @@ void WalkingControl::transformFootStep2D()
 
   foot_step_param_ = foot_step_param;
 
-//  PRINT_MAT(goal_r_foot_pos_buffer_);
-//  PRINT_MAT(goal_l_foot_pos_buffer_);
+  //PRINT_MAT(goal_r_foot_pos_buffer_);
+  //PRINT_MAT(goal_l_foot_pos_buffer_);
 }
 
 void WalkingControl::calcFootTrajectory(int step)
@@ -672,7 +691,7 @@ void WalkingControl::calcGoalFootPose()
 
     if (foot_step_param_.moving_foot[step] == LEFT_LEG)
     {
-      ROS_INFO("L");
+      //ROS_INFO("L");
 
       goal_l_foot_pos[0] = init_r_foot_pos[0]
           + cos(angle) * foot_step_param_.data[step].x
@@ -685,7 +704,7 @@ void WalkingControl::calcGoalFootPose()
     }
     else if(foot_step_param_.moving_foot[step] == RIGHT_LEG)
     {
-      ROS_INFO("R");
+      //ROS_INFO("R");
 
       goal_r_foot_pos[0] = init_l_foot_pos[0]
           + cos(angle) * foot_step_param_.data[step].x
@@ -706,8 +725,8 @@ void WalkingControl::calcGoalFootPose()
     init_l_foot_pos = goal_l_foot_pos;
   }
 
-  PRINT_MAT(goal_r_foot_pos_buffer_);
-  PRINT_MAT(goal_l_foot_pos_buffer_);
+  //PRINT_MAT(goal_r_foot_pos_buffer_);
+  //PRINT_MAT(goal_l_foot_pos_buffer_);
 }
 
 double WalkingControl::calcRefZMPx(int step)

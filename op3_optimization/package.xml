@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>op3_optimization</name>
-  <version>0.0.0</version>
+  <version>0.0.1</version>
   <description>The op3_optimization package</description>
   <license>Apache License 2.0</license>
   <author email="sch@robotis.com">SCH</author>

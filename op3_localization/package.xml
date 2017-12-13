@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>op3_localization</name>
-  <version>0.0.0</version>
+  <version>0.0.1</version>
   <description>The op3_localization package</description>
 
   <author email="sch@robotis.com">sch</author>

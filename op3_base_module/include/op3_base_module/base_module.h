@@ -33,6 +33,7 @@
 
 #include "robotis_framework_common/motion_module.h"
 #include "robotis_controller_msgs/JointCtrlModule.h"
+#include "robotis_controller_msgs/SetModule.h"
 #include "robotis_controller_msgs/StatusMsg.h"
 #include "robotis_math/robotis_math.h"
 #include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
@@ -97,6 +98,7 @@ class BaseModule : public robotis_framework::MotionModule, public robotis_framew
  private:
   void queueThread();
   void setCtrlModule(std::string module);
+  void callServiceSettingModule(const std::string &module_name);
   void parseInitPoseData(const std::string &path);
   void publishStatusMsg(unsigned int type, std::string msg);
 
@@ -106,6 +108,8 @@ class BaseModule : public robotis_framework::MotionModule, public robotis_framew
 
   ros::Publisher status_msg_pub_;
   ros::Publisher set_ctrl_module_pub_;
+
+  ros::ServiceClient set_module_client_;
 
   std::map<std::string, int> joint_name_to_id_;
 

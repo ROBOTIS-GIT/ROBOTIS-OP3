@@ -23,9 +23,9 @@ namespace robotis_op
 {
 
 BaseModule::BaseModule()
-    : control_cycle_msec_(0),
-      has_goal_joints_(false),
-      ini_pose_only_(false)
+  : control_cycle_msec_(0),
+    has_goal_joints_(false),
+    ini_pose_only_(false)
 {
   enable_ = false;
   module_name_ = "base_module";
@@ -47,7 +47,7 @@ void BaseModule::initialize(const int control_cycle_msec, robotis_framework::Rob
 
   // init result, joint_id_table
   for (std::map<std::string, robotis_framework::Dynamixel*>::iterator it = robot->dxls_.begin();
-      it != robot->dxls_.end(); it++)
+       it != robot->dxls_.end(); it++)
   {
     std::string joint_name = it->first;
     robotis_framework::Dynamixel* dxl_info = it->second;
@@ -146,6 +146,7 @@ void BaseModule::queueThread()
   /* subscribe topics */
   ros::Subscriber ini_pose_msg_sub = ros_node.subscribe("/robotis/base/ini_pose", 5, &BaseModule::initPoseMsgCallback,
                                                         this);
+  set_module_client_ = ros_node.serviceClient<robotis_controller_msgs::SetModule>("/robotis/set_present_ctrl_modules");
 
   ros::WallDuration duration(control_cycle_msec_ / 1000.0);
   while (ros_node.ok())
@@ -159,7 +160,7 @@ void BaseModule::initPoseMsgCallback(const std_msgs::String::ConstPtr& msg)
     if (msg->data == "ini_pose")
     {
       // set module of all joints -> this module
-      setCtrlModule(module_name_);
+      callServiceSettingModule(module_name_);
 
       // wait to change module and to get goal position for init
       while (enable_ == false || has_goal_joints_ == false)
@@ -258,7 +259,7 @@ void BaseModule::poseGenerateProc(std::map<std::string, double>& joint_angle_pos
   Eigen::MatrixXd target_pose = Eigen::MatrixXd::Zero( MAX_JOINT_ID + 1, 1);
 
   for (std::map<std::string, double>::iterator joint_angle_it = joint_angle_pose.begin();
-      joint_angle_it != joint_angle_pose.end(); joint_angle_it++)
+       joint_angle_it != joint_angle_pose.end(); joint_angle_it++)
   {
     std::string joint_name = joint_angle_it->first;
     double joint_angle_rad = joint_angle_it->second;
@@ -310,7 +311,7 @@ void BaseModule::process(std::map<std::string, robotis_framework::Dynamixel *> d
 
   /*----- write curr position -----*/
   for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_iter = result_.begin();
-      state_iter != result_.end(); state_iter++)
+       state_iter != result_.end(); state_iter++)
   {
     std::string joint_name = state_iter->first;
 
@@ -344,7 +345,7 @@ void BaseModule::process(std::map<std::string, robotis_framework::Dynamixel *> d
 
   /*----- set joint data -----*/
   for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_iter = result_.begin();
-      state_iter != result_.end(); state_iter++)
+       state_iter != result_.end(); state_iter++)
   {
     std::string joint_name = state_iter->first;
 
@@ -392,6 +393,20 @@ void BaseModule::setCtrlModule(std::string module)
   control_msg.data = module_name_;
 
   set_ctrl_module_pub_.publish(control_msg);
+}
+
+void BaseModule::callServiceSettingModule(const std::string &module_name)
+{
+  robotis_controller_msgs::SetModule set_module_srv;
+  set_module_srv.request.module_name = module_name;
+
+  if (set_module_client_.call(set_module_srv) == false)
+  {
+    ROS_ERROR("Failed to set module");
+    return;
+  }
+
+  return ;
 }
 
 void BaseModule::publishStatusMsg(unsigned int type, std::string msg)

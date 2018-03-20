@@ -1,0 +1,36 @@
+r_hip_yaw_p_gain : 0.0
+r_hip_yaw_d_gain : 0.0
+
+r_hip_roll_p_gain : 0.0
+r_hip_roll_d_gain : 0.0
+
+r_hip_pitch_p_gain : 0.0
+r_hip_pitch_d_gain : 0.0
+
+r_knee_p_gain  : 0.0
+r_knee_d_gain  : 0.0
+
+r_ank_pitch_p_gain  : 0.0
+r_ank_pitch_d_gain  : 0.0
+
+r_ank_roll_p_gain  : 0.0
+r_ank_roll_d_gain  : 0.0
+
+
+l_hip_yaw_p_gain : 0.0
+l_hip_yaw_d_gain : 0.0
+
+l_hip_roll_p_gain : 0.0
+l_hip_roll_d_gain : 0.0
+
+l_hip_pitch_p_gain : 0.0
+l_hip_pitch_d_gain : 0.0
+
+l_knee_p_gain  : 0.0
+l_knee_d_gain  : 0.0
+
+l_ank_pitch_p_gain  : 0.0
+l_ank_pitch_d_gain  : 0.0
+
+l_ank_roll_p_gain  : 0.0
+l_ank_roll_d_gain  : 0.0

@@ -1,0 +1,15 @@
+# 1.0 -> 1 [deg]
+
+r_hip_yaw_gain   : 0.0
+r_hip_roll_gain  : 0.0
+r_hip_pitch_gain : 0.0
+r_knee_gain      : 0.0
+r_ank_pitch_gain : 0.0
+r_ank_roll_gain  : 0.0
+
+l_hip_yaw_gain   : 0.0
+l_hip_roll_gain  : 0.0
+l_hip_pitch_gain : 0.0
+l_knee_gain      : 0.0
+l_ank_pitch_gain : 0.0
+l_ank_roll_gain  : 0.0

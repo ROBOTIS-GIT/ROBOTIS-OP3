@@ -178,7 +178,7 @@ void OnlineWalkingModule::initialize(const int control_cycle_msec, robotis_frame
   pelvis_pose_pub_      = ros_node.advertise<geometry_msgs::PoseStamped>("/robotis/pelvis_pose", 1);
 
   // Service
-  get_preview_matrix_client_ = ros_node.serviceClient<op3_online_walking_module_msgs::GetPreviewMatrix>("/robotis/online_walking/get_preview_matrix", 0);
+//  get_preview_matrix_client_ = ros_node.serviceClient<op3_online_walking_module_msgs::GetPreviewMatrix>("/robotis/online_walking/get_preview_matrix", 0);
 }
 
 void OnlineWalkingModule::queueThread()
@@ -1035,7 +1035,8 @@ void OnlineWalkingModule::initWalkingControl()
   preview_request_.control_cycle = control_cycle_sec_;
 
   bool get_preview_matrix = false;
-  get_preview_matrix = getPreviewMatrix(preview_request_);
+//  get_preview_matrix = getPreviewMatrix(preview_request_);
+  get_preview_matrix = definePreviewMatrix();
 
   if (get_preview_matrix == true)
   {
@@ -1903,27 +1904,82 @@ bool OnlineWalkingModule::getKinematicsPoseCallback(op3_online_walking_module_ms
   return true;
 }
 
-bool OnlineWalkingModule::getPreviewMatrix(op3_online_walking_module_msgs::PreviewRequest msg)
+//bool OnlineWalkingModule::getPreviewMatrix(op3_online_walking_module_msgs::PreviewRequest msg)
+//{
+//  op3_online_walking_module_msgs::GetPreviewMatrix get_preview_matrix;
+
+//  // request
+//  get_preview_matrix.request.req.control_cycle = msg.control_cycle;
+//  get_preview_matrix.request.req.lipm_height   = msg.lipm_height;
+
+//  // response
+//  if ( get_preview_matrix_client_.call( get_preview_matrix ) )
+//  {
+//    preview_response_.K     = get_preview_matrix.response.res.K;
+//    preview_response_.K_row = get_preview_matrix.response.res.K_row;
+//    preview_response_.K_col = get_preview_matrix.response.res.K_col;
+
+//    preview_response_.P     = get_preview_matrix.response.res.P;
+//    preview_response_.P_row = get_preview_matrix.response.res.P_row;
+//    preview_response_.P_col = get_preview_matrix.response.res.P_col;
+
+//    ROS_INFO("preview_response_.K");
+//    for (int i=0; i<preview_response_.K.size(); i++)
+//    {
+//      ROS_INFO("%f",  get_preview_matrix.response.res.K[i]);
+//    }
+
+//    ROS_INFO("K_row : %d", get_preview_matrix.response.res.K_row);
+//    ROS_INFO("K_col : %d", get_preview_matrix.response.res.K_col);
+
+//    ROS_INFO("preview_response_.P");
+//    for (int i=0; i<preview_response_.P.size(); i++)
+//    {
+//      ROS_INFO("%f",  get_preview_matrix.response.res.P[i]);
+//    }
+
+//    ROS_INFO("P_row : %d", get_preview_matrix.response.res.P_row);
+//    ROS_INFO("P_col : %d", get_preview_matrix.response.res.P_col);
+
+//    return true;
+//  }
+//  else
+//    return false;
+//}
+
+bool OnlineWalkingModule::definePreviewMatrix()
 {
-  op3_online_walking_module_msgs::GetPreviewMatrix get_preview_matrix;
+  std::vector<double_t> K;
+  K.push_back(739.200064);
+  K.push_back(24489.822984);
+  K.push_back(3340.410380);
+  K.push_back(69.798325);
 
-  // request
-  get_preview_matrix.request.req.control_cycle = msg.control_cycle;
-  get_preview_matrix.request.req.lipm_height   = msg.lipm_height;
+  preview_response_.K = K;
+  preview_response_.K_row = 1;
+  preview_response_.K_col = 4;
 
-  // response
-  if ( get_preview_matrix_client_.call( get_preview_matrix ) )
-  {
-    preview_response_.K     = get_preview_matrix.response.res.K;
-    preview_response_.K_row = get_preview_matrix.response.res.K_row;
-    preview_response_.K_col = get_preview_matrix.response.res.K_col;
+  std::vector<double_t> P;
+  P.push_back(33.130169);
+  P.push_back(531.738962);
+  P.push_back(60.201291);
+  P.push_back(0.327533);
+  P.push_back(531.738962);
+  P.push_back(10092.440286);
+  P.push_back(1108.851055);
+  P.push_back(7.388990);
+  P.push_back(60.201291);
+  P.push_back(1108.851055);
+  P.push_back(130.194694);
+  P.push_back(0.922502);
+  P.push_back(0.327533);
+  P.push_back(7.388990);
+  P.push_back(0.922502);
+  P.push_back(0.012336);
 
-    preview_response_.P     = get_preview_matrix.response.res.P;
-    preview_response_.P_row = get_preview_matrix.response.res.P_row;
-    preview_response_.P_col = get_preview_matrix.response.res.P_col;
+  preview_response_.P = P;
+  preview_response_.P_row = 4;
+  preview_response_.P_col = 4;
 
-    return true;
-  }
-  else
-    return false;
+  return true;
 }

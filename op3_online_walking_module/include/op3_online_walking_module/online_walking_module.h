@@ -108,6 +108,7 @@ public:
   bool getKinematicsPoseCallback(op3_online_walking_module_msgs::GetKinematicsPose::Request &req,
                                  op3_online_walking_module_msgs::GetKinematicsPose::Response &res);
   bool getPreviewMatrix(op3_online_walking_module_msgs::PreviewRequest msg);
+  bool definePreviewMatrix();
 
   /* ROS Framework Functions */
   void initialize(const int control_cycle_msec, robotis_framework::Robot *robot);
@@ -170,7 +171,7 @@ private:
   ros::Publisher  goal_joint_state_pub_;
   ros::Publisher  pelvis_pose_pub_;
 
-  ros::ServiceClient get_preview_matrix_client_;
+//  ros::ServiceClient get_preview_matrix_client_;
 
   CONTROL_TYPE control_type_;
 

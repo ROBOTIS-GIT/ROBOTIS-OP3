@@ -18,7 +18,11 @@ ROBOTIS OP3 is the latest miniature humanoid robot platform from ROBOTIS that su
 10. [ROBOTIS-Utility](https://github.com/ROBOTIS-GIT/ROBOTIS-Utility)  
 11. [face_detection](https://github.com/ROBOTIS-GIT/face_detection)   
 
+### 3. Installation ROBOTIS OP3 ROS Packages
+1. [Installing additional applications for ROBOTIS ROS Package](https://github.com/ROBOTIS-GIT/ROBOTIS-Documents/wiki/OP3-Manual-Installation#24-installing-additional-applications-for-robotis-ros-package)  
+2. [Installing ROS packages for ROBOTIS-OP3](https://github.com/ROBOTIS-GIT/ROBOTIS-Documents/wiki/OP3-Manual-Installation#25-installing-ros-packages-for-robotis-op3)  
+3. [Installing ROBOTIS ROS packages](https://github.com/ROBOTIS-GIT/ROBOTIS-Documents/wiki/OP3-Manual-Installation#26-installing-robotis-ros-packages)  
 
-### 3. User's Guide
- > Reference : [e-manual](http://support.robotis.com/en/product/robotis_op3.htm)  
+### 4. User's Guide
+ > Reference : [e-manual](http://emanual.robotis.com/docs/en/platform/op3/getting_started/)  
  > Reference : [WIKI](https://github.com/ROBOTIS-GIT/ROBOTIS-Documents/wiki/OP3-User's-Guide)  

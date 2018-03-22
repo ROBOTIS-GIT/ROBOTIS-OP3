@@ -2,6 +2,13 @@
 Changelog for package op3_action_module
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.1.1 (2017-10-31)
+-----------
+* fixed missing dependence
+* Changed License from BSD to Apache 2.0
+* fixed action_module bug
+* Contributors: Kayman
+
 0.1.0 (2017-10-27)
 -----------
 * fixed actions that move unexpected

@@ -162,7 +162,7 @@ void BaseModule::initPoseMsgCallback(const std_msgs::String::ConstPtr& msg)
       // set module of all joints -> this module
       callServiceSettingModule(module_name_);
 
-      // wait to change module and to get goal position for init
+      // wait for changing the module to base_module and getting the goal position
       while (enable_ == false || has_goal_joints_ == false)
         usleep(8 * 1000);
 
@@ -217,7 +217,7 @@ void BaseModule::initPoseTrajGenerateProc()
 
 void BaseModule::poseGenerateProc(Eigen::MatrixXd joint_angle_pose)
 {
-  setCtrlModule(module_name_);
+  callServiceSettingModule(module_name_);
 
   while (enable_ == false || has_goal_joints_ == false)
     usleep(8 * 1000);
@@ -251,7 +251,7 @@ void BaseModule::poseGenerateProc(Eigen::MatrixXd joint_angle_pose)
 
 void BaseModule::poseGenerateProc(std::map<std::string, double>& joint_angle_pose)
 {
-  setCtrlModule(module_name_);
+  callServiceSettingModule(module_name_);
 
   while (enable_ == false || has_goal_joints_ == false)
     usleep(8 * 1000);
@@ -384,7 +384,7 @@ void BaseModule::onModuleEnable()
 
 void BaseModule::onModuleDisable()
 {
-
+  has_goal_joints_ = false;
 }
 
 void BaseModule::setCtrlModule(std::string module)

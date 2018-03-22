@@ -116,7 +116,7 @@ void dxlTorqueCheckCallback(const std_msgs::String::ConstPtr& msg)
   //controller->robot_->port_default_device_
 
   for (std::map<std::string, std::string>::iterator map_it = controller->robot_->port_default_device_.begin();
-      map_it != controller->robot_->port_default_device_.end(); map_it++)
+       map_it != controller->robot_->port_default_device_.end(); map_it++)
   {
     std::string default_device_name = map_it->second;
     controller->read1Byte(default_device_name, TORQUE_ON_CTRL_TABLE, &torque_result);
@@ -167,7 +167,7 @@ int main(int argc, char **argv)
     PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler(g_device_name.c_str());
     bool set_port_result = port_handler->setBaudRate(BAUD_RATE);
     if (set_port_result == false)
-    ROS_ERROR("Error Set port");
+      ROS_ERROR("Error Set port");
 
     PacketHandler *packet_handler = PacketHandler::getPacketHandler(PROTOCOL_VERSION);
 
@@ -178,13 +178,15 @@ int main(int argc, char **argv)
     {
       int _return = packet_handler->write1ByteTxRx(port_handler, SUB_CONTROLLER_ID, POWER_CTRL_TABLE, 1);
 
-      ROS_INFO("Torque on DXLs! [%d]", _return);
-      packet_handler->printTxRxResult(_return);
+      if(_return != 0)
+        ROS_ERROR("Torque on DXLs! [%s]", packet_handler->getRxPacketError(_return));
+      else
+        ROS_INFO("Torque on DXLs!");
 
       if (_return == 0)
-      break;
+        break;
       else
-      torque_on_count++;
+        torque_on_count++;
     }
 
     usleep(100 * 1000);
@@ -194,7 +196,9 @@ int main(int argc, char **argv)
     int led_range = 5;
     int led_value = led_full_unit << led_range;
     int _return = packet_handler->write2ByteTxRx(port_handler, SUB_CONTROLLER_ID, RGB_LED_CTRL_TABLE, led_value);
-    packet_handler->printTxRxResult(_return);
+
+    if(_return != 0)
+      ROS_ERROR("Fail to control LED [%s]", packet_handler->getRxPacketError(_return));
 
     port_handler->closePort();
   }
@@ -205,7 +209,7 @@ int main(int argc, char **argv)
     std::string robot_name;
     nh.param<std::string>("gazebo_robot_name", robot_name, "");
     if (robot_name != "")
-    controller->gazebo_robot_name_ = robot_name;
+      controller->gazebo_robot_name_ = robot_name;
   }
 
   if (g_robot_file == "")
@@ -223,7 +227,7 @@ int main(int argc, char **argv)
 
   // load offset
   if (g_offset_file != "")
-  controller->loadOffset(g_offset_file);
+    controller->loadOffset(g_offset_file);
 
   usleep(300 * 1000);
 

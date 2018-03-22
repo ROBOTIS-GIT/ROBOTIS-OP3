@@ -20,6 +20,8 @@
 #define HEAD_CONTROL_MODULE_H_
 
 #include <boost/thread.hpp>
+#include <cstdlib>
+#include <ctime>
 
 #include <ros/ros.h>
 #include <ros/callback_queue.h>
@@ -53,10 +55,10 @@ class HeadControlModule : public robotis_framework::MotionModule, public robotis
   enum
   {
     NoScan = 0,
-    BottomToTop = 1,
-    RightToLeft = 2,
-    TopToBottom = 3,
-    LeftToRight = 4,
+    TopLeft = 1,
+    BottomRight = 2,
+    BottomLeft = 3,
+    TopRight = 4,
   };
 
   /* ROS Topic Callback Functions */
@@ -91,6 +93,8 @@ class HeadControlModule : public robotis_framework::MotionModule, public robotis
   int tra_count_, tra_size_;
   double moving_time_;
   int scan_state_;
+  bool has_goal_position_;
+  double angle_unit_;
 
   Eigen::MatrixXd target_position_;
   Eigen::MatrixXd current_position_;

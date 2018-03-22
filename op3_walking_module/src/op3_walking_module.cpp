@@ -23,7 +23,7 @@ namespace robotis_op
 
 WalkingModule::WalkingModule()
     : control_cycle_msec_(8),
-      debug_print_(false)
+      DEBUG(false)
 {
   enable_ = false;
   module_name_ = "walking_module";
@@ -196,6 +196,12 @@ void WalkingModule::publishStatusMsg(unsigned int type, std::string msg)
 
 void WalkingModule::walkingCommandCallback(const std_msgs::String::ConstPtr &msg)
 {
+  if(enable_ == false)
+  {
+    ROS_WARN("walking module is not ready.");
+    return;
+  }
+
   if (msg->data == "start")
     startWalking();
   else if (msg->data == "stop")
@@ -210,7 +216,7 @@ void WalkingModule::walkingCommandCallback(const std_msgs::String::ConstPtr &msg
 
 void WalkingModule::walkingParameterCallback(const op3_walking_module_msgs::WalkingParam::ConstPtr &msg)
 {
-  walking_param_ = *msg;
+  walking_param_ = *msg;  
 }
 
 bool WalkingModule::getWalkigParameterCallback(op3_walking_module_msgs::GetWalkingParam::Request &req,
@@ -436,8 +442,8 @@ void WalkingModule::process(std::map<std::string, robotis_framework::Dynamixel *
     if (init_pose_count_ >= total_count)
     {
       walking_state_ = WalkingReady;
-      if (debug_print_)
-        std::cout << "End moving : " << init_pose_count_ << std::endl;
+      if (DEBUG)
+        std::cout << "End moving to Init : " << init_pose_count_ << std::endl;
     }
 
   }
@@ -493,8 +499,9 @@ void WalkingModule::process(std::map<std::string, robotis_framework::Dynamixel *
     // Check Enable
     if (walking_state_ == WalkingEnable && err_total > 5.0)
     {
-      if (debug_print_)
+      if (DEBUG)
         std::cout << "Check Err : " << err_max << std::endl;
+
       // make trajecotry for init pose
       int mov_time = err_max / 30;
       iniPoseTraGene(mov_time < 1 ? 1 : mov_time);
@@ -503,6 +510,27 @@ void WalkingModule::process(std::map<std::string, robotis_framework::Dynamixel *
       target_position_ = goal_position_;
 
       walking_state_ = WalkingInitPose;
+
+      ROS_WARN_STREAM_COND(DEBUG, "x_offset: " << walking_param_.init_x_offset);
+      ROS_WARN_STREAM_COND(DEBUG, "y_offset: " << walking_param_.init_y_offset);
+      ROS_WARN_STREAM_COND(DEBUG, "z_offset: " << walking_param_.init_z_offset);
+      ROS_WARN_STREAM_COND(DEBUG, "roll_offset: " << walking_param_.init_roll_offset * RADIAN2DEGREE);
+      ROS_WARN_STREAM_COND(DEBUG, "pitch_offset: " << walking_param_.init_pitch_offset * RADIAN2DEGREE);
+      ROS_WARN_STREAM_COND(DEBUG, "yaw_offset: " << walking_param_.init_yaw_offset * RADIAN2DEGREE);
+      ROS_WARN_STREAM_COND(DEBUG, "hip_pitch_offset: " << walking_param_.hip_pitch_offset * RADIAN2DEGREE);
+      ROS_WARN_STREAM_COND(DEBUG, "period_time: " << walking_param_.period_time * 1000);
+      ROS_WARN_STREAM_COND(DEBUG, "dsp_ratio: " << walking_param_.dsp_ratio);
+      ROS_WARN_STREAM_COND(DEBUG, "step_forward_back_ratio: " << walking_param_.step_fb_ratio);
+      ROS_WARN_STREAM_COND(DEBUG, "foot_height: " << walking_param_.z_move_amplitude);
+      ROS_WARN_STREAM_COND(DEBUG, "swing_right_left: " << walking_param_.y_swap_amplitude);
+      ROS_WARN_STREAM_COND(DEBUG, "swing_top_down: " << walking_param_.z_swap_amplitude);
+      ROS_WARN_STREAM_COND(DEBUG, "pelvis_offset: " << walking_param_.pelvis_offset * RADIAN2DEGREE);
+      ROS_WARN_STREAM_COND(DEBUG, "arm_swing_gain: " << walking_param_.arm_swing_gain);
+      ROS_WARN_STREAM_COND(DEBUG, "balance_hip_roll_gain: " << walking_param_.balance_hip_roll_gain);
+      ROS_WARN_STREAM_COND(DEBUG, "balance_knee_gain: " << walking_param_.balance_knee_gain);
+      ROS_WARN_STREAM_COND(DEBUG, "balance_ankle_roll_gain: " << walking_param_.balance_ankle_roll_gain);
+      ROS_WARN_STREAM_COND(DEBUG, "balance_ankle_pitch_gain: " << walking_param_.balance_ankle_pitch_gain);
+      ROS_WARN_STREAM_COND(DEBUG, "balance : " << (walking_param_.balance_enable ? "TRUE" : "FALSE"));
     }
     else
     {
@@ -993,7 +1021,7 @@ void WalkingModule::iniPoseTraGene(double mov_time)
     calc_joint_tra_.block(0, id, all_time_steps, 1) = tra;
   }
 
-  if(debug_print_)
+  if(DEBUG)
     std::cout << "Generate Trajecotry : " << mov_time << "s [" << all_time_steps << "]" << std::endl;
 
   init_pose_count_ = 0;

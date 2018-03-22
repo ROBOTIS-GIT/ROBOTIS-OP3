@@ -4,6 +4,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cm_740_module)
 
+set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+
 ################################################################################
 # Packages
 ################################################################################
@@ -18,8 +20,6 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(Eigen REQUIRED)
-
-set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
 ################################################################################
 # Declare ROS messages, services and actions

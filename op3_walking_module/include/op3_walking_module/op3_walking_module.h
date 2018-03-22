@@ -101,6 +101,8 @@ class WalkingModule : public robotis_framework::MotionModule, public robotis_fra
     WalkingReady = 3
   };
 
+  const bool DEBUG;
+
   void queueThread();
 
   /* ROS Topic Callback Functions */
@@ -144,7 +146,6 @@ class WalkingModule : public robotis_framework::MotionModule, public robotis_fra
   Eigen::MatrixXi joint_axis_direction_;
   std::map<std::string, int> joint_table_;
   int walking_state_;
-  bool debug_print_;
   int init_pose_count_;
   op3_walking_module_msgs::WalkingParam walking_param_;
   double previous_x_move_amplitude_;

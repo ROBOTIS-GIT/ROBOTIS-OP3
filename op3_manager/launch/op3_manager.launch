@@ -10,11 +10,10 @@
     <param name="device_name"              value="/dev/ttyUSB0"/>
     
     <!-- OP3 Manager -->
-    <node name="op3_manager" pkg="op3_manager" type="op3_manager" output="screen"/>
+    <node name="op3_manager" pkg="op3_manager" type="op3_manager" output="screen">
+	  <param name="angle_unit" value="30" />
+	</node>
 
-    <!-- OP3 Optimization -->
-    <node name="op3_optimization" pkg="op3_optimization" type="op3_optimization" output="screen"/>
-	
     <!-- OP3 Localization -->
     <node name="op3_localization" pkg="op3_localization" type="op3_localization" output="screen"/>
     

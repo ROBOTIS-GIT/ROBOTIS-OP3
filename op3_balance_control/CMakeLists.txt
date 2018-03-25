@@ -1,10 +1,14 @@
+################################################################################
+# Set minimum required version of cmake, project name and compile options
+################################################################################
 cmake_minimum_required(VERSION 2.8.3)
 project(op3_balance_control)
 
-set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+## Compile as C++11, supported in ROS Kinetic and newer
+add_compile_options(-std=c++11)
 
 ################################################################################
-# Packages
+# Find catkin packages and libraries for catkin and system dependencies
 ################################################################################
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -15,6 +19,10 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Eigen REQUIRED)
 
 ################################################################################
+# Setup for python modules and scripts
+################################################################################
+
+################################################################################
 # Declare ROS messages, services and actions
 ################################################################################
 
@@ -23,7 +31,7 @@ find_package(Eigen REQUIRED)
 ################################################################################
 
 ################################################################################
-# Catkin specific configuration
+# Declare catkin specific configuration to be passed to dependent projects
 ################################################################################
 catkin_package(
   INCLUDE_DIRS include
@@ -39,15 +47,9 @@ include_directories(
   ${Eigen_INCLUDE_DIRS}
 )
 
-add_library(op3_balance_control
-  src/op3_balance_control.cpp
-)
-
+add_library(op3_balance_control src/op3_balance_control.cpp)
 add_dependencies(op3_balance_control ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-target_link_libraries(op3_balance_control
-  ${catkin_LIBRARIES}
-)
+target_link_libraries(op3_balance_control ${catkin_LIBRARIES})
 
 ################################################################################
 # Install

@@ -1,13 +1,14 @@
 ################################################################################
-# CMake
+# Set minimum required version of cmake, project name and compile options
 ################################################################################
 cmake_minimum_required(VERSION 2.8.3)
 project(cm_740_module)
 
-set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+## Compile as C++11, supported in ROS Kinetic and newer
+add_compile_options(-std=c++11)
 
 ################################################################################
-# Packages
+# Find catkin packages and libraries for catkin and system dependencies
 ################################################################################
 find_package(catkin REQUIRED COMPONENTS
   cmake_modules
@@ -22,6 +23,10 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Eigen REQUIRED)
 
 ################################################################################
+# Setup for python modules and scripts
+################################################################################
+
+################################################################################
 # Declare ROS messages, services and actions
 ################################################################################
 
@@ -30,7 +35,7 @@ find_package(Eigen REQUIRED)
 ################################################################################
 
 ################################################################################
-# Catkin specific configuration
+# Declare catkin specific configuration to be passed to dependent projects
 ################################################################################
 catkin_package(
   INCLUDE_DIRS include
@@ -46,10 +51,7 @@ include_directories(
   ${Eigen_INCLUDE_DIRS}
 )
 
-add_library(cm_740_module
-  src/cm_740_module.cpp
-)
-
+add_library(cm_740_module src/cm_740_module.cpp)
 add_dependencies(cm_740_module ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ################################################################################

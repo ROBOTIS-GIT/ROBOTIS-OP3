@@ -1,8 +1,11 @@
+################################################################################
+# Set minimum required version of cmake, project name and compile options
+################################################################################
 cmake_minimum_required(VERSION 2.8.3)
 project(op3_online_walking_module)
 
 ################################################################################
-# Packages
+# Find catkin packages and libraries for catkin and system dependencies
 ################################################################################
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -12,7 +15,6 @@ find_package(catkin REQUIRED COMPONENTS
   robotis_math
   robotis_controller_msgs
   robotis_framework_common
-#  op3_kinematics_dynamics
   op3_balance_control
   op3_online_walking_module_msgs
 )
@@ -20,6 +22,10 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Eigen REQUIRED)
 find_package(orocos_kdl)
 find_package(kdl_parser)
+
+################################################################################
+# Setup for python modules and scripts
+################################################################################
 
 ################################################################################
 # Declare ROS messages, services and actions
@@ -30,7 +36,7 @@ find_package(kdl_parser)
 ################################################################################
 
 ################################################################################
-# Catkin specific configuration
+# Declare catkin specific configuration to be passed to dependent projects
 ################################################################################
 catkin_package(
   INCLUDE_DIRS include
@@ -54,9 +60,7 @@ add_library(op3_online_walking_module
   src/wholebody_control.cpp
   src/op3_kdl.cpp
 )
-
 add_dependencies(op3_online_walking_module ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
 target_link_libraries(op3_online_walking_module
   yaml-cpp
   ${catkin_LIBRARIES}

@@ -1,11 +1,11 @@
 ################################################################################
-# CMake
+# Set minimum required version of cmake, project name and compile options
 ################################################################################
 cmake_minimum_required(VERSION 2.8.3)
 project(op3_head_control_module)
 
 ################################################################################
-# Packages
+# Find catkin packages and libraries for catkin and system dependencies
 ################################################################################
 find_package(catkin REQUIRED COMPONENTS
   robotis_device
@@ -21,6 +21,10 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Eigen REQUIRED)
 
 ################################################################################
+# Setup for python modules and scripts
+################################################################################
+
+################################################################################
 # Declare ROS messages, services and actions
 ################################################################################
 
@@ -29,7 +33,7 @@ find_package(Eigen REQUIRED)
 ################################################################################
 
 ################################################################################
-# Catkin specific configuration
+# Declare catkin specific configuration to be passed to dependent projects
 ################################################################################
 catkin_package(
   INCLUDE_DIRS include
@@ -45,15 +49,9 @@ include_directories(
   ${Eigen_INCLUDE_DIRS}
 )
 
-add_library(op3_head_control_module
-  src/head_control_module.cpp
-)
-
+add_library(op3_head_control_module src/head_control_module.cpp)
 add_dependencies(op3_head_control_module ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-target_link_libraries(op3_head_control_module
-  ${catkin_LIBRARIES}
-)
+target_link_libraries(op3_head_control_module ${catkin_LIBRARIES})
 
 ################################################################################
 # Install

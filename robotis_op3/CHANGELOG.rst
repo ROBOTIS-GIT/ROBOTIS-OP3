@@ -2,6 +2,11 @@
 Changelog for package robotis_op3
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.2.1 (2018-03-26)
+------------------
+* modified preview_response to fix operator matching bug on i386 machine
+* Contributors: SCH
+
 0.2.0 (2018-03-26)
 ------------------
 * first release of op3_online_walking_module package

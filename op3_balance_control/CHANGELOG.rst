@@ -2,6 +2,10 @@
 Changelog for package op3_balance_control
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.2.1 (2018-03-26)
+------------------
+* none
+
 0.2.0 (2018-03-26)
 ------------------
 * first release of op3_balance_control package

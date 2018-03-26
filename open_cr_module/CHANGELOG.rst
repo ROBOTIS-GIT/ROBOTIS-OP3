@@ -2,6 +2,10 @@
 Changelog for package open_cr_module
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.2.1 (2018-03-26)
+------------------
+* none
+
 0.2.0 (2018-03-26)
 ------------------
 * refactoring to release

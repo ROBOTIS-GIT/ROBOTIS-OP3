@@ -2,6 +2,10 @@
 Changelog for package op3_direct_control_module
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.2.1 (2018-03-26)
+------------------
+* none
+
 0.2.0 (2018-03-26)
 ------------------
 * refactoring to release

@@ -17,6 +17,7 @@
   <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
+  <depend>cmake_modules</depend>
   <depend>tf</depend>
   <depend>eigen_conversions</depend>
   <depend>robotis_math</depend>

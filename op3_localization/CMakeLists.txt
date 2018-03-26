@@ -39,7 +39,7 @@ find_package(Eigen3 REQUIRED)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS roscpp std_msgs sensor_msgs geometry_msgs cmake_modules tf eigen_conversions robotis_mathtf
+  CATKIN_DEPENDS roscpp std_msgs sensor_msgs geometry_msgs cmake_modules tf eigen_conversions robotis_math
   DEPENDS Boost EIGEN3
 )
 

@@ -16,4 +16,5 @@
   <depend>roscpp</depend>
   <depend>cmake_modules</depend>
   <depend>robotis_math</depend>
+  <depend>eigen</depend>
 </package>

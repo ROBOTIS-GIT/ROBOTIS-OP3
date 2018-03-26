@@ -14,22 +14,23 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: Kayman Jung */
+/* Author: Kayman */
 
 #ifndef OP3_OPEN_CR_MODULE_H_
 #define OP3_OPEN_CR_MODULE_H_
 
 #include <ros/ros.h>
 #include <ros/callback_queue.h>
-#include <sensor_msgs/Imu.h>
 #include <std_msgs/String.h>
+#include <sensor_msgs/Imu.h>
 #include <boost/thread.hpp>
+#include <eigen3/Eigen/Eigen>
 
-#include "robotis_math/robotis_math_base.h"
-#include "robotis_math/robotis_linear_algebra.h"
-#include "robotis_framework_common/sensor_module.h"
 #include "robotis_controller_msgs/StatusMsg.h"
 #include "robotis_controller_msgs/SyncWriteItem.h"
+#include "robotis_framework_common/sensor_module.h"
+#include "robotis_math/robotis_math_base.h"
+#include "robotis_math/robotis_linear_algebra.h"
 
 namespace robotis_op
 {

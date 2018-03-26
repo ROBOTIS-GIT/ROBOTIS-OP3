@@ -16,6 +16,7 @@
   <depend>roscpp</depend>
   <depend>robotis_controller_msgs</depend>
   <depend>op3_action_module_msgs</depend>
+  <depend>op3_walking_module_msgs</depend>
   <depend>op3_online_walking_module_msgs</depend>
   <depend>cmake_modules</depend>
   <depend>dynamixel_sdk</depend>
@@ -25,13 +26,12 @@
   <depend>robotis_math</depend>
   <depend>op3_kinematics_dynamics</depend>
   <depend>op3_balance_control</depend>
+  <depend>open_cr_module</depend>
   <depend>op3_base_module</depend>
   <depend>op3_head_control_module</depend>
-  <depend>op3_action_module</depend>
   <depend>op3_walking_module</depend>
-  <depend>op3_walking_module_msgs</depend>
+  <depend>op3_action_module</depend>
   <depend>op3_direct_control_module</depend>
   <depend>op3_online_walking_module</depend>
-  <depend>cm_740_module</depend>
-  <depend>open_cr_module</depend>
+  <exec_depend>op3_localization</exec_depend>
 </package>

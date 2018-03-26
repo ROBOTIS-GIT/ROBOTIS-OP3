@@ -14,12 +14,13 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: Kayman Jung */
+/* Author: Kayman */
 
 #ifndef DIRECT_CONTROL_MODULE_H_
 #define DIRECT_CONTROL_MODULE_H_
 
 #include <boost/thread.hpp>
+#include <eigen3/Eigen/Eigen>
 
 #include <ros/ros.h>
 #include <ros/callback_queue.h>
@@ -27,11 +28,12 @@
 #include <std_msgs/String.h>
 #include <sensor_msgs/JointState.h>
 
+#include "robotis_controller_msgs/StatusMsg.h"
 #include "robotis_framework_common/motion_module.h"
 #include "robotis_math/robotis_math.h"
-#include "robotis_controller_msgs/StatusMsg.h"
 
 #include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
+
 namespace robotis_op
 {
 

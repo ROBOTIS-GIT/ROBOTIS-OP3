@@ -14,7 +14,7 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: sch, Jay Song */
+/* Authors: SCH, Jay Song */
 
 #include "op3_kinematics_dynamics/link_data.h"
 

@@ -14,7 +14,7 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: Kayman Jung */
+/* Author: Kayman */
 
 #include <stdio.h>
 #include "op3_head_control_module/head_control_module.h"

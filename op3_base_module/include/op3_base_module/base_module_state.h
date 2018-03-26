@@ -14,10 +14,12 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: sch */
+/* Author: SCH */
 
 #ifndef BASE_MODULE_ROBOTISSTATE_H_
 #define BASE_MODULE_ROBOTISSTATE_H_
+
+#include <eigen3/Eigen/Eigen>
 
 #include "robotis_math/robotis_math.h"
 #include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"

@@ -19,7 +19,9 @@
   <depend>robotis_controller_msgs</depend>
   <depend>cmake_modules</depend>
   <depend>dynamixel_sdk</depend>
-  <depend>robotis_device</depend>
   <depend>robotis_framework_common</depend>
+  <depend>robotis_device</depend>
   <depend>robotis_math</depend>
+  <depend>boost</depend>
+  <depend>eigen</depend>
 </package>

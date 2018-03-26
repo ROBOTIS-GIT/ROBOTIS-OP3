@@ -14,11 +14,11 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: Kayman Jung */
-
-#include "open_cr_module/open_cr_module.h"
+/* Author: Kayman */
 
 #include <stdio.h>
+
+#include "open_cr_module/open_cr_module.h"
 
 namespace robotis_op
 {

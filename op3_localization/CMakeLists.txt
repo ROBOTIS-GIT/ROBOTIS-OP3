@@ -14,11 +14,12 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   cmake_modules
   tf
-  robotis_math
   eigen_conversions
+  robotis_math
 )
 
-find_package(Eigen REQUIRED)
+find_package(Boost REQUIRED COMPONENTS thread)
+find_package(Eigen3 REQUIRED)
 
 ################################################################################
 # Setup for python modules and scripts
@@ -37,7 +38,9 @@ find_package(Eigen REQUIRED)
 ################################################################################
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp std_msgs sensor_msgs geometry_msgs tf
+  LIBRARIES ${PROJECT_NAME}
+  CATKIN_DEPENDS roscpp std_msgs sensor_msgs geometry_msgs cmake_modules tf eigen_conversions robotis_mathtf
+  DEPENDS Boost EIGEN3
 )
 
 ################################################################################
@@ -45,17 +48,24 @@ catkin_package(
 ################################################################################
 include_directories(
   include
-  ${catkin_INCLUDE_DIRS}
-  ${Eigen_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
 )
 
-add_executable(op3_localization src/main.cpp src/op3_localization.cpp)
-add_dependencies(op3_localization ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(op3_localization ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_executable(${PROJECT_NAME} src/main.cpp src/op3_localization.cpp)
+add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${Eigen3_LIBRARIES})
 
 ################################################################################
 # Install
 ################################################################################
+install(TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
 
 ################################################################################
 # Test

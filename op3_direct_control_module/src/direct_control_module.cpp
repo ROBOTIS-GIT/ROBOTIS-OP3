@@ -14,7 +14,7 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: Kayman Jung */
+/* Author: Kayman */
 
 #include <stdio.h>
 #include "op3_direct_control_module/direct_control_module.h"

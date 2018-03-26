@@ -11,16 +11,18 @@ add_compile_options(-std=c++11)
 # Find catkin packages and libraries for catkin and system dependencies
 ################################################################################
 find_package(catkin REQUIRED COMPONENTS
-  cmake_modules
-  dynamixel_sdk
-  robotis_device
-  robotis_controller_msgs
-  robotis_framework_common
-  robotis_math
   roscpp
+  std_msgs
+  sensor_msgs
+  robotis_controller_msgs
+  cmake_modules
+  robotis_framework_common
+  robotis_device
+  robotis_math
 )
 
-find_package(Eigen REQUIRED)
+find_package(Boost REQUIRED COMPONENTS thread)
+find_package(Eigen3 REQUIRED)
 
 ################################################################################
 # Setup for python modules and scripts
@@ -39,7 +41,9 @@ find_package(Eigen REQUIRED)
 ################################################################################
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES open_cr_module
+  LIBRARIES ${PROJECT_NAME}
+  CATKIN_DEPENDS roscpp std_msgs sensor_msgs robotis_controller_msgs cmake_modules robotis_framework_common robotis_device robotis_math
+  DEPENDS Boost EIGEN3
 )
 
 ################################################################################
@@ -48,15 +52,26 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
-  ${Eigen_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
 )
 
-add_library(open_cr_module src/open_cr_module.cpp)
-add_dependencies(open_cr_module ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_library(${PROJECT_NAME} src/open_cr_module.cpp)
+add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${Eigen3_LIBRARIES})
 
 ################################################################################
 # Install
 ################################################################################
+install(TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
 
 ################################################################################
 # Test

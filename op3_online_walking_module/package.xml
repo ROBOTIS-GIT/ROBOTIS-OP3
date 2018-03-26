@@ -14,11 +14,19 @@
   <url type="bugtracker">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3/issues</url>
   <buildtool_depend>catkin</buildtool_depend>
   <depend>roscpp</depend>
+  <depend>roslib</depend>
   <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
+  <depend>robotis_controller_msgs</depend>
   <depend>op3_online_walking_module_msgs</depend>
   <depend>cmake_modules</depend>
+  <depend>orocos_kdl</depend>
   <depend>robotis_framework_common</depend>
+  <depend>robotis_device</depend>
   <depend>robotis_math</depend>
   <depend>op3_balance_control</depend>
+  <depend>boost</depend>
+  <depend>eigen</depend>
+  <depend>yaml-cpp</depend>
 </package>

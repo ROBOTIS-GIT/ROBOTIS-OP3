@@ -13,12 +13,14 @@
   <url type="repository">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3</url>
   <url type="bugtracker">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3/issues</url>
   <buildtool_depend>catkin</buildtool_depend>  
-  <build_depend>roscpp</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>robotis_controller_msgs</build_depend>
-  <build_depend>cmake_modules</build_depend>
-  <build_depend>robotis_framework_common</build_depend>
-  <build_depend>robotis_device</build_depend>
-  <build_depend>robotis_math</build_depend>
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>robotis_controller_msgs</depend>
+  <depend>cmake_modules</depend>
+  <depend>robotis_framework_common</depend>
+  <depend>robotis_device</depend>
+  <depend>robotis_math</depend>
+  <depend>boost</depend>
+  <depend>eigen</depend>
 </package>

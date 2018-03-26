@@ -14,10 +14,10 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: sch, Jay Song, Kayman */
+/* Author: SCH, Jay Song, Kayman */
 
-#include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
 #include <iostream>
+#include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
 
 namespace robotis_op
 {

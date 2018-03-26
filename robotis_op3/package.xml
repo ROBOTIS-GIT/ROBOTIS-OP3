@@ -8,6 +8,7 @@
   <license>Apache 2.0</license>
   <author email="kmjung@robotis.com">Kayman</author>
   <author email="sch@robotis.com">SCH</author>
+  <author>Jay Song</author>
   <maintainer email="pyo@robotis.com">Pyo</maintainer>
   <url type="website">http://wiki.ros.org/robotis_op3</url>
   <url type="emanual">http://emanual.robotis.com/docs/en/platform/op3/introduction/</url>

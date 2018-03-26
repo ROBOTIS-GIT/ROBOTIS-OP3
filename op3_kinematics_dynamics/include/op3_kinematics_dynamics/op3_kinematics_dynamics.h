@@ -14,12 +14,13 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: sch, Jay Song, Kayman */
+/* Authors: SCH, Jay Song, Kayman */
 
 #ifndef OP3_KINEMATICS_DYNAMICS_H_
 #define OP3_KINEMATICS_DYNAMICS_H_
 
 #include <vector>
+#include <eigen3/Eigen/Eigen>
 
 #include "op3_kinematics_dynamics_define.h"
 #include "link_data.h"

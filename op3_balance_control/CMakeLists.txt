@@ -16,7 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   robotis_math
 )
 
-find_package(Eigen REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 ################################################################################
 # Setup for python modules and scripts
@@ -35,7 +35,9 @@ find_package(Eigen REQUIRED)
 ################################################################################
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES op3_balance_control
+  LIBRARIES ${PROJECT_NAME}
+  CATKIN_DEPENDS roscpp cmake_modules robotis_math
+  DEPENDS EIGEN3
 )
 
 ################################################################################
@@ -44,17 +46,17 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
-  ${Eigen_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
 )
 
-add_library(op3_balance_control src/op3_balance_control.cpp)
-add_dependencies(op3_balance_control ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(op3_balance_control ${catkin_LIBRARIES})
+add_library(${PROJECT_NAME} src/op3_balance_control.cpp)
+add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Eigen3_LIBRARIES})
 
 ################################################################################
 # Install
 ################################################################################
-install(TARGETS op3_balance_control
+install(TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

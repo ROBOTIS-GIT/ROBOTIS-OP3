@@ -26,16 +26,13 @@
 #include <string>
 #include <vector>
 #include <map>
-
 #include <geometry_msgs/Pose2D.h>
-
+#include <eigen3/Eigen/Eigen>
 #include "op3_online_walking_module_msgs/FootStepCommand.h"
 #include "op3_online_walking_module_msgs/FootStepArray.h"
 #include "op3_online_walking_module_msgs/PreviewResponse.h"
-
 #include "op3_online_walking_module_msgs/Step2D.h"
 #include "op3_online_walking_module_msgs/Step2DArray.h"
-
 //#include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
 #include "robotis_math/robotis_math.h"
 

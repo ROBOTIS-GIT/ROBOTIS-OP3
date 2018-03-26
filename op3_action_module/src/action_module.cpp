@@ -14,7 +14,7 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: Kayman Jung, Jay Song */
+/* Authors: Kayman, Jay Song */
 
 #include <stdio.h>
 #include <sstream>

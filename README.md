@@ -1,7 +1,7 @@
 ## ROS Packages for ROBOTIS OP3
 |Version|Kinetic + Ubuntu Xenial|Melodic + Ubuntu Bionic|
 |:---:|:---:|:---:|
-|[![GitHub version](https://badge.fury.io/gh/ROBOTIS-GIT%2FROBOTIS-OP3.svg)](https://badge.fury.io/gh/ROBOTIS-GIT%2FROBOTIS-OP3)|[![Build Status](https://travis-ci.org/ROBOTIS-GIT/ROBOTIS-OP3.svg?branch=master)](https://travis-ci.org/ROBOTIS-GIT/ROBOTIS-OP3)|-|
+|[![GitHub version](https://badge.fury.io/gh/ROBOTIS-GIT%2FROBOTIS-OP3.svg)](https://badge.fury.io/gh/ROBOTIS-GIT%2FROBOTIS-OP3)|[![Build Status](https://travis-ci.org/ROBOTIS-GIT/ROBOTIS-OP3.svg?branch=kinetic-devel)](https://travis-ci.org/ROBOTIS-GIT/ROBOTIS-OP3)|-|
 
 ## ROBOTIS e-Manual for ROBOTIS OP3
 - [ROBOTIS e-Manual for ROBOTIS OP3](http://emanual.robotis.com/docs/en/platform/op3/introduction/)

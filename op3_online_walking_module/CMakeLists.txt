@@ -16,7 +16,6 @@ find_package(catkin REQUIRED COMPONENTS
   robotis_controller_msgs
   op3_online_walking_module_msgs
   cmake_modules
-  orocos_kdl
   robotis_framework_common
   robotis_device
   robotis_math
@@ -25,6 +24,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Boost REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(orocos_kdl REQUIRED)
 
 ## Resolve system dependency on yaml-cpp, which apparently does not
 ## provide a CMake find_package() module.
@@ -62,8 +62,8 @@ endif(NOT ${YAML_CPP_VERSION} VERSION_LESS "0.5")
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS roscpp roslib std_msgs sensor_msgs geometry_msgs robotis_controller_msgs op3_online_walking_module_msgs cmake_modules orocos_kdl robotis_framework_common robotis_device robotis_math op3_balance_control
-  DEPENDS Boost EIGEN3
+  CATKIN_DEPENDS roscpp roslib std_msgs sensor_msgs geometry_msgs robotis_controller_msgs op3_online_walking_module_msgs cmake_modules robotis_framework_common robotis_device robotis_math op3_balance_control
+  DEPENDS Boost EIGEN3 orocos_kdl
 )
 
 ################################################################################
@@ -74,6 +74,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
+  ${orocos_kdl_INCLUDE_DIRS}
 )
 
 add_library(${PROJECT_NAME}
@@ -84,7 +85,7 @@ add_library(${PROJECT_NAME}
   src/op3_kdl.cpp
 )
 add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${Eigen3_LIBRARIES} ${YAML_CPP_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${Eigen3_LIBRARIES} ${YAML_CPP_LIBRARIES} ${orocos_kdl_LIBRARIES})
 
 ################################################################################
 # Install

@@ -14,7 +14,7 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: Kayman Jung, sch */
+/* Author: Kayman, SCH */
 
 #include <stdio.h>
 #include "op3_base_module/base_module.h"

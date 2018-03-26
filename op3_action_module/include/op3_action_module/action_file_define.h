@@ -14,7 +14,7 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: kayman Jung, Jay Song */
+/* Authors: Kayman, Jay Song */
 
 #ifndef ACTION_FILE_DEFINE_H_
 #define ACTION_FILE_DEFINE_H_

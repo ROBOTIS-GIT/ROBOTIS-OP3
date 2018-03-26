@@ -1,31 +1,27 @@
 <?xml version="1.0"?>
-<package>
+<package format="2">
   <name>cm_740_module</name>
-  <version>0.1.1</version>
-  <description>The cm_740_module package</description>
-  <license>Apache License 2.0</license>
+  <version>0.2.0</version>
+  <description>
+    The cm_740_module package
+  </description>
+  <license>Apache 2.0</license>
   <author email="kmjung@robotis.com">Kayman</author>
   <maintainer email="pyo@robotis.com">Pyo</maintainer>
-  <url type="bugtracker">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3/issues</url>
+  <url type="website">http://wiki.ros.org/cm_740_module</url>
+  <url type="emanual">http://emanual.robotis.com/docs/en/platform/op3/introduction/</url>
   <url type="repository">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3</url>
-  <url type="website">http://wiki.ros.org/robotis_op3</url>
-  <buildtool_depend>catkin</buildtool_depend>  
-  <build_depend>cmake_modules</build_depend>
-  <build_depend>dynamixel_sdk</build_depend>
-  <build_depend>robotis_device</build_depend>
-  <build_depend>robotis_framework_common</build_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>robotis_controller_msgs</build_depend>
-  <build_depend>robotis_math</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <run_depend>cmake_modules</run_depend>
-  <run_depend>dynamixel_sdk</run_depend>
-  <run_depend>robotis_device</run_depend>
-  <run_depend>robotis_framework_common</run_depend>
-  <run_depend>roscpp</run_depend>
-  <run_depend>robotis_controller_msgs</run_depend>
-  <run_depend>robotis_math</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>std_msgs</run_depend>
+  <url type="bugtracker">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3/issues</url>
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>robotis_controller_msgs</depend>
+  <depend>cmake_modules</depend>
+  <depend>dynamixel_sdk</depend>
+  <depend>robotis_framework_common</depend>
+  <depend>robotis_device</depend>
+  <depend>robotis_math</depend>
+  <depend>boost</depend>
+  <depend>eigen</depend>
 </package>

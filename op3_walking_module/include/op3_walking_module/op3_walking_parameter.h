@@ -14,7 +14,7 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: Kayman Jung */
+/* Author: Kayman */
 
 #ifndef OP3_WALKING_PARAMETER_H_
 #define OP3_WALKING_PARAMETER_H_

@@ -14,10 +14,13 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: Kayman Jung */
+/* Author: Kayman */
 
-#include "std_msgs/String.h"
+/* ROS API Header */
+#include <ros/ros.h>
+#include <std_msgs/String.h>
 
+/* ROBOTIS Controller Header */
 #include "robotis_controller/robotis_controller.h"
 
 /* Sensor Module Header */

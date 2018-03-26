@@ -14,11 +14,10 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: Kayman Jung */
-
-#include "cm_740_module/cm_740_module.h"
+/* Author: Kayman */
 
 #include <stdio.h>
+#include "cm_740_module/cm_740_module.h"
 
 namespace robotis_op
 {

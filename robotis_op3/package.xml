@@ -1,25 +1,31 @@
 <?xml version="1.0"?>
-<package>
+<package format="2">
   <name>robotis_op3</name>
-  <version>0.1.1</version>
+  <version>0.2.0</version>
   <description>
     ROS packages for the robotis_op3 (meta package)
   </description>
-  <license>Apache License 2.0</license>
+  <license>Apache 2.0</license>
   <author email="kmjung@robotis.com">Kayman</author>
+  <author email="sch@robotis.com">SCH</author>
+  <author>Jay Song</author>
   <maintainer email="pyo@robotis.com">Pyo</maintainer>
-  <url type="bugtracker">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3/issues</url>
-  <url type="repository">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3</url>
   <url type="website">http://wiki.ros.org/robotis_op3</url>
+  <url type="emanual">http://emanual.robotis.com/docs/en/platform/op3/introduction/</url>
+  <url type="repository">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3</url>
+  <url type="bugtracker">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3/issues</url>
   <buildtool_depend>catkin</buildtool_depend>
-  <run_depend>cm_740_module</run_depend>
-  <run_depend>open_cr_module</run_depend>
-  <run_depend>op3_action_module</run_depend>
-  <run_depend>op3_base_module</run_depend>
-  <run_depend>op3_direct_control_module</run_depend>
-  <run_depend>op3_head_control_module</run_depend>
-  <run_depend>op3_kinematics_dynamics</run_depend>
-  <run_depend>op3_manager</run_depend>
-  <run_depend>op3_walking_module</run_depend>
+  <exec_depend>cm_740_module</exec_depend>
+  <exec_depend>op3_action_module</exec_depend>
+  <exec_depend>op3_balance_control</exec_depend>
+  <exec_depend>op3_base_module</exec_depend>
+  <exec_depend>op3_direct_control_module</exec_depend>
+  <exec_depend>op3_head_control_module</exec_depend>
+  <exec_depend>op3_kinematics_dynamics</exec_depend>
+  <exec_depend>op3_localization</exec_depend>
+  <exec_depend>op3_manager</exec_depend>
+  <exec_depend>op3_online_walking_module</exec_depend>
+  <exec_depend>op3_walking_module</exec_depend>
+  <exec_depend>open_cr_module</exec_depend>
   <export><metapackage/></export>
 </package>

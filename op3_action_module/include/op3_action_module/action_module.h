@@ -14,25 +14,25 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: Kayman Jung, Jay Song */
+/* Authors: Kayman, Jay Song */
 
 #ifndef ACTION_MOTION_MODULE_H_
 #define ACTION_MOTION_MODULE_H_
 
 #define _USE_MATH_DEFINES
-#include <cmath>
 
+#include <cmath>
 #include <ros/ros.h>
 #include <ros/package.h>
 #include <ros/callback_queue.h>
 #include <std_msgs/Int32.h>
-#include <boost/thread.hpp>
 #include <std_msgs/String.h>
+#include <boost/thread.hpp>
 
-#include "robotis_framework_common/motion_module.h"
 #include "robotis_controller_msgs/StatusMsg.h"
 #include "op3_action_module_msgs/IsRunning.h"
 #include "op3_action_module_msgs/StartAction.h"
+#include "robotis_framework_common/motion_module.h"
 #include "action_file_define.h"
 
 namespace robotis_op
@@ -59,8 +59,6 @@ class ActionModule : public robotis_framework::MotionModule, public robotis_fram
 
   void onModuleEnable();
   void onModuleDisable();
-
-
 
   void brake();
   bool isRunning(int* playing_page_num, int* playing_step_num);

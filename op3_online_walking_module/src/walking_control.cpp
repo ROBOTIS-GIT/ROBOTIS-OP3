@@ -775,7 +775,9 @@ double WalkingControl::calcRefZMPy(int step)
   return ref_zmp_y;
 }
 
-void WalkingControl::calcPreviewParam(op3_online_walking_module_msgs::PreviewResponse msg)
+//void WalkingControl::calcPreviewParam(op3_online_walking_module_msgs::PreviewResponse msg)
+void WalkingControl::calcPreviewParam(std::vector<double_t> K, int K_row, int K_col,
+                                      std::vector<double_t> P, int P_row, int P_col)
 {
   //
 //  ROS_INFO("lipm_height_ : %f", lipm_height_);
@@ -796,15 +798,15 @@ void WalkingControl::calcPreviewParam(op3_online_walking_module_msgs::PreviewRes
   c_ << 1, 0, -lipm_height_/9.81;
 
   //
-  preview_response_ = msg;
+//  preview_response_ = msg;
 
-  int row_K = preview_response_.K_row;
-  int col_K = preview_response_.K_col;
-  std::vector<double_t> matrix_K = preview_response_.K;
+  int row_K = K_row;
+  int col_K = K_col;
+  std::vector<double_t> matrix_K = K;
 
-  int row_P = preview_response_.P_row;
-  int col_P = preview_response_.P_col;
-  std::vector<double_t> matrix_P = preview_response_.P;
+  int row_P = P_row;
+  int col_P = P_col;
+  std::vector<double_t> matrix_P = P;
 
   K_.resize(row_K,col_K);
   P_.resize(row_P,col_P);

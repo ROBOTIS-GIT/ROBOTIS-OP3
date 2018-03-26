@@ -224,6 +224,12 @@ private:
   op3_online_walking_module_msgs::Step2DArray foot_step_2d_;
   bool is_foot_step_2d_;
 
+  std::vector<double_t> preview_response_K_;
+  int preview_response_K_row_, preview_response_K_col_;
+
+  std::vector<double_t> preview_response_P_;
+  int preview_response_P_row_, preview_response_P_col_;
+
   // Wholebody Control
   geometry_msgs::Pose wholebody_goal_msg_;
 

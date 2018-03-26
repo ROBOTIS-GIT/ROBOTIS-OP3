@@ -78,7 +78,8 @@ public:
   void calcFootTrajectory(int step);
   void calcFootStepPose(double time,  int step);
   void calcRefZMP(int step);
-  void calcPreviewParam(op3_online_walking_module_msgs::PreviewResponse msg);
+  void calcPreviewParam(std::vector<double_t> K, int K_row, int K_col,
+                        std::vector<double_t> P, int P_row, int P_col);
   void calcPreviewControl(double time, int step);
 
   void calcGoalFootPose();

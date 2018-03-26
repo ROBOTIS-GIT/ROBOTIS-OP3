@@ -2,6 +2,10 @@
 Changelog for package op3_base_module
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.2.1 (2018-03-26)
+------------------
+* none
+
 0.2.0 (2018-03-26)
 ------------------
 * changed method to setting module(msg -> srv)

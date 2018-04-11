@@ -32,6 +32,7 @@
 #include <geometry_msgs/WrenchStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <boost/thread.hpp>
+#include <eigen3/Eigen/Eigen>
 #include <yaml-cpp/yaml.h>
 
 #include "joint_control.h"
@@ -39,11 +40,10 @@
 #include "walking_control.h"
 #include "op3_kdl.h"
 
-#include "robotis_math/robotis_math.h"
-#include "robotis_framework_common/motion_module.h"
-
 #include "robotis_controller_msgs/JointCtrlModule.h"
 #include "robotis_controller_msgs/StatusMsg.h"
+#include "robotis_framework_common/motion_module.h"
+#include "robotis_math/robotis_math.h"
 
 //#include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
 #include "op3_balance_control/op3_balance_control.h"
@@ -223,6 +223,12 @@ private:
 
   op3_online_walking_module_msgs::Step2DArray foot_step_2d_;
   bool is_foot_step_2d_;
+
+  std::vector<double_t> preview_response_K_;
+  int preview_response_K_row_, preview_response_K_col_;
+
+  std::vector<double_t> preview_response_P_;
+  int preview_response_P_row_, preview_response_P_col_;
 
   // Wholebody Control
   geometry_msgs::Pose wholebody_goal_msg_;

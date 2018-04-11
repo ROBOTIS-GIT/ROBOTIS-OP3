@@ -14,7 +14,7 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: sch */
+/* Author: SCH */
 
 #include "op3_base_module/base_module_state.h"
 

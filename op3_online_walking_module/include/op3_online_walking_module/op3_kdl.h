@@ -21,18 +21,16 @@
 
 #pragma once
 
-#include <ros/ros.h>
-#include <ros/callback_queue.h>
-#include <ros/package.h>
-
 #include <math.h>
 #include <stdint.h>
 #include <string>
 #include <vector>
 #include <map>
-
+#include <ros/ros.h>
+#include <ros/callback_queue.h>
+#include <ros/package.h>
 #include <geometry_msgs/Pose.h>
-
+#include <eigen3/Eigen/Eigen>
 #include <kdl/joint.hpp>
 #include <kdl/chain.hpp>
 #include <kdl/chaindynparam.hpp>
@@ -42,8 +40,6 @@
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <kdl/chainiksolvervel_pinv.hpp>
 #include <kdl/chainiksolverpos_nr_jl.hpp>
-
-#include <Eigen/Dense>
 
 #define LEG_JOINT_NUM   (6)
 #define D2R             (M_PI/180.0)

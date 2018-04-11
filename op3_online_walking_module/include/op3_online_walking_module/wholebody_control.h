@@ -26,9 +26,8 @@
 #include <string>
 #include <vector>
 #include <map>
-
 #include <geometry_msgs/Pose.h>
-
+#include <eigen3/Eigen/Eigen>
 #include "robotis_math/robotis_math.h"
 
 class WholebodyControl

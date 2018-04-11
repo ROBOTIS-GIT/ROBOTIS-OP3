@@ -14,10 +14,12 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: sch */
+/* Author: SCH */
 
 #ifndef LINK_DATA_H_
 #define LINK_DATA_H_
+
+#include <eigen3/Eigen/Eigen>
 
 #include "robotis_math/robotis_math.h"
 

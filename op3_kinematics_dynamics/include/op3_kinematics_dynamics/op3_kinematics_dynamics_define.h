@@ -14,7 +14,7 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: sch */
+/* Author: SCH */
 
 #ifndef OP3_KINEMATICS_DYNAMICS_DEFINE_H_
 #define OP3_KINEMATICS_DYNAMICS_DEFINE_H_

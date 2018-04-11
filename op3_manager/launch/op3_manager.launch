@@ -1,5 +1,4 @@
 <?xml version="1.0" ?>
-
 <launch>    
     <param name="gazebo"                   value="false"    type="bool"/>
     <param name="gazebo_robot_name"        value="robotis_op3"/>
@@ -10,11 +9,10 @@
     <param name="device_name"              value="/dev/ttyUSB0"/>
     
     <!-- OP3 Manager -->
-    <node name="op3_manager" pkg="op3_manager" type="op3_manager" output="screen">
+    <node pkg="op3_manager" type="op3_manager" name="op3_manager" output="screen">
 	  <param name="angle_unit" value="30" />
 	</node>
 
     <!-- OP3 Localization -->
-    <node name="op3_localization" pkg="op3_localization" type="op3_localization" output="screen"/>
-    
+    <node pkg="op3_localization" type="op3_localization" name="op3_localization" output="screen"/>
 </launch>

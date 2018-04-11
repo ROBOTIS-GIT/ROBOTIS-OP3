@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include <math.h>
 #include <stdint.h>
 #include <string>
 #include <vector>
+#include <math.h>
 #include <map>
 
 class JointControl
@@ -36,7 +36,6 @@ public:
   void initialize();
 
 protected:
-
 
 };
 

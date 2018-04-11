@@ -14,7 +14,7 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: sch, Kayman Jung */
+/* Authors: SCH, Kayman */
 
 #ifndef BASEMODULE_H_
 #define BASEMODULE_H_

@@ -1,5 +1,4 @@
 <?xml version="1.0" ?>
-
 <launch>    
     <param name="gazebo"                   value="true"    type="bool"/>
     <param name="gazebo_robot_name"        value="robotis_op3"/>
@@ -10,9 +9,5 @@
     <param name="device_name"              value="/dev/ttyUSB0"/>
     
     <!-- OP3 Manager -->
-    <node name="op3_manager" pkg="op3_manager" type="op3_manager" output="screen"/>
-
-    <!-- OP3 Optimization -->
-    <node name="op3_optimization" pkg="op3_optimization" type="op3_optimization" output="screen"/>
-    
+    <node pkg="op3_manager" type="op3_manager" name="op3_manager" output="screen"/>
 </launch>

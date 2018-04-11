@@ -26,16 +26,13 @@
 #include <string>
 #include <vector>
 #include <map>
-
 #include <geometry_msgs/Pose2D.h>
-
+#include <eigen3/Eigen/Eigen>
 #include "op3_online_walking_module_msgs/FootStepCommand.h"
 #include "op3_online_walking_module_msgs/FootStepArray.h"
 #include "op3_online_walking_module_msgs/PreviewResponse.h"
-
 #include "op3_online_walking_module_msgs/Step2D.h"
 #include "op3_online_walking_module_msgs/Step2DArray.h"
-
 //#include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
 #include "robotis_math/robotis_math.h"
 
@@ -81,7 +78,8 @@ public:
   void calcFootTrajectory(int step);
   void calcFootStepPose(double time,  int step);
   void calcRefZMP(int step);
-  void calcPreviewParam(op3_online_walking_module_msgs::PreviewResponse msg);
+  void calcPreviewParam(std::vector<double_t> K, int K_row, int K_col,
+                        std::vector<double_t> P, int P_row, int P_col);
   void calcPreviewControl(double time, int step);
 
   void calcGoalFootPose();

@@ -209,12 +209,12 @@ void OnlineWalkingModule::queueThread()
   ros::Subscriber footsteps_sub = ros_node.subscribe("/robotis/online_walking/footsteps_2d", 5,
                                                      &OnlineWalkingModule::footStep2DCallback, this);
 
-  ros::Subscriber imu_data_sub = ros_node.subscribe("/robotis/sensor/imu/imu", 5,
-                                                    &OnlineWalkingModule::imuDataCallback, this);
-  ros::Subscriber l_foot_ft_sub = ros_node.subscribe("/robotis/sensor/l_foot_ft", 3,
-                                                     &OnlineWalkingModule::leftFootForceTorqueOutputCallback, this);
-  ros::Subscriber r_foot_ft_sub = ros_node.subscribe("/robotis/sensor/r_foot_ft", 3,
-                                                     &OnlineWalkingModule::rightFootForceTorqueOutputCallback, this);
+//  ros::Subscriber imu_data_sub = ros_node.subscribe("/robotis/sensor/imu/imu", 5,
+//                                                    &OnlineWalkingModule::imuDataCallback, this);
+//  ros::Subscriber l_foot_ft_sub = ros_node.subscribe("/robotis/sensor/l_foot_ft", 3,
+//                                                     &OnlineWalkingModule::leftFootForceTorqueOutputCallback, this);
+//  ros::Subscriber r_foot_ft_sub = ros_node.subscribe("/robotis/sensor/r_foot_ft", 3,
+//                                                     &OnlineWalkingModule::rightFootForceTorqueOutputCallback, this);
 
   // Service
   ros::ServiceServer get_joint_pose_server = ros_node.advertiseService("/robotis/online_walking/get_joint_pose",
@@ -802,9 +802,7 @@ void OnlineWalkingModule::initWholebodyControl()
 
   if (is_moving_ == true)
   {
-    //    ROS_INFO("[UPDATE] Wholebody Control");
-    //    wholebody_control_->update(desired_body_position_, desired_body_orientation_,
-    //                               desired_task_position_, desired_task_velocity_, desired_task_acceleration_);
+    // TODO
   }
   else
   {
@@ -932,13 +930,6 @@ void OnlineWalkingModule::footStep2DCallback(const op3_online_walking_module_msg
         step_final_theta = step_new_theta;
 
       foot_step_msg.footsteps_2d.push_back(step_msg);
-
-      //ROS_INFO("===== OLD =====");
-      //ROS_INFO("step: %d", i);
-      //ROS_INFO("foot_step_2d_.footsteps_2d[%d].moving_foot: %d", i, step_msg.moving_foot);
-      //ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d x: %f", i, step_msg.step2d.x);
-      //ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d y: %f", i, step_msg.step2d.y);
-      //ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d theta: %f", i, step_msg.step2d.theta);
     }
 
     op3_online_walking_module_msgs::Step2D step_msg = msg.footsteps_2d[old_size-1];
@@ -953,18 +944,6 @@ void OnlineWalkingModule::footStep2DCallback(const op3_online_walking_module_msg
     first_msg.step2d.theta  = step_final_theta; //step_msg.step2d.theta;
 
     foot_step_msg.footsteps_2d.push_back(first_msg);
-
-    for (int i=0; i<new_size; i++)
-    {
-      op3_online_walking_module_msgs::Step2D step_msg = foot_step_msg.footsteps_2d[i];
-
-      //ROS_INFO("===== NEW =====");
-      //ROS_INFO("step: %d", i);
-      //ROS_INFO("foot_step_2d_.footsteps_2d[%d].moving_foot: %d", i, step_msg.moving_foot);
-      //ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d x: %f", i, step_msg.step2d.x);
-      //ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d y: %f", i, step_msg.step2d.y);
-      //ROS_INFO("foot_step_2d_.footsteps_2d[%d].step2d theta: %f", i, step_msg.step2d.theta);
-    }
 
     foot_step_2d_ = foot_step_msg;
     foot_step_2d_.step_time = msg.step_time;
@@ -1035,22 +1014,13 @@ void OnlineWalkingModule::initWalkingControl()
   preview_request_.control_cycle = control_cycle_sec_;
 
   bool get_preview_matrix = false;
-//  get_preview_matrix = getPreviewMatrix(preview_request_);
   get_preview_matrix = definePreviewMatrix();
 
   if (get_preview_matrix == true)
   {
     if (is_moving_ == true)
     {
-      // Update - TODO
-      //      walking_control_->update(walking_leg_, walking_phase_,
-      //                               foot_step_command_,
-      //                               des_body_pos_, des_body_Q_,
-      //                               des_l_leg_pos_, des_l_leg_vel_, des_l_leg_accel_,
-      //                               des_r_leg_pos_, des_r_leg_vel_, des_r_leg_accel_);
-
-      //      walking_control_->calcPreviewParam(preview_response_);
-      //      ROS_INFO("[UPDATE] Walking Control (%d/%d)", walking_step_+1, walking_size_);
+      // TODO
     }
     else
     {
@@ -1069,7 +1039,6 @@ void OnlineWalkingModule::initWalkingControl()
                                      des_l_leg_pos_, des_l_leg_Q_);
       }
 
-//      walking_control_->calcPreviewParam(preview_response_);
       walking_control_->calcPreviewParam(preview_response_K_,preview_response_K_row_,preview_response_K_col_,
                                          preview_response_P_,preview_response_P_row_,preview_response_P_row_);
 
@@ -1093,38 +1062,14 @@ void OnlineWalkingModule::calcWalkingControl()
     double cur_time = (double) mov_step_ * control_cycle_sec_;
     walking_control_->set(cur_time, walking_step_,is_foot_step_2d_);
 
-//    ROS_INFO("cur_time: %f", cur_time);
-
-    //      queue_mutex_.lock();
-
-    // Set joint position
-    //      desired_joint_position_ = walking_control_->getJointPosition(walking_step_, cur_time);
-    //      desired_joint_velocity_ = walking_control_->getJointVelocity(walking_step_, cur_time);
-    //      desired_joint_acceleration_ = walking_control_->getJointAcceleration(walking_step_, cur_time);
-
-    //      queue_mutex_.unlock();
-
     walking_control_->getWalkingPosition(des_l_leg_pos_,
                                          des_r_leg_pos_,
                                          des_body_pos_);
-    //      walking_control_->getWalkingVelocity(desired_left_foot_velocity_,
-    //                                           desired_right_foot_velocity_,
-    //                                           desired_body_velocity_);
-    //      walking_control_->getWalkingAccleration(desired_left_foot_acceleration_,
-    //                                              desired_right_foot_acceleration_,
-    //                                              desired_body_acceleration_);
     walking_control_->getWalkingOrientation(des_l_leg_Q_,
                                             des_r_leg_Q_,
                                             des_body_Q_);
 
-    //      ROS_INFO("body x: %f, y: %f, z: %f", desired_body_position_[0], desired_body_position_[1], desired_body_position_[2]);
-    //      ROS_INFO("lfoot x: %f, y: %f, z: %f", desired_left_foot_position_[0], desired_left_foot_position_[1], desired_left_foot_position_[2]);
-    //      ROS_INFO("rfoot x: %f, y: %f, z: %f", desired_right_foot_position_[0], desired_right_foot_position_[1], desired_right_foot_position_[2]);
-
     walking_control_->getLIPM(x_lipm_, y_lipm_);
-
-    //      ROS_INFO("x_lipm_ pos: %f , vel: %f , accel: %f", x_lipm_[0], x_lipm_[1], x_lipm_[2]);
-    //      ROS_INFO("y_lipm_ pos: %f , vel: %f , accel: %f", y_lipm_[0], y_lipm_[1], y_lipm_[2]);
 
     walking_control_->getWalkingState(walking_leg_, walking_phase_);
 
@@ -1141,7 +1086,6 @@ void OnlineWalkingModule::calcWalkingControl()
         is_moving_ = false;
         is_foot_step_2d_ = false;
         walking_control_->finalize();
-//        resetBodyPose();
 
         control_type_ = NONE;
         walking_phase_ = DSP;
@@ -1241,12 +1185,6 @@ void OnlineWalkingModule::calcRobotPose()
   g_to_l_leg.coeffRef(1,3) = l_leg_pos[1];
   g_to_l_leg.coeffRef(2,3) = l_leg_pos[2];
 
-  PRINT_MAT(g_to_r_leg);
-  PRINT_MAT(g_to_l_leg);
-
-  //  des_r_leg_pos_ = r_leg_pos;
-  //  des_l_leg_pos_ = l_leg_pos;
-
   op3_kdl_->finalize();
 }
 
@@ -1285,9 +1223,6 @@ void OnlineWalkingModule::setTargetForceTorque()
       balance_l_foot_force_z_ = -1.0 * total_mass_ * 9.81;
     }
   }
-
-  //  ROS_INFO("r_foot_force x: %f, y: %f, z: %f", balance_r_foot_force_x_, balance_r_foot_force_y_, balance_r_foot_force_z_);
-  //  ROS_INFO("l_foot_force x: %f, y: %f, z: %f", balance_l_foot_force_x_, balance_l_foot_force_y_, balance_l_foot_force_z_);
 }
 
 void OnlineWalkingModule::setBalanceControlGain()
@@ -1402,18 +1337,10 @@ bool OnlineWalkingModule::setBalanceControl()
   r_foot_pose.block<3,3>(0,0) = des_r_foot_rot;
   r_foot_pose.block<3,1>(0,3) = des_r_foot_pos;
 
-  //  PRINT_MAT(body_pose);
-  //  PRINT_MAT(l_foot_pose);
-  //  PRINT_MAT(r_foot_pose);
-
   // ===== Transformation =====
   Eigen::MatrixXd robot_to_body = Eigen::MatrixXd::Identity(4,4);
   Eigen::MatrixXd robot_to_l_foot = body_pose.inverse() * l_foot_pose;
   Eigen::MatrixXd robot_to_r_foot = body_pose.inverse() * r_foot_pose;
-
-  //  PRINT_MAT(body_pose_trans);
-  //  PRINT_MAT(l_foot_pose_trans);
-  //  PRINT_MAT(r_foot_pose_trans);
   // =====
 
   // Set IMU
@@ -1431,28 +1358,6 @@ bool OnlineWalkingModule::setBalanceControl()
   imu_data_mutex_lock_.unlock();
 
   // Set FT
-  //  Eigen::Quaterniond g_to_r_foot_Q(des_r_leg_Q_[3],des_r_leg_Q_[0],des_r_leg_Q_[1],des_r_leg_Q_[2]);
-  //  Eigen::Quaterniond g_to_l_foot_Q(des_l_leg_Q_[3],des_l_leg_Q_[0],des_l_leg_Q_[1],des_l_leg_Q_[2]);
-
-  //  Eigen::MatrixXd g_to_r_foot_rot = robotis_framework::convertQuaternionToRotation(g_to_r_foot_Q);
-  //  Eigen::MatrixXd g_to_l_foot_rot = robotis_framework::convertQuaternionToRotation(g_to_l_foot_Q);
-
-  //  Eigen::MatrixXd g_to_r_foot_force =
-  //      g_to_r_foot_rot * robotis_framework::getRotationX(M_PI) *
-  //      robotis_framework::getTransitionXYZ(r_foot_ft_data_msg_.force.x, r_foot_ft_data_msg_.force.y, r_foot_ft_data_msg_.force.z);
-
-  //  Eigen::MatrixXd g_to_r_foot_torque =
-  //      g_to_r_foot_rot * robotis_framework::getRotationX(M_PI) *
-  //      robotis_framework::getTransitionXYZ(r_foot_ft_data_msg_.torque.x, r_foot_ft_data_msg_.torque.y, r_foot_ft_data_msg_.torque.z);
-
-  //  Eigen::MatrixXd g_to_l_foot_force =
-  //      g_to_l_foot_rot * robotis_framework::getRotationX(M_PI) *
-  //      robotis_framework::getTransitionXYZ(l_foot_ft_data_msg_.force.x, l_foot_ft_data_msg_.force.y, l_foot_ft_data_msg_.force.z);
-
-  //  Eigen::MatrixXd g_to_l_foot_torque =
-  //      g_to_l_foot_rot * robotis_framework::getRotationX(M_PI) *
-  //      robotis_framework::getTransitionXYZ(l_foot_ft_data_msg_.torque.x, l_foot_ft_data_msg_.torque.y, l_foot_ft_data_msg_.torque.z);
-
   Eigen::MatrixXd robot_to_r_foot_force =
       robot_to_r_foot.block(0,0,3,3) * robotis_framework::getRotationX(M_PI) *
       robotis_framework::getTransitionXYZ(r_foot_ft_data_msg_.force.x, r_foot_ft_data_msg_.force.y, r_foot_ft_data_msg_.force.z);
@@ -1469,22 +1374,6 @@ bool OnlineWalkingModule::setBalanceControl()
       robot_to_l_foot.block(0,0,3,3) * robotis_framework::getRotationX(M_PI) *
       robotis_framework::getTransitionXYZ(l_foot_ft_data_msg_.torque.x, l_foot_ft_data_msg_.torque.y, l_foot_ft_data_msg_.torque.z);
 
-  //  Eigen::MatrixXd robot_to_r_foot_force =
-  //      robot_to_r_foot.block(0,0,3,3) *
-  //      robotis_framework::getTransitionXYZ(r_foot_ft_data_msg_.force.x, r_foot_ft_data_msg_.force.y, r_foot_ft_data_msg_.force.z);
-
-  //  Eigen::MatrixXd robot_to_r_foot_torque =
-  //      robot_to_r_foot.block(0,0,3,3) *
-  //      robotis_framework::getTransitionXYZ(r_foot_ft_data_msg_.torque.x, r_foot_ft_data_msg_.torque.y, r_foot_ft_data_msg_.torque.z);
-
-  //  Eigen::MatrixXd robot_to_l_foot_force =
-  //      robot_to_l_foot.block(0,0,3,3) *
-  //      robotis_framework::getTransitionXYZ(l_foot_ft_data_msg_.force.x, l_foot_ft_data_msg_.force.y, l_foot_ft_data_msg_.force.z);
-
-  //  Eigen::MatrixXd robot_to_l_foot_torque =
-  //      robot_to_l_foot.block(0,0,3,3) *
-  //      robotis_framework::getTransitionXYZ(l_foot_ft_data_msg_.torque.x, l_foot_ft_data_msg_.torque.y, l_foot_ft_data_msg_.torque.z);
-
   balance_control_.setCurrentOrientationSensorOutput(imu_rpy.coeff(0,0), imu_rpy.coeff(1,0));
 
   balance_control_.setCurrentFootForceTorqueSensorOutput(robot_to_r_foot_force.coeff(0,0),  robot_to_r_foot_force.coeff(1,0),  robot_to_r_foot_force.coeff(2,0),
@@ -1492,14 +1381,7 @@ bool OnlineWalkingModule::setBalanceControl()
                                                          robot_to_l_foot_force.coeff(0,0),  robot_to_l_foot_force.coeff(1,0),  robot_to_l_foot_force.coeff(2,0),
                                                          robot_to_l_foot_torque.coeff(0,0), robot_to_l_foot_torque.coeff(1,0), robot_to_l_foot_torque.coeff(2,0));
 
-  //  PRINT_MAT(robot_to_r_foot_force);
-  //  PRINT_MAT(robot_to_l_foot_force);
-
   balance_control_.setDesiredCOBGyro(0.0,0.0);
-
-  //  Eigen::Quaterniond g_to_body_Q(des_body_Q_[3],des_body_Q_[0],des_body_Q_[1],des_body_Q_[2]);
-  //  Eigen::MatrixXd g_to_body_rpy = robotis_framework::convertQuaternionToRotation(g_to_body_Q);
-  //  balance_control_.setDesiredCOBOrientation(g_to_body_rpy.coeff(0,0),g_to_body_rpy.coeff(1,0));
 
   balance_control_.setDesiredCOBOrientation(des_body_rpy.coeff(0,0),des_body_rpy.coeff(1,0));
 
@@ -1518,10 +1400,6 @@ bool OnlineWalkingModule::setBalanceControl()
   Eigen::MatrixXd body_pose_mod = body_pose * robot_to_body_mod;
   Eigen::MatrixXd r_foot_pose_mod = body_pose * robot_to_r_foot_mod;
   Eigen::MatrixXd l_foot_pose_mod = body_pose * robot_to_l_foot_mod;
-
-  //  PRINT_MAT(body_pose_new);
-  //  PRINT_MAT(r_foot_pose_new);
-  //  PRINT_MAT(l_foot_pose_new);
   // =====
 
   Eigen::MatrixXd des_body_rot_mod = body_pose_mod.block<3,3>(0,0);
@@ -1652,9 +1530,6 @@ void OnlineWalkingModule::setFeedforwardControl()
 void OnlineWalkingModule::sensoryFeedback(const double &rlGyroErr, const double &fbGyroErr, double *balance_angle)
 {
   // adjust balance offset
-//  if (walking_param_.balance_enable == false)
-//    return;
-
   double internal_gain = 0.05;
 
   balance_angle[joint_name_to_id_["r_hip_roll"]-1] =
@@ -1907,49 +1782,6 @@ bool OnlineWalkingModule::getKinematicsPoseCallback(op3_online_walking_module_ms
   return true;
 }
 
-//bool OnlineWalkingModule::getPreviewMatrix(op3_online_walking_module_msgs::PreviewRequest msg)
-//{
-//  op3_online_walking_module_msgs::GetPreviewMatrix get_preview_matrix;
-
-//  // request
-//  get_preview_matrix.request.req.control_cycle = msg.control_cycle;
-//  get_preview_matrix.request.req.lipm_height   = msg.lipm_height;
-
-//  // response
-//  if ( get_preview_matrix_client_.call( get_preview_matrix ) )
-//  {
-//    preview_response_.K     = get_preview_matrix.response.res.K;
-//    preview_response_.K_row = get_preview_matrix.response.res.K_row;
-//    preview_response_.K_col = get_preview_matrix.response.res.K_col;
-
-//    preview_response_.P     = get_preview_matrix.response.res.P;
-//    preview_response_.P_row = get_preview_matrix.response.res.P_row;
-//    preview_response_.P_col = get_preview_matrix.response.res.P_col;
-
-//    ROS_INFO("preview_response_.K");
-//    for (int i=0; i<preview_response_.K.size(); i++)
-//    {
-//      ROS_INFO("%f",  get_preview_matrix.response.res.K[i]);
-//    }
-
-//    ROS_INFO("K_row : %d", get_preview_matrix.response.res.K_row);
-//    ROS_INFO("K_col : %d", get_preview_matrix.response.res.K_col);
-
-//    ROS_INFO("preview_response_.P");
-//    for (int i=0; i<preview_response_.P.size(); i++)
-//    {
-//      ROS_INFO("%f",  get_preview_matrix.response.res.P[i]);
-//    }
-
-//    ROS_INFO("P_row : %d", get_preview_matrix.response.res.P_row);
-//    ROS_INFO("P_col : %d", get_preview_matrix.response.res.P_col);
-
-//    return true;
-//  }
-//  else
-//    return false;
-//}
-
 bool OnlineWalkingModule::definePreviewMatrix()
 {
   std::vector<double_t> K;
@@ -1957,10 +1789,6 @@ bool OnlineWalkingModule::definePreviewMatrix()
   K.push_back(24489.822984);
   K.push_back(3340.410380);
   K.push_back(69.798325);
-
-//  preview_response_.K = K;
-//  preview_response_.K_row = 1;
-//  preview_response_.K_col = 4;
 
   preview_response_K_ = K;
   preview_response_K_row_ = 1;
@@ -1983,10 +1811,6 @@ bool OnlineWalkingModule::definePreviewMatrix()
   P.push_back(7.388990);
   P.push_back(0.922502);
   P.push_back(0.012336);
-
-//  preview_response_.P = P;
-//  preview_response_.P_row = 4;
-//  preview_response_.P_col = 4;
 
   preview_response_P_ = P;
   preview_response_P_row_ = 4;

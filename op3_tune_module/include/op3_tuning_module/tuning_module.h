@@ -14,10 +14,10 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Authors: SCH, Kayman */
+/* Authors: Kayman, SCH */
 
-#ifndef TUNEMODULE_H_
-#define TUNEMODULE_H_
+#ifndef TuningModule_H_
+#define TuningModule_H_
 
 #include <map>
 #include <boost/thread.hpp>
@@ -38,16 +38,17 @@
 #include "robotis_math/robotis_math.h"
 #include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
 
-#include "op3_offset_tuner_msgs/JointOffsetData.h"
-#include "op3_offset_tuner_msgs/JointTorqueOnOffArray.h"
-#include "op3_offset_tuner_msgs/GetPresentJointOffsetData.h"
+#include "op3_tuning_module_msgs/JointOffsetData.h"
+#include "op3_tuning_module_msgs/JointTorqueOnOffArray.h"
+#include "op3_tuning_module_msgs/GetPresentJointOffsetData.h"
 
-#include "tune_module_state.h"
+#include "tuning_module_state.h"
+#include "tuning_data.h"
 
 namespace robotis_op
 {
 
-class TuneJointData
+class TuningJointData
 {
  public:
   double position_;
@@ -62,19 +63,18 @@ class TuneJointData
 
 class TuneJointState
 {
-
  public:
-  TuneJointData curr_joint_state_[ MAX_JOINT_ID + 1];
-  TuneJointData goal_joint_state_[ MAX_JOINT_ID + 1];
-  TuneJointData fake_joint_state_[ MAX_JOINT_ID + 1];
+  TuningJointData curr_joint_state_[ MAX_JOINT_ID + 1];
+  TuningJointData goal_joint_state_[ MAX_JOINT_ID + 1];
+  TuningJointData fake_joint_state_[ MAX_JOINT_ID + 1];
 
 };
 
-class TuneModule : public robotis_framework::MotionModule, public robotis_framework::Singleton<TuneModule>
+class TuningModule : public robotis_framework::MotionModule, public robotis_framework::Singleton<TuningModule>
 {
  public:
-  TuneModule();
-  virtual ~TuneModule();
+  TuningModule();
+  virtual ~TuningModule();
 
   /* ROS Framework Functions */
   void initialize(const int control_cycle_msec, robotis_framework::Robot *robot);
@@ -87,33 +87,38 @@ class TuneModule : public robotis_framework::MotionModule, public robotis_framew
   void onModuleDisable();
 
   /* ROS Topic Callback Functions */
-  void initPoseMsgCallback(const std_msgs::String::ConstPtr& msg);
+  void tunePoseMsgCallback(const std_msgs::String::ConstPtr& msg);
   void commandCallback(const std_msgs::String::ConstPtr& msg);
-  void jointOffsetDataCallback(const op3_offset_tuner_msgs::JointOffsetData::ConstPtr &msg);
-  void jointTorqueOnOffCallback(const op3_offset_tuner_msgs::JointTorqueOnOffArray::ConstPtr& msg);
-  bool getPresentJointOffsetDataServiceCallback(op3_offset_tuner_msgs::GetPresentJointOffsetData::Request &req,
-                                                op3_offset_tuner_msgs::GetPresentJointOffsetData::Response &res);
+  void jointOffsetDataCallback(const op3_tuning_module_msgs::JointOffsetData::ConstPtr &msg);
+  void jointGainDataCallback(const op3_tuning_module_msgs::JointOffsetData::ConstPtr &msg);
+  void jointTorqueOnOffCallback(const op3_tuning_module_msgs::JointTorqueOnOffArray::ConstPtr& msg);
+  bool getPresentJointOffsetDataServiceCallback(op3_tuning_module_msgs::GetPresentJointOffsetData::Request &req,
+                                                op3_tuning_module_msgs::GetPresentJointOffsetData::Response &res);
 
   /* ROS Calculation Functions */
-  void initPoseTrajGenerateProc();
+  void targetPoseTrajGenerateProc();
 
   void poseGenerateProc(Eigen::MatrixXd joint_angle_pose);
   void poseGenerateProc(std::map<std::string, double>& joint_angle_pose);
 
   /* Parameter */
-  TuneModuleState *tune_module_state_;
+  TuningModuleState *tuning_module_state_;
   TuneJointState *joint_state_;
 
  private:
   void queueThread();
   void setCtrlModule(std::string module);
   void callServiceSettingModule(const std::string &module_name);
-  void parseInitPoseData(const std::string &path);
+  void moveToInitPose();
+  void moveToTunePose(const std::string &pose_name);
+  bool parseInitPoseData(const std::string &path);
+  bool parseTunePoseData(const std::string &path, const std::string &pose_name);
   void publishStatusMsg(unsigned int type, std::string msg);
 
   int control_cycle_msec_;
   boost::thread queue_thread_;
   boost::thread tra_gene_tread_;
+  boost::mutex data_mutex_;
 
   // init pose
   ros::Publisher status_msg_pub_;
@@ -123,17 +128,23 @@ class TuneModule : public robotis_framework::MotionModule, public robotis_framew
   // offset tuner
   ros::Subscriber send_tra_sub_;
   ros::Subscriber joint_offset_data_sub_;
+  ros::Subscriber joint_gain_data_sub_;
   ros::Subscriber joint_torque_enable_sub_;
   ros::Subscriber command_sub_;
   ros::ServiceServer offset_data_server_;
 
   std::map<std::string, int> joint_name_to_id_;
+  std::map<std::string, JointOffsetData*> robot_offset_data_;
+  std::map<std::string, bool> robot_torque_enable_data_;
+
+  std::string tune_pose_path_;
+  TuningData tuning_data_;
 
   bool has_goal_joints_;
   bool ini_pose_only_;
-  bool get_tune_data_;
+  bool get_tuning_data_;
 };
 
 }
 
-#endif /* TUNEMODULE_H_ */
+#endif /* TuningModule_H_ */

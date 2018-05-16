@@ -2,7 +2,7 @@
 # Set minimum required version of cmake, project name and compile options
 ################################################################################
 cmake_minimum_required(VERSION 2.8.3)
-project(op3_tune_module)
+project(op3_tuning_module)
 
 ################################################################################
 # Find catkin packages and libraries for catkin and system dependencies
@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   geometry_msgs
   robotis_controller_msgs
+  op3_tuning_module_msgs
   cmake_modules
   robotis_framework_common
   robotis_device
@@ -59,7 +60,7 @@ endif(NOT ${YAML_CPP_VERSION} VERSION_LESS "0.5")
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS roscpp roslib std_msgs geometry_msgs robotis_controller_msgs cmake_modules robotis_framework_common robotis_device robotis_math op3_kinematics_dynamics
+  CATKIN_DEPENDS roscpp roslib std_msgs geometry_msgs robotis_controller_msgs cmake_modules robotis_framework_common robotis_device robotis_math op3_kinematics_dynamics op3_tuning_module_msgs
   DEPENDS Boost EIGEN3
 )
 
@@ -74,7 +75,7 @@ include_directories(
   ${YAML_CPP_INCLUDE_DIRS}
 )
 
-add_library(${PROJECT_NAME} src/tune_module.cpp src/tune_module_state.cpp)
+add_library(${PROJECT_NAME} src/tuning_module.cpp src/tuning_module_state.cpp src/tuning_data.cpp)
 add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${Eigen3_LIBRARIES} ${YAML_CPP_LIBRARIES})
 

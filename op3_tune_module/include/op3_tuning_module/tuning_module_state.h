@@ -14,7 +14,7 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: SCH, Kayman */
+/* Author: Kayman, SCH */
 
 #ifndef TUNE_MODULE_ROBOTISSTATE_H_
 #define TUNE_MODULE_ROBOTISSTATE_H_
@@ -27,13 +27,14 @@
 namespace robotis_op
 {
 
-class TuneModuleState
+class TuningModuleState
 {
  public:
-  TuneModuleState();
-  ~TuneModuleState();
+  TuningModuleState();
+  ~TuningModuleState();
 
   bool is_moving_;
+  bool is_generating_;
 
   int cnt_;  // counter number
 

@@ -14,16 +14,17 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: SCH */
+/* Author: Kayman, SCH */
 
-#include "op3_tune_module/tune_module_state.h"
+#include "op3_tuning_module/tuning_module_state.h"
 
 namespace robotis_op
 {
 
-TuneModuleState::TuneModuleState()
+TuningModuleState::TuningModuleState()
 {
   is_moving_ = false;
+  is_generating_ = false;
 
   cnt_ = 0;
 
@@ -45,7 +46,7 @@ TuneModuleState::TuneModuleState()
   via_time_ = Eigen::MatrixXd::Zero(via_num_, 1);
 }
 
-TuneModuleState::~TuneModuleState()
+TuningModuleState::~TuningModuleState()
 {
 }
 

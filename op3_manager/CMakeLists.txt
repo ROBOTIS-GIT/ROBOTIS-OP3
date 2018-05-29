@@ -31,6 +31,7 @@ find_package(catkin REQUIRED COMPONENTS
   op3_action_module
   op3_direct_control_module
   op3_online_walking_module
+  op3_tuning_module
 )
 
 ################################################################################

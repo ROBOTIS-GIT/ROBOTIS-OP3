@@ -33,5 +33,6 @@
   <depend>op3_action_module</depend>
   <depend>op3_direct_control_module</depend>
   <depend>op3_online_walking_module</depend>
+  <depend>op3_tuning_module</depend>
   <exec_depend>op3_localization</exec_depend>
 </package>

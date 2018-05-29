@@ -56,6 +56,10 @@ void TuningModule::initialize(const int control_cycle_msec, robotis_framework::R
     joint_name_to_id_[joint_name] = dxl_info->id_;
     result_[joint_name] = new robotis_framework::DynamixelState();
     result_[joint_name]->goal_position_ = dxl_info->dxl_state_->goal_position_;
+
+    //Initialize RobotOffsetData
+    robot_tuning_data_[joint_name] = new JointOffsetData(0, 0);
+    robot_torque_enable_data_[joint_name] = true;
   }
 
   ros::NodeHandle ros_node;
@@ -63,8 +67,13 @@ void TuningModule::initialize(const int control_cycle_msec, robotis_framework::R
   /* publish topics */
   status_msg_pub_ = ros_node.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 1);
   set_ctrl_module_pub_ = ros_node.advertise<std_msgs::String>("/robotis/enable_ctrl_module", 1);
+  sync_write_pub_ = ros_node.advertise<robotis_controller_msgs::SyncWriteItem>("/robotis/sync_write_item", 1);
 
-  tune_pose_path_ = ros::package::getPath("op3_tuning_module") + "/data/tune_pose.yaml";
+  tune_pose_path_ = ros::package::getPath(ROS_PACKAGE_NAME) + "/data/tune_pose.yaml";
+  offset_path_ = ros::package::getPath(ROS_PACKAGE_NAME) + "/data/offset/yaml";
+
+  parseOffsetData(offset_path_);
+  parseInitPoseData(tune_pose_path_);
 }
 
 void TuningModule::moveToInitPose()
@@ -90,6 +99,36 @@ void TuningModule::moveToTunePose(const std::string &pose_name)
 
   // generate a trajectory
 
+}
+
+bool TuningModule::parseOffsetData(const std::string &path)
+{
+  YAML::Node doc;
+  try
+  {
+    // load yaml
+    doc = YAML::LoadFile(path.c_str());
+  } catch (const std::exception& e)
+  {
+    ROS_ERROR("Fail to load offset yaml file.");
+    return false;
+  }
+
+  //Get Offset Data and Init_Pose for Offset Tuning
+  YAML::Node offset_data_node = doc["offset"];
+
+  //Initialize Offset Data in RobotOffsetData
+  for (YAML::const_iterator node_it = offset_data_node.begin(); node_it != offset_data_node.end(); node_it++)
+  {
+    std::string joint_name = node_it->first.as<std::string>();
+    double offset = node_it->second.as<double>();
+
+    std::map<std::string, JointOffsetData*>::iterator robot_tuning_data_it = robot_tuning_data_.find(joint_name);
+    if (robot_tuning_data_it != robot_tuning_data_.end())
+      robot_tuning_data_[joint_name]->joint_offset_rad_ = offset;
+  }
+
+  return true;
 }
 
 bool TuningModule::parseInitPoseData(const std::string &path)
@@ -131,6 +170,11 @@ bool TuningModule::parseInitPoseData(const std::string &path)
     int id = joint_name_to_id_[joint_name];
 
     tuning_module_state_->joint_ini_pose_.coeffRef(id, 0) = value * DEGREE2RADIAN;
+
+    // store target value
+    std::map<std::string, JointOffsetData*>::iterator robot_tuning_data_it = robot_tuning_data_.find(joint_name);
+    if (robot_tuning_data_it != robot_tuning_data_.end())
+      robot_tuning_data_[joint_name]->goal_position_ = value;
   }
 
   tuning_module_state_->all_time_steps_ = int(tuning_module_state_->mov_time_ / tuning_module_state_->smp_time_) + 1;
@@ -168,65 +212,71 @@ bool TuningModule::parseTunePoseData(const std::string &path, const std::string 
   if(move_time.size() != target_pose_name.size() || move_time.size() == 0)
     return false;
 
+  // parse movement time
+  double total_move_time = accumulate(move_time.begin(),move_time.end(),0);
+  tuning_module_state_->mov_time_ = total_move_time;
+
+  // parse via-point number
   int via_num = move_time.size() - 1;
+  tuning_module_state_->via_num_ = via_num;
 
-//  // parse movement time
-//  double mov_time;
-//  mov_time = doc["mov_time"].as<double>();
+  // parse via-point time
+  tuning_module_state_->via_time_.resize(via_num, 1);
+  // parse via-point pose
+  tuning_module_state_->joint_via_pose_.resize(via_num, MAX_JOINT_ID + 1);
+  tuning_module_state_->joint_via_dpose_.resize(via_num, MAX_JOINT_ID + 1);
+  tuning_module_state_->joint_via_ddpose_.resize(via_num, MAX_JOINT_ID + 1);
 
-//  tuning_module_state_->mov_time_ = mov_time;
+  tuning_module_state_->joint_via_pose_.fill(0.0);
+  tuning_module_state_->joint_via_dpose_.fill(0.0);
+  tuning_module_state_->joint_via_ddpose_.fill(0.0);
 
-//  // parse via-point number
-//  int via_num;
-//  via_num = doc["via_num"].as<int>();
+  YAML::Node pose_data_node = doc["pose_data"];
 
-//  tuning_module_state_->via_num_ = via_num;
+  for (int num = 0; num < via_num; num++)
+  {
+    // set via time
+    tuning_module_state_->via_time_.coeffRef(num, 0) = move_time[num];
 
-//  // parse via-point time
-//  std::vector<double> via_time;
-//  via_time = doc["via_time"].as<std::vector<double> >();
+    // set via pose
+    YAML::Node via_pose_node = pose_data_node[target_pose_name[num]];
 
-//  tuning_module_state_->via_time_.resize(via_num, 1);
-//  for (int num = 0; num < via_num; num++)
-//    tuning_module_state_->via_time_.coeffRef(num, 0) = via_time[num];
+    if(via_pose_node == NULL)
+      continue;
 
-//  // parse via-point pose
-//  tuning_module_state_->joint_via_pose_.resize(via_num, MAX_JOINT_ID + 1);
-//  tuning_module_state_->joint_via_dpose_.resize(via_num, MAX_JOINT_ID + 1);
-//  tuning_module_state_->joint_via_ddpose_.resize(via_num, MAX_JOINT_ID + 1);
+    for (YAML::iterator yaml_it = via_pose_node.begin(); yaml_it != via_pose_node.end(); ++yaml_it)
+    {
+      std::string joint_name;
+      double value;
 
-//  tuning_module_state_->joint_via_pose_.fill(0.0);
-//  tuning_module_state_->joint_via_dpose_.fill(0.0);
-//  tuning_module_state_->joint_via_ddpose_.fill(0.0);
+      joint_name = yaml_it->first.as<std::string>();
+      value = yaml_it->second.as<double>();
+      int id = joint_name_to_id_[joint_name];
 
-//  YAML::Node via_pose_node = doc["via_pose"];
-//  for (YAML::iterator yaml_it = via_pose_node.begin(); yaml_it != via_pose_node.end(); ++yaml_it)
-//  {
-//    int id;
-//    std::vector<double> value;
+      tuning_module_state_->joint_via_pose_.coeffRef(num, id) = value * DEGREE2RADIAN;
+    }
 
-//    id = yaml_it->first.as<int>();
-//    value = yaml_it->second.as<std::vector<double> >();
+  }
 
-//    for (int num = 0; num < via_num; num++)
-//      tuning_module_state_->joint_via_pose_.coeffRef(num, id) = value[num] * DEGREE2RADIAN;
-//  }
+  // parse target pose
+  YAML::Node tar_pose_node = pose_data_node[target_pose_name[via_num]];
+  if(tar_pose_node == NULL)
+    return false;
 
-//  // parse target pose
-//  YAML::Node tar_pose_node = doc["tar_pose"];
-//  for (YAML::iterator yaml_it = tar_pose_node.begin(); yaml_it != tar_pose_node.end(); ++yaml_it)
-//  {
-//    int id;
-//    double value;
+  for (YAML::iterator yaml_it = tar_pose_node.begin(); yaml_it != tar_pose_node.end(); ++yaml_it)
+  {
+    std::string joint_name;
+    double value;
 
-//    id = yaml_it->first.as<int>();
-//    value = yaml_it->second.as<double>();
+    joint_name = yaml_it->first.as<std::string>();
+    value = yaml_it->second.as<double>();
+    int id = joint_name_to_id_[joint_name];
 
-//    tuning_module_state_->joint_ini_pose_.coeffRef(id, 0) = value * DEGREE2RADIAN;
-//  }
+    tuning_module_state_->joint_ini_pose_.coeffRef(id, 0) = value * DEGREE2RADIAN;
+  }
 
-//  tuning_module_state_->all_time_steps_ = int(tuning_module_state_->mov_time_ / tuning_module_state_->smp_time_) + 1;
-//  tuning_module_state_->calc_joint_tra_.resize(tuning_module_state_->all_time_steps_, MAX_JOINT_ID + 1);
+  tuning_module_state_->all_time_steps_ = int(tuning_module_state_->mov_time_ / tuning_module_state_->smp_time_) + 1;
+  tuning_module_state_->calc_joint_tra_.resize(tuning_module_state_->all_time_steps_, MAX_JOINT_ID + 1);
 
   return true;
 }
@@ -439,18 +489,23 @@ void TuningModule::process(std::map<std::string, robotis_framework::Dynamixel *>
     else
       continue;
 
-    double joint_curr_position = dxl->dxl_state_->present_position_;
+    double joint_pres_position = dxl->dxl_state_->present_position_;
     double joint_goal_position = dxl->dxl_state_->goal_position_;
     int p_gain = dxl->dxl_state_->position_p_gain_;
     int i_gain = dxl->dxl_state_->position_i_gain_;
     int d_gain = dxl->dxl_state_->position_d_gain_;
 
-    joint_state_->curr_joint_state_[joint_name_to_id_[joint_name]].position_ = joint_curr_position;
+    joint_state_->curr_joint_state_[joint_name_to_id_[joint_name]].position_ = joint_pres_position;
     joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].position_ = joint_goal_position;
 
     joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].p_gain_ = p_gain;
     joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].i_gain_ = i_gain;
     joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].d_gain_ = d_gain;
+
+    robot_tuning_data_[joint_name]->goal_position_ = joint_goal_position;
+    robot_tuning_data_[joint_name]->p_gain_ = p_gain;
+    robot_tuning_data_[joint_name]->i_gain_ = i_gain;
+    robot_tuning_data_[joint_name]->d_gain_ = d_gain;
   }
 
   has_goal_joints_ = true;
@@ -628,8 +683,8 @@ void TuningModule::jointOffsetDataCallback(const op3_tuning_module_msgs::JointOf
         msg->joint_name << " " << msg->goal_value << " " << msg->offset_value << " " << msg->p_gain <<" " << msg->i_gain <<" " << msg->d_gain);
 
   std::map<std::string, JointOffsetData*>::iterator map_it;
-  map_it = robot_offset_data_.find(msg->joint_name);
-  if (map_it == robot_offset_data_.end())
+  map_it = robot_tuning_data_.find(msg->joint_name);
+  if (map_it == robot_tuning_data_.end())
   {
     ROS_ERROR("Invalid Joint Name");
     return;
@@ -646,37 +701,13 @@ void TuningModule::jointOffsetDataCallback(const op3_tuning_module_msgs::JointOf
   tuning_data_.joint_name_.setValue(msg->joint_name);
   tuning_data_.position_.setValue(msg->offset_value + msg->goal_value);
 
-
-  //  double goal_pose_rad = msg->offset_value + msg->goal_value;
-  //  uint32_t goal_pose_value = controller_->robot_->dxls_[msg->joint_name]->convertRadian2Value(goal_pose_rad);
-  //  uint8_t dxl_error = 0;
-  //  uint32_t comm_result = COMM_SUCCESS;
-  //  comm_result = controller_->writeCtrlItem(msg->joint_name,
-  //                                           controller_->robot_->dxls_[msg->joint_name]->goal_position_item_->item_name_,
-  //      goal_pose_value, &dxl_error);
-  //  if (comm_result != COMM_SUCCESS)
-  //  {
-  //    ROS_ERROR("Failed to write goal position");
-  //    return;
-  //  }
-  //  else
-  //  {
-  //    robot_offset_data_[msg->joint_name]->joint_init_pos_rad_ = msg->goal_value;
-  //    robot_offset_data_[msg->joint_name]->joint_offset_rad_ = msg->offset_value;
-  //  }
-
-  //  if (dxl_error != 0)
-  //  {
-  //    ROS_ERROR_STREAM("goal_pos_set : " << msg->joint_name << "  has error "<< (int)dxl_error);
-  //  }
-
-  //  robot_offset_data_[msg->joint_name]->p_gain_ = msg->p_gain;
-  //  robot_offset_data_[msg->joint_name]->i_gain_ = msg->i_gain;
-  //  robot_offset_data_[msg->joint_name]->d_gain_ = msg->d_gain;
-
   // flag on to update joint data
   get_tuning_data_ = true;
   data_mutex_.unlock();
+
+  // store tuning data
+  //  robot_tuning_data_[msg->joint_name]->goal_position_ = msg->goal_value;
+  robot_tuning_data_[msg->joint_name]->joint_offset_rad_ = msg->offset_value;
 }
 
 void TuningModule::jointGainDataCallback(const op3_tuning_module_msgs::JointOffsetData::ConstPtr &msg)
@@ -694,8 +725,8 @@ void TuningModule::jointGainDataCallback(const op3_tuning_module_msgs::JointOffs
   }
 
   std::map<std::string, JointOffsetData*>::iterator map_it;
-  map_it = robot_offset_data_.find(msg->joint_name);
-  if (map_it == robot_offset_data_.end())
+  map_it = robot_tuning_data_.find(msg->joint_name);
+  if (map_it == robot_tuning_data_.end())
   {
     ROS_ERROR("Invalid Joint Name");
     return;
@@ -717,53 +748,42 @@ void TuningModule::jointGainDataCallback(const op3_tuning_module_msgs::JointOffs
   // flag on to update joint data
   get_tuning_data_ = true;
   data_mutex_.unlock();
+
+  //  robot_tuning_data_[msg->joint_name]->p_gain_ = msg->p_gain;
+  //  robot_tuning_data_[msg->joint_name]->i_gain_ = msg->i_gain;
+  //  robot_tuning_data_[msg->joint_name]->d_gain_ = msg->d_gain;
 }
 
 void TuningModule::jointTorqueOnOffCallback(const op3_tuning_module_msgs::JointTorqueOnOffArray::ConstPtr& msg)
-{
+{  
+  robotis_controller_msgs::SyncWriteItem syncwrite_msg;
+  syncwrite_msg.item_name = "torque_enable";
+
   for (unsigned int i = 0; i < msg->torque_enable_data.size(); i++)
   {
     std::string joint_name = msg->torque_enable_data[i].joint_name;
     bool torque_enable = msg->torque_enable_data[i].torque_enable;
     ROS_INFO_STREAM(i <<" " << joint_name << torque_enable);
 
-    //    std::map<std::string, JointOffsetData*>::iterator map_it;
-    //    map_it = robot_offset_data_.find(joint_name);
-    //    if (map_it == robot_offset_data_.end())
-    //    {
-    //      ROS_ERROR("Invalid Joint Name");
-    //      continue;
-    //    }
-    //    else
-    //    {
-    //      int32_t comm_result = COMM_SUCCESS;
-    //      uint8_t dxl_error = 0;
-    //      uint8_t torque_enable_value = 0;
+    std::map<std::string, JointOffsetData*>::iterator map_it;
+    map_it = robot_tuning_data_.find(joint_name);
+    if (map_it == robot_tuning_data_.end())
+    {
+      ROS_ERROR("Invalid Joint Name");
+      continue;
+    }
+    else
+    {
+      int torque_value = torque_enable ? 1 : 0;
+      syncwrite_msg.joint_name.push_back(joint_name);
+      syncwrite_msg.value.push_back(torque_value);
 
-    //      if (torque_enable)
-    //        torque_enable_value = 1;
-    //      else
-    //        torque_enable_value = 0;
-
-    //      comm_result = controller_->writeCtrlItem(joint_name,
-    //                                               controller_->robot_->dxls_[joint_name]->torque_enable_item_->item_name_,
-    //                                               torque_enable_value, &dxl_error);
-    //      if (comm_result != COMM_SUCCESS)
-    //      {
-    //        ROS_ERROR("Failed to write goal position");
-    //      }
-    //      else
-    //      {
-    //        robot_torque_enable_data_[joint_name] = torque_enable;
-    //      }
-
-    //      if (dxl_error != 0)
-    //      {
-    //        ROS_ERROR_STREAM("goal_pos_set : " << joint_name << "  has error "<< (int)dxl_error);
-    //      }
-    //    }
+      robot_torque_enable_data_[joint_name] = torque_enable;
+    }
   }
 
+  if(syncwrite_msg.joint_name.size() != 0)
+    sync_write_pub_.publish(syncwrite_msg);
 }
 
 bool TuningModule::getPresentJointOffsetDataServiceCallback(
@@ -773,47 +793,30 @@ bool TuningModule::getPresentJointOffsetDataServiceCallback(
 
   ROS_INFO("GetPresentJointOffsetDataService Called");
 
-  //  for (std::map<std::string, JointOffsetData*>::iterator map_it = robot_offset_data_.begin();
-  //       map_it != robot_offset_data_.end(); map_it++)
-  //  {
-  //    std::string joint_name = map_it->first;
-  //    JointOffsetData* joint_data = map_it->second;
+  for (std::map<std::string, JointOffsetData*>::iterator map_it = robot_tuning_data_.begin();
+       map_it != robot_tuning_data_.end(); map_it++)
+  {
+    std::string joint_name = map_it->first;
+    JointOffsetData* joint_data = map_it->second;
 
-  //    op3_tuning_module_msgs::JointOffsetPositionData joint_offset_pos;
+    op3_tuning_module_msgs::JointOffsetPositionData joint_offset_pos;
 
-  //    int32_t present_pos_value = 0;
-  //    uint8_t dxl_error = 0;
-  //    int comm_result = COMM_SUCCESS;
+    // get present joint value
+    //...
+    double present_value = joint_state_->curr_joint_state_[joint_name_to_id_[joint_name]].position_;
 
-  //    if (controller_->robot_->dxls_[joint_name]->present_position_item_ == NULL)
-  //      continue;
+    // set message for respond
+    joint_offset_pos.joint_name = joint_name;
+    joint_offset_pos.goal_value = joint_data->goal_position_;
+    joint_offset_pos.offset_value = joint_data->joint_offset_rad_;
+    joint_offset_pos.present_value = present_value; // present value of this joint
+    joint_offset_pos.p_gain = joint_data->p_gain_;
+    joint_offset_pos.i_gain = joint_data->i_gain_;
+    joint_offset_pos.d_gain = joint_data->d_gain_;
 
-  //    comm_result = controller_->readCtrlItem(joint_name,
-  //                                            controller_->robot_->dxls_[joint_name]->present_position_item_->item_name_,
-  //                                            (uint32_t*) &present_pos_value, &dxl_error);
-  //    if (comm_result != COMM_SUCCESS)
-  //    {
-  //      ROS_ERROR("Failed to read present pos");
-  //      return false;
-  //    }
-  //    else
-  //    {
-  //      if (dxl_error != 0)
-  //      {
-  //        ROS_ERROR_STREAM(joint_name << "  has error "<< (int)dxl_error);
-  //      }
+    res.present_data_array.push_back(joint_offset_pos);
 
-  //      joint_offset_pos.joint_name = joint_name;
-  //      joint_offset_pos.goal_value = joint_data->joint_init_pos_rad_;
-  //      joint_offset_pos.offset_value = joint_data->joint_offset_rad_;
-  //      joint_offset_pos.present_value = controller_->robot_->dxls_[joint_name]->convertValue2Radian(present_pos_value);
-  //      joint_offset_pos.p_gain = joint_data->p_gain_;
-  //      joint_offset_pos.i_gain = joint_data->i_gain_;
-  //      joint_offset_pos.d_gain = joint_data->d_gain_;
-
-  //      res.present_data_array.push_back(joint_offset_pos);
-  //    }
-  //  }
+  }
   return true;
 }
 

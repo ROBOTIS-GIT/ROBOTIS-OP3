@@ -22,6 +22,7 @@
 #include <map>
 #include <boost/thread.hpp>
 #include <yaml-cpp/yaml.h>
+#include <numeric>
 
 #include <ros/ros.h>
 #include <ros/callback_queue.h>
@@ -32,6 +33,7 @@
 #include <geometry_msgs/Pose.h>
 
 #include "robotis_framework_common/motion_module.h"
+#include "robotis_controller_msgs/SyncWriteItem.h"
 #include "robotis_controller_msgs/JointCtrlModule.h"
 #include "robotis_controller_msgs/SetModule.h"
 #include "robotis_controller_msgs/StatusMsg.h"
@@ -111,6 +113,7 @@ class TuningModule : public robotis_framework::MotionModule, public robotis_fram
   void callServiceSettingModule(const std::string &module_name);
   void moveToInitPose();
   void moveToTunePose(const std::string &pose_name);
+  bool parseOffsetData(const std::string &path);
   bool parseInitPoseData(const std::string &path);
   bool parseTunePoseData(const std::string &path, const std::string &pose_name);
   void publishStatusMsg(unsigned int type, std::string msg);
@@ -126,6 +129,7 @@ class TuningModule : public robotis_framework::MotionModule, public robotis_fram
   ros::ServiceClient set_module_client_;
 
   // offset tuner
+  ros::Publisher sync_write_pub_;
   ros::Subscriber send_tra_sub_;
   ros::Subscriber joint_offset_data_sub_;
   ros::Subscriber joint_gain_data_sub_;
@@ -134,10 +138,11 @@ class TuningModule : public robotis_framework::MotionModule, public robotis_fram
   ros::ServiceServer offset_data_server_;
 
   std::map<std::string, int> joint_name_to_id_;
-  std::map<std::string, JointOffsetData*> robot_offset_data_;
+  std::map<std::string, JointOffsetData*> robot_tuning_data_;
   std::map<std::string, bool> robot_torque_enable_data_;
 
   std::string tune_pose_path_;
+  std::string offset_path_;
   TuningData tuning_data_;
 
   bool has_goal_joints_;

@@ -71,7 +71,7 @@ class JointOffsetData
 {
  public:
   double joint_offset_rad_;
-  double joint_init_pos_rad_;
+  double goal_position_;
   int p_gain_;
   int i_gain_;
   int d_gain_;
@@ -79,16 +79,16 @@ class JointOffsetData
   JointOffsetData()
   {
     joint_offset_rad_ = 0;
-    joint_init_pos_rad_ = 0;
+    goal_position_ = 0;
     p_gain_ = 800;
     i_gain_ = 0;
     d_gain_ = 0;
   }
 
-  JointOffsetData(double joint_offset_rad, double joint_init_pose_rad)
+  JointOffsetData(double joint_offset_rad, double goal_position)
   {
     this->joint_offset_rad_ = joint_offset_rad;
-    this->joint_init_pos_rad_ = joint_init_pose_rad;
+    this->goal_position_ = goal_position;
     p_gain_ = 800;
     i_gain_ = 0;
     d_gain_ = 0;

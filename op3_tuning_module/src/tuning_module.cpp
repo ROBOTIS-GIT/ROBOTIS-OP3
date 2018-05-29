@@ -98,7 +98,7 @@ void TuningModule::moveToTunePose(const std::string &pose_name)
   parseTunePoseData(tune_pose_path_, pose_name);
 
   // generate a trajectory
-
+  tra_gene_tread_ = boost::thread(boost::bind(&TuningModule::targetPoseTrajGenerateProc, this));
 }
 
 bool TuningModule::parseOffsetData(const std::string &path)
@@ -322,6 +322,8 @@ void TuningModule::tunePoseMsgCallback(const std_msgs::String::ConstPtr& msg)
     ROS_INFO("previous task is alive");
     return;
   }
+
+  ROS_INFO_STREAM("Go to " << msg->data);
 
   if (msg->data == "ini_pose")
   {
@@ -592,12 +594,21 @@ void TuningModule::stop()
 void TuningModule::onModuleEnable()
 {
   ROS_INFO("Tuning module is enabled");
+
+  // load offset file
+  parseOffsetData(offset_path_);
+
+  // send topic to manager in order to turn off offset function
+  // ...
 }
 
 void TuningModule::onModuleDisable()
 {
   tuning_data_.clearData();
   has_goal_joints_ = false;
+
+  // send topic to manager in order to turn on offset function
+  // ...
 }
 
 void TuningModule::setCtrlModule(std::string module)

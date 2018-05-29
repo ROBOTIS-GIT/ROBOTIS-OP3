@@ -78,12 +78,15 @@ void TuningModule::initialize(const int control_cycle_msec, robotis_framework::R
 
 void TuningModule::moveToInitPose()
 {
-  // set tuning_module
-  callServiceSettingModule(module_name_);
+  if(enable_ == false)
+  {
+    // set tuning_module
+    callServiceSettingModule(module_name_);
 
-  // wait for changing the module to base_module and getting the goal position
-  while (enable_ == false || has_goal_joints_ == false)
-    usleep(8 * 1000);
+    // wait for changing the module to base_module and getting the goal position
+    while (enable_ == false || has_goal_joints_ == false)
+      usleep(8 * 1000);
+  }
 
   // get target pose from yaml file
   parseInitPoseData(tune_pose_path_);

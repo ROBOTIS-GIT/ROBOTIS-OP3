@@ -23,6 +23,11 @@ namespace robotis_op
 
 TuningModuleState::TuningModuleState()
 {
+  TuningModuleState(1);
+}
+
+TuningModuleState::TuningModuleState(int via_num)
+{
   is_moving_ = false;
   is_generating_ = false;
 
@@ -37,7 +42,7 @@ TuningModuleState::TuningModuleState()
   joint_ini_pose_ = Eigen::MatrixXd::Zero( MAX_JOINT_ID + 1, 1);
   joint_pose_ = Eigen::MatrixXd::Zero( MAX_JOINT_ID + 1, 1);
 
-  via_num_ = 1;
+  via_num_ = via_num;
 
   joint_via_pose_ = Eigen::MatrixXd::Zero(via_num_, MAX_JOINT_ID + 1);
   joint_via_dpose_ = Eigen::MatrixXd::Zero(via_num_, MAX_JOINT_ID + 1);

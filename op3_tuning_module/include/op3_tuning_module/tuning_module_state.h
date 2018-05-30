@@ -31,6 +31,7 @@ class TuningModuleState
 {
  public:
   TuningModuleState();
+  TuningModuleState(int via_num);
   ~TuningModuleState();
 
   bool is_moving_;

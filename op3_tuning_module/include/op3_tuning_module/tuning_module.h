@@ -28,6 +28,7 @@
 #include <ros/ros.h>
 #include <ros/callback_queue.h>
 #include <ros/package.h>
+#include <std_msgs/Bool.h>
 #include <std_msgs/Int16.h>
 #include <std_msgs/Float64.h>
 #include <std_msgs/String.h>
@@ -125,6 +126,8 @@ class TuningModule : public robotis_framework::MotionModule, public robotis_fram
   bool turnOnOffOffset(bool turn_on);
   bool loadOffsetToController(const std::string &path);
   void saveOffsetToYaml(const std::string &path);
+  void parseDxlInit(const std::string &path);
+  void saveDxlInit(const std::string &path);
 
   int control_cycle_msec_;
   boost::thread queue_thread_;
@@ -138,13 +141,14 @@ class TuningModule : public robotis_framework::MotionModule, public robotis_fram
 
   // offset tuner
   ros::Publisher sync_write_pub_;
+  ros::Publisher enable_offset_pub_;
   ros::Subscriber send_tra_sub_;
   ros::Subscriber joint_offset_data_sub_;
   ros::Subscriber joint_gain_data_sub_;
   ros::Subscriber joint_torque_enable_sub_;
   ros::Subscriber command_sub_;
   ros::ServiceServer offset_data_server_;
-  ros::ServiceClient enable_offset_client_;
+  //ros::ServiceClient enable_offset_client_;
   ros::ServiceClient load_offset_client_;
 
   std::map<std::string, int> joint_name_to_id_;
@@ -154,6 +158,7 @@ class TuningModule : public robotis_framework::MotionModule, public robotis_fram
 
   std::string tune_pose_path_;
   std::string offset_path_;
+  std::string init_file_path_;
   // data set for write the dxls
   TuningData tuning_data_;
 

@@ -2,13 +2,13 @@ r_sho_pitch :   # XM-430
    return_delay_time        : 1    # item name : value
    operating_mode           : 3
    shutdown                 : 56
-#   homing_offset         :  0
-#   torque_limit          :  310
+#  homing_offset         :  0
+#  torque_limit          :  310
    min_position_limit       : 0
    max_position_limit       : 4095
-#   goal_torque          : 310
-#   goal_velocity        : 0
-#   goal_acceleration    : 0
+#  goal_torque          : 310
+#  goal_velocity        : 0
+#  goal_acceleration    : 0
    position_p_gain          : 600
    position_i_gain          : 150
    position_d_gain          : 50

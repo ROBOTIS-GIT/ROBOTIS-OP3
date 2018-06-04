@@ -38,11 +38,11 @@ tune_pose_02 :
   
 tune_pose_03 : 
   move_time : [4.0]   # sec
-  target_pose : [ready_pose]
+  target_pose : [init_pose]
   
 tune_pose_04 : 
-  move_time : [4.0]   # sec
-  target_pose : [ready_pose]
+  move_time : [4.0, 4.0, 3.0, 2.0]   # sec
+  target_pose : [ready_pose, init_pose, ready_pose, init_pose]
   
 #====================================
 # pose data for preset tune pose

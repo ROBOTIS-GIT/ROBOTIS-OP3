@@ -23,10 +23,12 @@
 #include <boost/thread.hpp>
 #include <yaml-cpp/yaml.h>
 #include <numeric>
+#include <fstream>
 
 #include <ros/ros.h>
 #include <ros/callback_queue.h>
 #include <ros/package.h>
+#include <std_msgs/Bool.h>
 #include <std_msgs/Int16.h>
 #include <std_msgs/Float64.h>
 #include <std_msgs/String.h>
@@ -37,6 +39,8 @@
 #include "robotis_controller_msgs/JointCtrlModule.h"
 #include "robotis_controller_msgs/SetModule.h"
 #include "robotis_controller_msgs/StatusMsg.h"
+#include "robotis_controller_msgs/EnableOffset.h"
+#include "robotis_controller_msgs/LoadOffset.h"
 #include "robotis_math/robotis_math.h"
 #include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
 
@@ -104,7 +108,9 @@ class TuningModule : public robotis_framework::MotionModule, public robotis_fram
   void poseGenerateProc(std::map<std::string, double>& joint_angle_pose);
 
   /* Parameter */
+  // state for generating trajectory
   TuningModuleState *tuning_module_state_;
+  // state of the joints
   TuneJointState *joint_state_;
 
  private:
@@ -117,6 +123,11 @@ class TuningModule : public robotis_framework::MotionModule, public robotis_fram
   bool parseInitPoseData(const std::string &path);
   bool parseTunePoseData(const std::string &path, const std::string &pose_name);
   void publishStatusMsg(unsigned int type, std::string msg);
+  bool turnOnOffOffset(bool turn_on);
+  bool loadOffsetToController(const std::string &path);
+  void saveOffsetToYaml(const std::string &path);
+  void parseDxlInit(const std::string &path);
+  void saveDxlInit(const std::string &path);
 
   int control_cycle_msec_;
   boost::thread queue_thread_;
@@ -130,19 +141,25 @@ class TuningModule : public robotis_framework::MotionModule, public robotis_fram
 
   // offset tuner
   ros::Publisher sync_write_pub_;
+  ros::Publisher enable_offset_pub_;
   ros::Subscriber send_tra_sub_;
   ros::Subscriber joint_offset_data_sub_;
   ros::Subscriber joint_gain_data_sub_;
   ros::Subscriber joint_torque_enable_sub_;
   ros::Subscriber command_sub_;
   ros::ServiceServer offset_data_server_;
+  //ros::ServiceClient enable_offset_client_;
+  ros::ServiceClient load_offset_client_;
 
   std::map<std::string, int> joint_name_to_id_;
+  // data set for tuner client
   std::map<std::string, JointOffsetData*> robot_tuning_data_;
   std::map<std::string, bool> robot_torque_enable_data_;
 
   std::string tune_pose_path_;
   std::string offset_path_;
+  std::string init_file_path_;
+  // data set for write the dxls
   TuningData tuning_data_;
 
   bool has_goal_joints_;

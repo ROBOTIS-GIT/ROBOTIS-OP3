@@ -70,10 +70,13 @@ void TuningModule::initialize(const int control_cycle_msec, robotis_framework::R
   sync_write_pub_ = ros_node.advertise<robotis_controller_msgs::SyncWriteItem>("/robotis/sync_write_item", 1);
 
   tune_pose_path_ = ros::package::getPath(ROS_PACKAGE_NAME) + "/data/tune_pose.yaml";
-  offset_path_ = ros::package::getPath(ROS_PACKAGE_NAME) + "/data/offset/yaml";
+  offset_path_ = ros::package::getPath(ROS_PACKAGE_NAME) + "/data/offset.yaml";
+  ros_node.param<std::string>("offset_file_path", offset_path_, offset_path_);
+  ros_node.param<std::string>("init_file_path", init_file_path_, "");
 
   parseOffsetData(offset_path_);
   parseInitPoseData(tune_pose_path_);
+  parseDxlInit(init_file_path_);
 }
 
 void TuningModule::moveToInitPose()
@@ -97,6 +100,12 @@ void TuningModule::moveToInitPose()
 
 void TuningModule::moveToTunePose(const std::string &pose_name)
 {
+  if(enable_ == false)
+  {
+    ROS_ERROR("op3_tuning_module is not enable!!");
+    return;
+  }
+
   // get target pose from yaml file
   parseTunePoseData(tune_pose_path_, pose_name);
 
@@ -136,6 +145,8 @@ bool TuningModule::parseOffsetData(const std::string &path)
 
 bool TuningModule::parseInitPoseData(const std::string &path)
 {
+  ROS_INFO("parse pose for moving init pose");
+
   YAML::Node doc;
   try
   {
@@ -151,7 +162,10 @@ bool TuningModule::parseInitPoseData(const std::string &path)
   init_pose_node = doc["init_pose"];
 
   if(init_pose_node == NULL)
+  {
+    ROS_ERROR("Fail to parse init pose");
     return false;
+  }
 
   // parse movement time
   double move_time;
@@ -160,9 +174,10 @@ bool TuningModule::parseInitPoseData(const std::string &path)
   tuning_module_state_->mov_time_ = move_time;
 
   // no via pose
+  tuning_module_state_->via_num_ = 0;
 
   // parse target pose
-  YAML::Node tar_pose_node = init_pose_node["tar_pose"];
+  YAML::Node tar_pose_node = init_pose_node["target_pose"];
   for (YAML::iterator yaml_it = tar_pose_node.begin(); yaml_it != tar_pose_node.end(); ++yaml_it)
   {
     std::string joint_name;
@@ -177,7 +192,7 @@ bool TuningModule::parseInitPoseData(const std::string &path)
     // store target value
     std::map<std::string, JointOffsetData*>::iterator robot_tuning_data_it = robot_tuning_data_.find(joint_name);
     if (robot_tuning_data_it != robot_tuning_data_.end())
-      robot_tuning_data_[joint_name]->goal_position_ = value;
+      robot_tuning_data_[joint_name]->goal_position_ = value * DEGREE2RADIAN;
   }
 
   tuning_module_state_->all_time_steps_ = int(tuning_module_state_->mov_time_ / tuning_module_state_->smp_time_) + 1;
@@ -235,11 +250,13 @@ bool TuningModule::parseTunePoseData(const std::string &path, const std::string 
   tuning_module_state_->joint_via_ddpose_.fill(0.0);
 
   YAML::Node pose_data_node = doc["pose_data"];
+  double sum_via_time = 0;
 
   for (int num = 0; num < via_num; num++)
   {
     // set via time
-    tuning_module_state_->via_time_.coeffRef(num, 0) = move_time[num];
+    sum_via_time += move_time[num];
+    tuning_module_state_->via_time_.coeffRef(num, 0) = sum_via_time;
 
     // set via pose
     YAML::Node via_pose_node = pose_data_node[target_pose_name[num]];
@@ -247,6 +264,8 @@ bool TuningModule::parseTunePoseData(const std::string &path, const std::string 
     if(via_pose_node == NULL)
       continue;
 
+
+    ROS_WARN_STREAM("via : " << num);
     for (YAML::iterator yaml_it = via_pose_node.begin(); yaml_it != via_pose_node.end(); ++yaml_it)
     {
       std::string joint_name;
@@ -257,8 +276,8 @@ bool TuningModule::parseTunePoseData(const std::string &path, const std::string 
       int id = joint_name_to_id_[joint_name];
 
       tuning_module_state_->joint_via_pose_.coeffRef(num, id) = value * DEGREE2RADIAN;
+      ROS_INFO_STREAM("joint : " << joint_name << ", value : " << value);
     }
-
   }
 
   // parse target pose
@@ -266,6 +285,7 @@ bool TuningModule::parseTunePoseData(const std::string &path, const std::string 
   if(tar_pose_node == NULL)
     return false;
 
+  ROS_WARN_STREAM("target");
   for (YAML::iterator yaml_it = tar_pose_node.begin(); yaml_it != tar_pose_node.end(); ++yaml_it)
   {
     std::string joint_name;
@@ -276,10 +296,13 @@ bool TuningModule::parseTunePoseData(const std::string &path, const std::string 
     int id = joint_name_to_id_[joint_name];
 
     tuning_module_state_->joint_ini_pose_.coeffRef(id, 0) = value * DEGREE2RADIAN;
+    ROS_INFO_STREAM("joint : " << joint_name << ", value : " << value);
   }
 
   tuning_module_state_->all_time_steps_ = int(tuning_module_state_->mov_time_ / tuning_module_state_->smp_time_) + 1;
   tuning_module_state_->calc_joint_tra_.resize(tuning_module_state_->all_time_steps_, MAX_JOINT_ID + 1);
+
+  ROS_INFO_STREAM("tune pose - via_num : " << via_num << ", move_time : " << total_move_time);
 
   return true;
 }
@@ -306,6 +329,9 @@ void TuningModule::queueThread()
                                                   &TuningModule::getPresentJointOffsetDataServiceCallback, this);
 
   set_module_client_ = ros_node.serviceClient<robotis_controller_msgs::SetModule>("/robotis/set_present_ctrl_modules");
+  //enable_offset_client_ = ros_node.serviceClient<robotis_controller_msgs::EnableOffset>("/robotis/enable_offset");
+  enable_offset_pub_ =  ros_node.advertise<std_msgs::Bool>("/robotis/enable_offset", 1);
+  load_offset_client_ = ros_node.serviceClient<robotis_controller_msgs::LoadOffset>("/robotis/load_offset");
 
   ros::WallDuration duration(control_cycle_msec_ / 1000.0);
   while (ros_node.ok())
@@ -494,23 +520,39 @@ void TuningModule::process(std::map<std::string, robotis_framework::Dynamixel *>
     else
       continue;
 
-    double joint_pres_position = dxl->dxl_state_->present_position_;
-    double joint_goal_position = dxl->dxl_state_->goal_position_;
+    // applied offset value
+    double offset_value = 0.0;
+    if(robot_torque_enable_data_[joint_name] == true)
+      offset_value = robot_tuning_data_[joint_name]->joint_offset_rad_;
+
+    double joint_pres_position = dxl->dxl_state_->present_position_ - offset_value;
+    double joint_goal_position = dxl->dxl_state_->goal_position_ - offset_value;
     int p_gain = dxl->dxl_state_->position_p_gain_;
     int i_gain = dxl->dxl_state_->position_i_gain_;
     int d_gain = dxl->dxl_state_->position_d_gain_;
+    //    int p_gain = robot_tuning_data_[joint_name]->p_gain_;
+    //    int i_gain = robot_tuning_data_[joint_name]->i_gain_;
+    //    int d_gain = robot_tuning_data_[joint_name]->d_gain_;
 
     joint_state_->curr_joint_state_[joint_name_to_id_[joint_name]].position_ = joint_pres_position;
     joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].position_ = joint_goal_position;
+
+    if(robot_torque_enable_data_[joint_name] == false)
+      robot_tuning_data_[joint_name]->joint_offset_rad_ = joint_pres_position - joint_goal_position;
 
     joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].p_gain_ = p_gain;
     joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].i_gain_ = i_gain;
     joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].d_gain_ = d_gain;
 
-    robot_tuning_data_[joint_name]->goal_position_ = joint_goal_position;
-    robot_tuning_data_[joint_name]->p_gain_ = p_gain;
-    robot_tuning_data_[joint_name]->i_gain_ = i_gain;
-    robot_tuning_data_[joint_name]->d_gain_ = d_gain;
+    if(robot_torque_enable_data_[joint_name] == true)
+      robot_tuning_data_[joint_name]->goal_position_ = joint_goal_position;
+
+    if(p_gain != 65535)
+      robot_tuning_data_[joint_name]->p_gain_ = p_gain;
+    if(i_gain != 65535)
+      robot_tuning_data_[joint_name]->i_gain_ = i_gain;
+    if(d_gain != 65535)
+      robot_tuning_data_[joint_name]->d_gain_ = d_gain;
   }
 
   has_goal_joints_ = true;
@@ -561,7 +603,9 @@ void TuningModule::process(std::map<std::string, robotis_framework::Dynamixel *>
     std::string joint_name = state_iter->first;
 
     // set goal position
-    result_[joint_name]->goal_position_ = joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].position_;
+    double offset_value = robot_tuning_data_[joint_name]->joint_offset_rad_;
+
+    result_[joint_name]->goal_position_ = joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].position_ + offset_value;
 
     // set pid gain
     result_[joint_name]->position_p_gain_ = joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].p_gain_;
@@ -601,8 +645,8 @@ void TuningModule::onModuleEnable()
   // load offset file
   parseOffsetData(offset_path_);
 
-  // send topic to manager in order to turn off offset function
-  // ...
+  // turn off offset function
+  turnOnOffOffset(false);
 }
 
 void TuningModule::onModuleDisable()
@@ -610,8 +654,8 @@ void TuningModule::onModuleDisable()
   tuning_data_.clearData();
   has_goal_joints_ = false;
 
-  // send topic to manager in order to turn on offset function
-  // ...
+  // turn on offset function
+  turnOnOffOffset(true);
 }
 
 void TuningModule::setCtrlModule(std::string module)
@@ -650,27 +694,18 @@ void TuningModule::publishStatusMsg(unsigned int type, std::string msg)
 // command for tuner
 void TuningModule::commandCallback(const std_msgs::String::ConstPtr& msg)
 {
-  if (msg->data == "save")
+  if (msg->data == "save_offset")
   {
-    //    YAML::Emitter yaml_out;
-    //    std::map<std::string, double> offset;
-    //    std::map<std::string, double> init_pose;
-    //    for (std::map<std::string, JointOffsetData*>::iterator map_it = robot_offset_data_.begin();
-    //         map_it != robot_offset_data_.end(); map_it++)
-    //    {
-    //      std::string joint_name = map_it->first;
-    //      JointOffsetData* joint_data = map_it->second;
+    // save current offset to yaml file
+    saveOffsetToYaml(offset_path_);
 
-    //      offset[joint_name] = joint_data->joint_offset_rad_;  // edit one of the nodes
-    //      init_pose[joint_name] = joint_data->joint_init_pos_rad_;  // edit one of the nodes
-    //    }
-
-    //    yaml_out << YAML::BeginMap;
-    //    yaml_out << YAML::Key << "offset" << YAML::Value << offset;
-    //    yaml_out << YAML::Key << "init_pose_for_tuning_module" << YAML::Value << init_pose;
-    //    yaml_out << YAML::EndMap;
-    //    std::ofstream fout(offset_file_.c_str());
-    //    fout << yaml_out.c_str();  // dump it back into the file
+    // send a command to robotis_controller to load the new offset file
+    loadOffsetToController(offset_path_);
+  }
+  else if(msg->data == "save_gain")
+  {
+    // save gain to dxl init file
+    saveDxlInit(init_file_path_);
   }
   else
   {
@@ -713,15 +748,15 @@ void TuningModule::jointOffsetDataCallback(const op3_tuning_module_msgs::JointOf
   data_mutex_.lock();
 
   tuning_data_.joint_name_.setValue(msg->joint_name);
-  tuning_data_.position_.setValue(msg->offset_value + msg->goal_value);
+  tuning_data_.position_.setValue(msg->goal_value);
+
+  // store tuning data
+  robot_tuning_data_[msg->joint_name]->goal_position_ = msg->goal_value;
+  robot_tuning_data_[msg->joint_name]->joint_offset_rad_ = msg->offset_value;
 
   // flag on to update joint data
   get_tuning_data_ = true;
   data_mutex_.unlock();
-
-  // store tuning data
-  //  robot_tuning_data_[msg->joint_name]->goal_position_ = msg->goal_value;
-  robot_tuning_data_[msg->joint_name]->joint_offset_rad_ = msg->offset_value;
 }
 
 void TuningModule::jointGainDataCallback(const op3_tuning_module_msgs::JointOffsetData::ConstPtr &msg)
@@ -759,13 +794,14 @@ void TuningModule::jointGainDataCallback(const op3_tuning_module_msgs::JointOffs
   tuning_data_.i_gain_.setValue(msg->i_gain);
   tuning_data_.d_gain_.setValue(msg->d_gain);
 
+  robot_tuning_data_[msg->joint_name]->p_gain_ = msg->p_gain;
+  robot_tuning_data_[msg->joint_name]->i_gain_ = msg->i_gain;
+  robot_tuning_data_[msg->joint_name]->d_gain_ = msg->d_gain;
+
   // flag on to update joint data
   get_tuning_data_ = true;
   data_mutex_.unlock();
 
-  //  robot_tuning_data_[msg->joint_name]->p_gain_ = msg->p_gain;
-  //  robot_tuning_data_[msg->joint_name]->i_gain_ = msg->i_gain;
-  //  robot_tuning_data_[msg->joint_name]->d_gain_ = msg->d_gain;
 }
 
 void TuningModule::jointTorqueOnOffCallback(const op3_tuning_module_msgs::JointTorqueOnOffArray::ConstPtr& msg)
@@ -832,6 +868,173 @@ bool TuningModule::getPresentJointOffsetDataServiceCallback(
 
   }
   return true;
+}
+
+bool TuningModule::turnOnOffOffset(bool turn_on)
+{
+  ROS_WARN("Try to turn on/off offset in robotis_controller");
+
+  std_msgs::Bool enable_offset_msg;
+  enable_offset_msg.data = turn_on;
+
+  enable_offset_pub_.publish(enable_offset_msg);
+
+  //  robotis_controller_msgs::EnableOffset enable_offset_srv;
+  //  enable_offset_srv.request.enable = turn_on;
+
+  //  if (enable_offset_client_.call(enable_offset_srv) == true)
+  //  {
+  //    if(enable_offset_srv.response.result == true)
+  //      ROS_INFO("succeed to turn on/off the offset in robotis_controller");
+  //    else
+  //      ROS_ERROR("Failed to turn ON/OFF the offset in robotis_controller");
+
+  //    return enable_offset_srv.response.result;
+  //  }
+  //  else
+  //  {
+  //    ROS_ERROR("Service server is not responded for turning on/off offset");
+  //    return false;
+  //  }
+
+  return true;
+}
+
+bool TuningModule::loadOffsetToController(const std::string &path)
+{
+  robotis_controller_msgs::LoadOffset load_offset_srv;
+  load_offset_srv.request.file_path = path;
+
+  if (load_offset_client_.call(load_offset_srv) == true)
+  {
+    if(load_offset_srv.response.result == true)
+      ROS_INFO("succeed to let robotis_controller load the offset");
+    else
+      ROS_ERROR("Failed to let robotis_controller load the offset");
+
+    return load_offset_srv.response.result;
+  }
+  else
+  {
+    ROS_ERROR("Service server is not responded for turning on/off offset");
+    return false;
+  }
+
+  return true;
+}
+
+void TuningModule::saveOffsetToYaml(const std::string &path)
+{
+  YAML::Emitter yaml_out;
+  std::map<std::string, double> offset;
+  //  std::map<std::string, double> init_pose;
+  for (std::map<std::string, JointOffsetData*>::iterator map_it = robot_tuning_data_.begin();
+       map_it != robot_tuning_data_.end(); map_it++)
+  {
+    std::string joint_name = map_it->first;
+    JointOffsetData* joint_data = map_it->second;
+
+    offset[joint_name] = joint_data->joint_offset_rad_;  // edit one of the nodes
+    //    init_pose[joint_name] = joint_data->joint_init_pos_rad_;  // edit one of the nodes
+  }
+
+  yaml_out << YAML::BeginMap;
+  yaml_out << YAML::Key << "offset" << YAML::Value << offset;
+  //  yaml_out << YAML::Key << "init_pose_for_tuning_module" << YAML::Value << init_pose;
+  yaml_out << YAML::EndMap;
+  std::ofstream fout(path.c_str());
+  fout << yaml_out.c_str();  // dump it back into the file
+  return;
+}
+
+void TuningModule::parseDxlInit(const std::string &path)
+{
+  ROS_WARN("Get the init gain from Dxl init file");
+  YAML::Node doc;
+  try
+  {
+    // load yaml
+    doc = YAML::LoadFile(path.c_str());
+  } catch (const std::exception& e)
+  {
+    ROS_ERROR("Fail to load dxl init yaml file.");
+    return;
+  }
+
+  for (std::map<std::string, JointOffsetData*>::iterator map_it = robot_tuning_data_.begin();
+       map_it != robot_tuning_data_.end(); map_it++)
+  {
+    std::string joint_name = map_it->first;
+    JointOffsetData* joint_data = map_it->second;
+
+    YAML::Node joint_node = doc[joint_name];
+
+    if(joint_node == NULL)
+      continue;
+
+    if(joint_node["position_p_gain"] != NULL)
+      joint_data->p_gain_ = joint_node["position_p_gain"].as<int>();
+    if(joint_node["position_i_gain"] != NULL)
+      joint_data->i_gain_ = joint_node["position_i_gain"].as<int>();
+    if(joint_node["position_d_gain"] != NULL)
+      joint_data->d_gain_ = joint_node["position_d_gain"].as<int>();
+  }
+}
+
+void TuningModule::saveDxlInit(const std::string &path)
+{
+  YAML::Node doc;
+  try
+  {
+    // load yaml
+    doc = YAML::LoadFile(path.c_str());
+  } catch (const std::exception& e)
+  {
+    ROS_ERROR("Fail to load dxl init yaml file.");
+    return;
+  }
+
+  YAML::Emitter yaml_out;
+  yaml_out << YAML::BeginMap;
+
+  for (std::map<std::string, JointOffsetData*>::iterator map_it = robot_tuning_data_.begin();
+       map_it != robot_tuning_data_.end(); map_it++)
+  {
+    std::string joint_name = map_it->first;
+    JointOffsetData* joint_data = map_it->second;
+
+    YAML::Node joint_node = doc[joint_name];
+
+    if(joint_node == NULL)
+      continue;
+
+    std::map<std::string, int> dxl_init_param;
+
+    for (YAML::const_iterator node_it = joint_node.begin(); node_it != joint_node.end(); node_it++)
+    {
+      std::string init_param = node_it->first.as<std::string>();
+      int init_value = node_it->second.as<int>();
+      dxl_init_param[init_param] = init_value;
+
+    }
+
+    dxl_init_param["position_p_gain"] = joint_data->p_gain_;
+    dxl_init_param["position_i_gain"] = joint_data->i_gain_;
+    dxl_init_param["position_d_gain"] = joint_data->d_gain_;
+
+
+    yaml_out << YAML::Key << joint_name << YAML::Value << dxl_init_param;
+  }
+
+  yaml_out << YAML::EndMap;
+  std::ofstream fout(path.c_str());
+  fout << yaml_out.c_str();  // dump it back into the file
+
+  //  YAML::Emitter yaml_out;
+  //  yaml_out << doc;
+  //  std::ofstream fout(path.c_str());
+  //  fout << yaml_out.c_str();  // dump it back into the file
+  return;
 }
 
 }

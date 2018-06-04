@@ -94,6 +94,15 @@ class JointOffsetData
     d_gain_ = 0;
   }
 
+  JointOffsetData(double joint_offset_rad, double goal_position, int p_gain, int i_gain, int d_gain)
+  {
+    this->joint_offset_rad_ = joint_offset_rad;
+    this->goal_position_ = goal_position;
+    p_gain_ = p_gain;
+    i_gain_ = i_gain;
+    d_gain_ = d_gain;
+  }
+
   ~JointOffsetData()
   {
   }

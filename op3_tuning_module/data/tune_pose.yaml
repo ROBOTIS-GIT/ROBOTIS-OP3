@@ -45,7 +45,7 @@ tune_pose_04 :
   target_pose : [ready_pose]
   
 #====================================
-# pose data for preset tune pose
+# pose data for preset pose
 #====================================
 pose_data :
   ready_pose :      # DEG

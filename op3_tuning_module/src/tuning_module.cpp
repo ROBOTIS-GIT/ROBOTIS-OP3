@@ -547,11 +547,11 @@ void TuningModule::process(std::map<std::string, robotis_framework::Dynamixel *>
     if(robot_torque_enable_data_[joint_name] == true)
       robot_tuning_data_[joint_name]->goal_position_ = joint_goal_position;
 
-    if(p_gain != 65535)
+    if(p_gain != DEFAULT_GAIN)
       robot_tuning_data_[joint_name]->p_gain_ = p_gain;
-    if(i_gain != 65535)
+    if(i_gain != DEFAULT_GAIN)
       robot_tuning_data_[joint_name]->i_gain_ = i_gain;
-    if(d_gain != 65535)
+    if(d_gain != DEFAULT_GAIN)
       robot_tuning_data_[joint_name]->d_gain_ = d_gain;
   }
 

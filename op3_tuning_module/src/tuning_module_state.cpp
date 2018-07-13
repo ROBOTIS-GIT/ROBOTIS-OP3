@@ -20,12 +20,6 @@
 
 namespace robotis_op
 {
-
-TuningModuleState::TuningModuleState()
-{
-  TuningModuleState(1);
-}
-
 TuningModuleState::TuningModuleState(int via_num)
 {
   is_moving_ = false;

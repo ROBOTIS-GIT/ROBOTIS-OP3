@@ -30,8 +30,7 @@ namespace robotis_op
 class TuningModuleState
 {
  public:
-  TuningModuleState();
-  TuningModuleState(int via_num);
+  TuningModuleState(int via_num = 1);
   ~TuningModuleState();
 
   bool is_moving_;

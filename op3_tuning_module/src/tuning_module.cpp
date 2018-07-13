@@ -285,7 +285,6 @@ bool TuningModule::parseTunePoseData(const std::string &path, const std::string 
   if(tar_pose_node == NULL)
     return false;
 
-  ROS_WARN_STREAM("target");
   for (YAML::iterator yaml_it = tar_pose_node.begin(); yaml_it != tar_pose_node.end(); ++yaml_it)
   {
     std::string joint_name;
@@ -522,7 +521,7 @@ void TuningModule::process(std::map<std::string, robotis_framework::Dynamixel *>
 
     // applied offset value
     double offset_value = 0.0;
-    if(robot_torque_enable_data_[joint_name] == true)
+//    if(robot_torque_enable_data_[joint_name] == true)
       offset_value = robot_tuning_data_[joint_name]->joint_offset_rad_;
 
     double joint_pres_position = dxl->dxl_state_->present_position_ - offset_value;
@@ -530,14 +529,12 @@ void TuningModule::process(std::map<std::string, robotis_framework::Dynamixel *>
     int p_gain = dxl->dxl_state_->position_p_gain_;
     int i_gain = dxl->dxl_state_->position_i_gain_;
     int d_gain = dxl->dxl_state_->position_d_gain_;
-    //    int p_gain = robot_tuning_data_[joint_name]->p_gain_;
-    //    int i_gain = robot_tuning_data_[joint_name]->i_gain_;
-    //    int d_gain = robot_tuning_data_[joint_name]->d_gain_;
 
     joint_state_->curr_joint_state_[joint_name_to_id_[joint_name]].position_ = joint_pres_position;
     joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].position_ = joint_goal_position;
 
     if(robot_torque_enable_data_[joint_name] == false)
+//      joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].position_ = joint_pres_position;
       robot_tuning_data_[joint_name]->joint_offset_rad_ = joint_pres_position - joint_goal_position;
 
     joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].p_gain_ = p_gain;
@@ -546,12 +543,14 @@ void TuningModule::process(std::map<std::string, robotis_framework::Dynamixel *>
 
     if(robot_torque_enable_data_[joint_name] == true)
       robot_tuning_data_[joint_name]->goal_position_ = joint_goal_position;
+    else
+      robot_tuning_data_[joint_name]->goal_position_ = joint_pres_position;
 
-    if(p_gain != 65535)
+    if(p_gain != DEFAULT_GAIN)
       robot_tuning_data_[joint_name]->p_gain_ = p_gain;
-    if(i_gain != 65535)
+    if(i_gain != DEFAULT_GAIN)
       robot_tuning_data_[joint_name]->i_gain_ = i_gain;
-    if(d_gain != 65535)
+    if(d_gain != DEFAULT_GAIN)
       robot_tuning_data_[joint_name]->d_gain_ = d_gain;
   }
 

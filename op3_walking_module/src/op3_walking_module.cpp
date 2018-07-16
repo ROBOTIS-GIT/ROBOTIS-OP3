@@ -432,6 +432,12 @@ void WalkingModule::process(std::map<std::string, robotis_framework::Dynamixel *
   double angle[joint_size];
   double balance_angle[joint_size];
 
+  for(int _idx = 0; _idx < joint_size; _idx++)
+  {
+    angle[_idx]         = 0.0f;
+    balance_angle[_idx] = 0.0f;
+  }
+
   if (walking_state_ == WalkingInitPose)
   {
     int total_count = calc_joint_tra_.rows();

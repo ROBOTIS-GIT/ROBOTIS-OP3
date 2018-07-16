@@ -115,6 +115,8 @@ class BaseModule : public robotis_framework::MotionModule, public robotis_framew
 
   bool has_goal_joints_;
   bool ini_pose_only_;
+
+  std::string	init_pose_file_path_;
 };
 
 }

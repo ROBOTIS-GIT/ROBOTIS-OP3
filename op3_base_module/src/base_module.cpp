@@ -25,7 +25,8 @@ namespace robotis_op
 BaseModule::BaseModule()
   : control_cycle_msec_(0),
     has_goal_joints_(false),
-    ini_pose_only_(false)
+    ini_pose_only_(false),
+    init_pose_file_path_("")
 {
   enable_ = false;
   module_name_ = "base_module";
@@ -58,6 +59,9 @@ void BaseModule::initialize(const int control_cycle_msec, robotis_framework::Rob
   }
 
   ros::NodeHandle ros_node;
+
+  /* Load ROS Parameter */
+  ros_node.param<std::string>("init_pose_file_path", init_pose_file_path_, ros::package::getPath("op3_base_module") + "/data/ini_pose.yaml");
 
   /* publish topics */
   status_msg_pub_ = ros_node.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 1);
@@ -167,8 +171,7 @@ void BaseModule::initPoseMsgCallback(const std_msgs::String::ConstPtr& msg)
         usleep(8 * 1000);
 
       // parse initial pose
-      std::string init_pose_path = ros::package::getPath("op3_base_module") + "/data/ini_pose.yaml";
-      parseInitPoseData(init_pose_path);
+      parseInitPoseData(init_pose_file_path_);
 
       // generate trajectory
       tra_gene_tread_ = boost::thread(boost::bind(&BaseModule::initPoseTrajGenerateProc, this));

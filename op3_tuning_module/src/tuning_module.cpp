@@ -506,132 +506,6 @@ void TuningModule::process(std::map<std::string, robotis_framework::Dynamixel *>
   if (enable_ == false)
     return;
 
-  /*----- write curr position -----*/
-  //  for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_iter = result_.begin();
-  //       state_iter != result_.end(); state_iter++)
-  //  {
-  //    std::string joint_name = state_iter->first;
-
-  //    robotis_framework::Dynamixel *dxl = NULL;
-  //    std::map<std::string, robotis_framework::Dynamixel*>::iterator dxl_it = dxls.find(joint_name);
-  //    if (dxl_it != dxls.end())
-  //      dxl = dxl_it->second;
-  //    else
-  //      continue;
-
-  //    // applied offset value
-  //    double offset_value = 0.0;
-  ////    if(robot_torque_enable_data_[joint_name] == true)
-  //      offset_value = robot_tuning_data_[joint_name]->joint_offset_rad_;
-
-  //    double joint_pres_position = dxl->dxl_state_->present_position_ - offset_value;
-  //    double joint_goal_position = dxl->dxl_state_->goal_position_ - offset_value;
-  //    int p_gain = dxl->dxl_state_->position_p_gain_;
-  //    int i_gain = dxl->dxl_state_->position_i_gain_;
-  //    int d_gain = dxl->dxl_state_->position_d_gain_;
-
-  //    joint_state_->curr_joint_state_[joint_name_to_id_[joint_name]].position_ = joint_pres_position;
-  //    joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].position_ = joint_goal_position;
-
-  //    if(robot_torque_enable_data_[joint_name] == false)
-  ////      joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].position_ = joint_pres_position;
-  //      robot_tuning_data_[joint_name]->joint_offset_rad_ = joint_pres_position - joint_goal_position;
-
-  //    joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].p_gain_ = p_gain;
-  //    joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].i_gain_ = i_gain;
-  //    joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].d_gain_ = d_gain;
-
-  //    if(robot_torque_enable_data_[joint_name] == true)
-  //      robot_tuning_data_[joint_name]->goal_position_ = joint_goal_position;
-  //    else
-  //      robot_tuning_data_[joint_name]->goal_position_ = joint_pres_position;
-
-  //    if(p_gain != NONE_GAIN)
-  //      robot_tuning_data_[joint_name]->p_gain_ = p_gain;
-  //    if(i_gain != NONE_GAIN)
-  //      robot_tuning_data_[joint_name]->i_gain_ = i_gain;
-  //    if(d_gain != NONE_GAIN)
-  //      robot_tuning_data_[joint_name]->d_gain_ = d_gain;
-  //  }
-
-  //  has_goal_joints_ = true;
-
-  //  /* ----- send trajectory ----- */
-  //  if (tuning_module_state_->is_moving_ == true)
-  //  {
-  //    if (tuning_module_state_->cnt_ == 1)
-  //      publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "Start Init Pose");
-
-  //    for (int id = 1; id <= MAX_JOINT_ID; id++)
-  //      joint_state_->goal_joint_state_[id].position_ = tuning_module_state_->calc_joint_tra_(tuning_module_state_->cnt_, id);
-
-  //    tuning_module_state_->cnt_++;
-  //  }
-  //  else if(get_tuning_data_ == true)
-  //  {
-  //    // update tuning data
-  //    // check whether lock is possible
-  //    if(data_mutex_.try_lock() == true)
-  //    {
-  //      // get joint name
-  //      std::string joint_name;
-  //      tuning_data_.joint_name_.getValue(joint_name);
-
-  //      std::map<std::string, int>::iterator joint_name_to_id_it = joint_name_to_id_.find(joint_name);
-  //      if (joint_name_to_id_it != joint_name_to_id_.end())
-  //      {
-  //        // get tuning data
-  //        int joint_id = joint_name_to_id_it->second;
-  //        tuning_data_.position_.getValue(joint_state_->goal_joint_state_[joint_id].position_);
-
-  //        tuning_data_.p_gain_.getValue(joint_state_->goal_joint_state_[joint_id].p_gain_);
-  //        tuning_data_.i_gain_.getValue(joint_state_->goal_joint_state_[joint_id].i_gain_);
-  //        tuning_data_.d_gain_.getValue(joint_state_->goal_joint_state_[joint_id].d_gain_);
-  //      }
-
-  //      // turn off the flag
-  //      get_tuning_data_ = false;
-  //      data_mutex_.unlock();
-  //    }
-  //  }
-
-  //  /*----- set joint data -----*/
-  //  for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_iter = result_.begin();
-  //       state_iter != result_.end(); state_iter++)
-  //  {
-  //    std::string joint_name = state_iter->first;
-
-  //    // set goal position
-  //    double offset_value = robot_tuning_data_[joint_name]->joint_offset_rad_;
-
-  //    result_[joint_name]->goal_position_ = joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].position_ + offset_value;
-
-  //    // set pid gain
-  //    result_[joint_name]->position_p_gain_ = joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].p_gain_;
-  //    result_[joint_name]->position_i_gain_ = joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].i_gain_;
-  //    result_[joint_name]->position_d_gain_ = joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].d_gain_;
-  //  }
-
-  //  /*---------- initialize count number ----------*/
-
-  //  if ((tuning_module_state_->cnt_ >= tuning_module_state_->all_time_steps_) && (tuning_module_state_->is_moving_ == true))
-  //  {
-  //    ROS_INFO("[end] send trajectory");
-
-  //    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "Finish Init Pose");
-
-  //    tuning_module_state_->is_moving_ = false;
-  //    tuning_module_state_->cnt_ = 0;
-
-  //    // set all joints -> none
-  //    if (ini_pose_only_ == true)
-  //    {
-  //      setCtrlModule("none");
-  //      ini_pose_only_ = false;
-  //    }
-  //  }
-
-
   // get dxl data
   for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_iter = result_.begin();
        state_iter != result_.end(); state_iter++)
@@ -665,14 +539,6 @@ void TuningModule::process(std::map<std::string, robotis_framework::Dynamixel *>
     joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].p_gain_ = p_gain;
     joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].i_gain_ = i_gain;
     joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].d_gain_ = d_gain;
-
-    //      if(p_gain != NONE_GAIN)
-    //        robot_tuning_data_[joint_name]->p_gain_ = p_gain;
-    //      if(i_gain != NONE_GAIN)
-    //        robot_tuning_data_[joint_name]->i_gain_ = i_gain;
-    //      if(d_gain != NONE_GAIN)
-    //        robot_tuning_data_[joint_name]->d_gain_ = d_gain;
-
   }
 
   has_goal_joints_ = true;
@@ -731,23 +597,32 @@ void TuningModule::process(std::map<std::string, robotis_framework::Dynamixel *>
       joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].position_ = robot_tuning_data_[joint_name]->goal_position_;
     }
 
-    // set goal position
+    // set goal position & store value to robot_tuning_data_
     double offset_value = robot_tuning_data_[joint_name]->joint_offset_rad_;
 
     result_[joint_name]->goal_position_ = joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].position_ + offset_value;
-
-    // set pid gain
-    result_[joint_name]->position_p_gain_ = joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].p_gain_;
-    result_[joint_name]->position_i_gain_ = joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].i_gain_;
-    result_[joint_name]->position_d_gain_ = joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].d_gain_;
-
-
-    // store value to robot_tuning_data_
     robot_tuning_data_[joint_name]->goal_position_ = joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].position_;
 
-    robot_tuning_data_[joint_name]->p_gain_ = joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].p_gain_;
-    robot_tuning_data_[joint_name]->i_gain_ = joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].i_gain_;
-    robot_tuning_data_[joint_name]->d_gain_ = joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].d_gain_;
+    // set pid gain
+    int p_gain = joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].p_gain_;
+    int i_gain = joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].i_gain_;
+    int d_gain = joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].d_gain_;
+
+    if(p_gain != NONE_GAIN)
+    {
+      result_[joint_name]->position_p_gain_ = p_gain;
+      robot_tuning_data_[joint_name]->p_gain_ = p_gain;
+    }
+    if(i_gain != NONE_GAIN)
+    {
+      result_[joint_name]->position_i_gain_ = i_gain;
+      robot_tuning_data_[joint_name]->i_gain_ = i_gain;
+    }
+    if(d_gain != NONE_GAIN)
+    {
+      result_[joint_name]->position_d_gain_ = d_gain;
+      robot_tuning_data_[joint_name]->d_gain_ = d_gain;
+    }
   }
 
   /*---------- initialize count number ----------*/

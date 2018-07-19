@@ -18,8 +18,9 @@ notifications:
       - pyo@robotis.com
 env:
   matrix:
-    - ROS_DISTRO=kinetic ROS_REPO=ros-shadow-fixed UPSTREAM_WORKSPACE=debian
+#    - ROS_DISTRO=kinetic ROS_REPO=ros-shadow-fixed UPSTREAM_WORKSPACE=debian
 #   - ROS_DISTRO=kinetic ROS_REPO=ros-shadow-fixed UPSTREAM_WORKSPACE=debian OS_NAME=debian OS_CODE_NAME=jessie
+    - ROS_DISTRO=kinetic ROS_REPO=ros-shadow-fixed UPSTREAM_WORKSPACE=file   OS_NAME=ubuntu OS_CODE_NAME=xenial $ROSINSTALL_FILENAME=".robotis_op3.rosinstall"
 branches:
   only:
     - master

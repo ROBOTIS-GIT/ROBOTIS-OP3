@@ -1,0 +1,3 @@
+- git: {local-name: robotis_op3_msgs, uri: 'https://github.com/ROBOTIS-GIT/ROBOTIS-OP3-msgs.git', version: master}
+- git: {local-name: robotis_framework, uri: 'https://github.com/ROBOTIS-GIT/ROBOTIS-Framework.git', version: master}
+- git: {local-name: robotis_controller_msgs , uri: 'https://github.com/ROBOTIS-GIT/ROBOTIS-Framework-msgs.git', version: master}

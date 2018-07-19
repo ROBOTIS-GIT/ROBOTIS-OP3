@@ -304,7 +304,7 @@ void DirectControlModule::process(std::map<std::string, robotis_framework::Dynam
     op3_kinematics_->calcForwardKinematics(0);
 
     // check self collision
-    bool collision_result = checkSelfCollision();
+    checkSelfCollision();
   }
 
   // set joint data to robot

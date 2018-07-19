@@ -328,7 +328,6 @@ void TuningModule::queueThread()
                                                   &TuningModule::getPresentJointOffsetDataServiceCallback, this);
 
   set_module_client_ = ros_node.serviceClient<robotis_controller_msgs::SetModule>("/robotis/set_present_ctrl_modules");
-  //enable_offset_client_ = ros_node.serviceClient<robotis_controller_msgs::EnableOffset>("/robotis/enable_offset");
   enable_offset_pub_ =  ros_node.advertise<std_msgs::Bool>("/robotis/enable_offset", 1);
   load_offset_client_ = ros_node.serviceClient<robotis_controller_msgs::LoadOffset>("/robotis/load_offset");
 
@@ -890,24 +889,6 @@ bool TuningModule::turnOnOffOffset(bool turn_on)
 
   enable_offset_pub_.publish(enable_offset_msg);
 
-  //  robotis_controller_msgs::EnableOffset enable_offset_srv;
-  //  enable_offset_srv.request.enable = turn_on;
-
-  //  if (enable_offset_client_.call(enable_offset_srv) == true)
-  //  {
-  //    if(enable_offset_srv.response.result == true)
-  //      ROS_INFO("succeed to turn on/off the offset in robotis_controller");
-  //    else
-  //      ROS_ERROR("Failed to turn ON/OFF the offset in robotis_controller");
-
-  //    return enable_offset_srv.response.result;
-  //  }
-  //  else
-  //  {
-  //    ROS_ERROR("Service server is not responded for turning on/off offset");
-  //    return false;
-  //  }
-
   return true;
 }
 
@@ -1047,10 +1028,6 @@ void TuningModule::saveDxlInit(const std::string &path)
   std::ofstream fout(path.c_str());
   fout << yaml_out.c_str();  // dump it back into the file
 
-  //  YAML::Emitter yaml_out;
-  //  yaml_out << doc;
-  //  std::ofstream fout(path.c_str());
-  //  fout << yaml_out.c_str();  // dump it back into the file
   return;
 }
 

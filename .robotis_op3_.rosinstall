@@ -1,0 +1,1 @@
+- git: {local-name: robotis_op3_msgs, uri: 'https://github.com/ROBOTIS-GIT/ROBOTIS-OP3-msgs.git', version: master}

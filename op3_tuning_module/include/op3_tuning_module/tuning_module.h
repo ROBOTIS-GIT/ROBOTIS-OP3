@@ -39,7 +39,6 @@
 #include "robotis_controller_msgs/JointCtrlModule.h"
 #include "robotis_controller_msgs/SetModule.h"
 #include "robotis_controller_msgs/StatusMsg.h"
-#include "robotis_controller_msgs/EnableOffset.h"
 #include "robotis_controller_msgs/LoadOffset.h"
 #include "robotis_math/robotis_math.h"
 #include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
@@ -149,7 +148,6 @@ class TuningModule : public robotis_framework::MotionModule, public robotis_fram
   ros::Subscriber joint_torque_enable_sub_;
   ros::Subscriber command_sub_;
   ros::ServiceServer offset_data_server_;
-  //ros::ServiceClient enable_offset_client_;
   ros::ServiceClient load_offset_client_;
 
   std::map<std::string, int> joint_name_to_id_;

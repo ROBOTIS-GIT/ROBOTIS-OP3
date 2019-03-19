@@ -222,6 +222,7 @@ void DirectControlModule::setJointCallback(const sensor_msgs::JointState::ConstP
 
   // generate trajectory
   tra_gene_thread_ = new boost::thread(boost::bind(&DirectControlModule::jointTraGeneThread, this));
+  tra_gene_thread_->join();
   delete tra_gene_thread_;
 }
 

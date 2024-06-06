@@ -22,6 +22,14 @@
 namespace robotis_op
 {
 
+double getSign(double num)
+{
+  if(num < 0)
+    return -1.0;
+  else
+    return 1.0;
+}
+
 OP3KinematicsDynamics::OP3KinematicsDynamics()
 {
 }
@@ -479,8 +487,11 @@ OP3KinematicsDynamics::OP3KinematicsDynamics(TreeSelect tree)
     op3_link_data_[30]->joint_limit_min_ = -100.0;
     op3_link_data_[30]->inertia_ = robotis_framework::getInertiaXYZ(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
   }
-
-  thigh_length_m_ = std::fabs(op3_link_data_[ID_R_LEG_START + 2 * 3]->relative_position_.coeff(2, 0));
+  
+  hip_offset_angle_rad_ = atan2(0.0001, 0.11015);
+  hip_pitch_offset_m_ = 0.0001;
+  thigh_length_m_ = sqrt(op3_link_data_[ID_R_LEG_START + 2 * 3]->relative_position_.coeff(0, 0)*op3_link_data_[ID_R_LEG_START + 2 * 3]->relative_position_.coeff(0, 0)
+                               + op3_link_data_[ID_R_LEG_START + 2 * 3]->relative_position_.coeff(2, 0)*op3_link_data_[ID_R_LEG_START + 2 * 3]->relative_position_.coeff(2, 0));
   calf_length_m_ = std::fabs(op3_link_data_[ID_R_LEG_START + 2 * 4]->relative_position_.coeff(2, 0));
   ankle_length_m_ = std::fabs(op3_link_data_[ID_R_LEG_END]->relative_position_.coeff(2, 0));
   leg_side_offset_m_ = 2.0 * (std::fabs(op3_link_data_[ID_R_LEG_START]->relative_position_.coeff(1, 0)));
@@ -955,90 +966,120 @@ bool OP3KinematicsDynamics::calcInverseKinematics(int from, int to, Eigen::Matri
 bool OP3KinematicsDynamics::calcInverseKinematicsForLeg(double *out, double x, double y, double z, double roll,
                                                         double pitch, double yaw)
 {
-  Eigen::Matrix4d trans_ad, trans_da, trans_cd, trans_dc, trans_ac;
-  Eigen::Vector3d vec;
+  Eigen::Matrix3d R06 = robotis_framework::convertRPYToRotation(roll, pitch, yaw);
+  Eigen::Vector3d p06 = robotis_framework::getTransitionXYZ(x, y, z) + ankle_length_m_*R06.block<3,1>(0,2); //desired hip to ankle
+  
+  //calc q6
+  Eigen::Vector3d p60 = -R06.transpose()*p06;
+  *(out + 5) = atan2(p60(1), p60(2));
 
-  bool invertible;
-  double rac, arc_cos, arc_tan, k, l, m, n, s, c, theta;
-  double thigh_length = thigh_length_m_;
-  double calf_length = calf_length_m_;
-  double ankle_length = ankle_length_m_;
+  //calc q1
+  Eigen::Matrix3d R05 = R06*robotis_framework::getRotationX(-(*(out + 5)));
+  *(out + 0) = atan2(-R05(0, 1), R05(1, 1));
 
-  trans_ad = robotis_framework::getTransformationXYZRPY(x, y, z, roll, pitch, yaw);
+  //calc q4
+  Eigen::Vector3d p03 = robotis_framework::getRotationZ(*(out + 0))*robotis_framework::getTransitionXYZ(hip_pitch_offset_m_, 0, 0);
+  Eigen::Vector3d p36 = p06 - p03;
+  
+  *(out + 3) = -acos((thigh_length_m_*thigh_length_m_ + calf_length_m_*calf_length_m_ - p36.norm()*p36.norm())/(2*thigh_length_m_*calf_length_m_)) + EIGEN_PI;
 
-  vec.coeffRef(0) = trans_ad.coeff(0, 3) + trans_ad.coeff(0, 2) * ankle_length;
-  vec.coeffRef(1) = trans_ad.coeff(1, 3) + trans_ad.coeff(1, 2) * ankle_length;
-  vec.coeffRef(2) = trans_ad.coeff(2, 3) + trans_ad.coeff(2, 2) * ankle_length;
+  //calc q5
+  double alpha = asin(thigh_length_m_*sin(EIGEN_PI - *(out + 3))/p36.norm());
+  Eigen::Vector3d p63 = -R06.transpose()*p36;
+  *(out + 4) = -atan2(p63(0), getSign(p63(2))*sqrt(p63(1)*p63(1) + p63(2)*p63(2))) - alpha;
 
-  // Get Knee
-  rac = vec.norm();
-  arc_cos = acos(
-      (rac * rac - thigh_length * thigh_length - calf_length * calf_length) / (2.0 * thigh_length * calf_length));
-  if (std::isnan(arc_cos) == 1)
-    return false;
-  *(out + 3) = arc_cos;
+  //calc q2 and q3
+  Eigen::Matrix3d R13 = robotis_framework::getRotationZ(-(*(out + 0))) * R05 * robotis_framework::getRotationY( -(*(out + 4) + *(out + 3)) );
+  *(out + 1) = atan2(R13(2,1), R13(1,1));
+  *(out + 2) = atan2(R13(0,2), R13(0,0));
+  
+  *(out + 2) += hip_offset_angle_rad_;
+  *(out + 3) += -hip_offset_angle_rad_;
 
-  // Get Ankle Roll
-  trans_ad.computeInverseWithCheck(trans_da, invertible);
-  if (invertible == false)
-    return false;
+  // Eigen::Matrix4d trans_ad, trans_da, trans_cd, trans_dc, trans_ac;
+  // Eigen::Vector3d vec;
 
-  k = sqrt(trans_da.coeff(1, 3) * trans_da.coeff(1, 3) + trans_da.coeff(2, 3) * trans_da.coeff(2, 3));
-  l = sqrt(
-      trans_da.coeff(1, 3) * trans_da.coeff(1, 3)
-          + (trans_da.coeff(2, 3) - ankle_length) * (trans_da.coeff(2, 3) - ankle_length));
-  m = (k * k - l * l - ankle_length * ankle_length) / (2.0 * l * ankle_length);
+  // bool invertible;
+  // double rac, arc_cos, arc_tan, k, l, m, n, s, c, theta;
+  // double thigh_length = thigh_length_m_;
+  // double calf_length = calf_length_m_;
+  // double ankle_length = ankle_length_m_;
 
-  if (m > 1.0)
-    m = 1.0;
-  else if (m < -1.0)
-    m = -1.0;
-  arc_cos = acos(m);
+  // trans_ad = robotis_framework::getTransformationXYZRPY(x, y, z, roll, pitch, yaw);
 
-  if (std::isnan(arc_cos) == 1)
-    return false;
+  // vec.coeffRef(0) = trans_ad.coeff(0, 3) + trans_ad.coeff(0, 2) * ankle_length;
+  // vec.coeffRef(1) = trans_ad.coeff(1, 3) + trans_ad.coeff(1, 2) * ankle_length;
+  // vec.coeffRef(2) = trans_ad.coeff(2, 3) + trans_ad.coeff(2, 2) * ankle_length;
 
-  if (trans_da.coeff(1, 3) < 0.0)
-    *(out + 5) = -arc_cos;
-  else
-    *(out + 5) = arc_cos;
+  // // Get Knee
+  // rac = vec.norm();
+  // arc_cos = acos(
+  //     (rac * rac - thigh_length * thigh_length - calf_length * calf_length) / (2.0 * thigh_length * calf_length));
+  // if (std::isnan(arc_cos) == 1)
+  //   return false;
+  // *(out + 3) = arc_cos;
 
-  // Get Hip Yaw
-  trans_cd = robotis_framework::getTransformationXYZRPY(0, 0, -ankle_length, *(out + 5), 0, 0);
-  trans_cd.computeInverseWithCheck(trans_dc, invertible);
-  if (invertible == false)
-    return false;
+  // // Get Ankle Roll
+  // trans_ad.computeInverseWithCheck(trans_da, invertible);
+  // if (invertible == false)
+  //   return false;
 
-  trans_ac = trans_ad * trans_dc;
-  arc_tan = atan2(-trans_ac.coeff(0, 1), trans_ac.coeff(1, 1));
-  if (std::isinf(arc_tan) != 0)
-    return false;
-  *(out) = arc_tan;
+  // k = sqrt(trans_da.coeff(1, 3) * trans_da.coeff(1, 3) + trans_da.coeff(2, 3) * trans_da.coeff(2, 3));
+  // l = sqrt(
+  //     trans_da.coeff(1, 3) * trans_da.coeff(1, 3)
+  //         + (trans_da.coeff(2, 3) - ankle_length) * (trans_da.coeff(2, 3) - ankle_length));
+  // m = (k * k - l * l - ankle_length * ankle_length) / (2.0 * l * ankle_length);
 
-  // Get Hip Roll
-  arc_tan = atan2(trans_ac.coeff(2, 1), -trans_ac.coeff(0, 1) * sin(*(out)) + trans_ac.coeff(1, 1) * cos(*(out)));
-  if (std::isinf(arc_tan) != 0)
-    return false;
-  *(out + 1) = arc_tan;
+  // if (m > 1.0)
+  //   m = 1.0;
+  // else if (m < -1.0)
+  //   m = -1.0;
+  // arc_cos = acos(m);
 
-  // Get Hip Pitch and Ankle Pitch
-  arc_tan = atan2(trans_ac.coeff(0, 2) * cos(*(out)) + trans_ac.coeff(1, 2) * sin(*(out)),
-                  trans_ac.coeff(0, 0) * cos(*(out)) + trans_ac.coeff(1, 0) * sin(*(out)));
-  if (std::isinf(arc_tan) == 1)
-    return false;
-  theta = arc_tan;
-  k = sin(*(out + 3)) * calf_length;
-  l = -thigh_length - cos(*(out + 3)) * calf_length;
-  m = cos(*(out)) * vec.coeff(0) + sin(*(out)) * vec.coeff(1);
-  n = cos(*(out + 1)) * vec.coeff(2) + sin(*(out)) * sin(*(out + 1)) * vec.coeff(0)
-      - cos(*(out)) * sin(*(out + 1)) * vec.coeff(1);
-  s = (k * n + l * m) / (k * k + l * l);
-  c = (n - k * s) / l;
-  arc_tan = atan2(s, c);
-  if (std::isinf(arc_tan) == 1)
-    return false;
-  *(out + 2) = arc_tan;
-  *(out + 4) = theta - *(out + 3) - *(out + 2);
+  // if (std::isnan(arc_cos) == 1)
+  //   return false;
+
+  // if (trans_da.coeff(1, 3) < 0.0)
+  //   *(out + 5) = -arc_cos;
+  // else
+  //   *(out + 5) = arc_cos;
+
+  // // Get Hip Yaw
+  // trans_cd = robotis_framework::getTransformationXYZRPY(0, 0, -ankle_length, *(out + 5), 0, 0);
+  // trans_cd.computeInverseWithCheck(trans_dc, invertible);
+  // if (invertible == false)
+  //   return false;
+
+  // trans_ac = trans_ad * trans_dc;
+  // arc_tan = atan2(-trans_ac.coeff(0, 1), trans_ac.coeff(1, 1));
+  // if (std::isinf(arc_tan) != 0)
+  //   return false;
+  // *(out) = arc_tan;
+
+  // // Get Hip Roll
+  // arc_tan = atan2(trans_ac.coeff(2, 1), -trans_ac.coeff(0, 1) * sin(*(out)) + trans_ac.coeff(1, 1) * cos(*(out)));
+  // if (std::isinf(arc_tan) != 0)
+  //   return false;
+  // *(out + 1) = arc_tan;
+
+  // // Get Hip Pitch and Ankle Pitch
+  // arc_tan = atan2(trans_ac.coeff(0, 2) * cos(*(out)) + trans_ac.coeff(1, 2) * sin(*(out)),
+  //                 trans_ac.coeff(0, 0) * cos(*(out)) + trans_ac.coeff(1, 0) * sin(*(out)));
+  // if (std::isinf(arc_tan) == 1)
+  //   return false;
+  // theta = arc_tan;
+  // k = sin(*(out + 3)) * calf_length;
+  // l = -thigh_length - cos(*(out + 3)) * calf_length;
+  // m = cos(*(out)) * vec.coeff(0) + sin(*(out)) * vec.coeff(1);
+  // n = cos(*(out + 1)) * vec.coeff(2) + sin(*(out)) * sin(*(out + 1)) * vec.coeff(0)
+  //     - cos(*(out)) * sin(*(out + 1)) * vec.coeff(1);
+  // s = (k * n + l * m) / (k * k + l * l);
+  // c = (n - k * s) / l;
+  // arc_tan = atan2(s, c);
+  // if (std::isinf(arc_tan) == 1)
+  //   return false;
+  // *(out + 2) = arc_tan;
+  // *(out + 4) = theta - *(out + 3) - *(out + 2);
 
   return true;
 }

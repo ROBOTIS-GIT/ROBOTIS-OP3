@@ -85,7 +85,9 @@ class OP3KinematicsDynamics
   Eigen::MatrixXd calcPreviewParam(double preview_time, double control_cycle,
                                    double lipm_height,
                                    Eigen::MatrixXd K, Eigen::MatrixXd P);
-
+  
+  double hip_offset_angle_rad_;
+  double hip_pitch_offset_m_;
   double thigh_length_m_;
   double calf_length_m_;
   double ankle_length_m_;

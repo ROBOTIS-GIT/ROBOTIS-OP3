@@ -20,6 +20,7 @@
 #define OP3_BALANCE_CONTROL_OP3_BALANCE_CONTROL_H_
 
 #include <eigen3/Eigen/Eigen>
+#include <rclcpp/rclcpp.hpp>
 
 #include "robotis_math/robotis_math.h"
 

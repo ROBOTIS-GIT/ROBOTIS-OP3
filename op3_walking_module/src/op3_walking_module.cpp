@@ -21,6 +21,18 @@
 namespace robotis_op
 {
 
+static const int BalancingPhase0 = 0; // DSP : START
+static const int BalancingPhase1 = 1; // DSP : R--O->L
+static const int BalancingPhase2 = 2; // SSP : L_BALANCING1
+static const int BalancingPhase3 = 3; // SSP : L_BALANCING2
+static const int BalancingPhase4 = 4; // DSP : R--O<-L
+static const int BalancingPhase5 = 5; // DSP : R<-O--L
+static const int BalancingPhase6 = 6; // SSP : R_BALANCING1
+static const int BalancingPhase7 = 7; // SSP : R_BALANCING2
+static const int BalancingPhase8 = 8; // DSP : R->O--L
+static const int BalancingPhase9 = 9; // DSP : END
+
+
 WalkingModule::WalkingModule()
     : control_cycle_msec_(8),
       DEBUG(false)
@@ -75,6 +87,8 @@ WalkingModule::WalkingModule()
   goal_position_ = Eigen::MatrixXd::Zero(1, result_.size());
   init_position_ = Eigen::MatrixXd::Zero(1, result_.size());
   joint_axis_direction_ = Eigen::MatrixXi::Zero(1, result_.size());
+
+  balancing_idx_ = BalancingPhase0;
 }
 
 WalkingModule::~WalkingModule()
@@ -317,9 +331,9 @@ bool WalkingModule::computeIK(double *out, double pos_x, double pos_y, double po
   return true;
 }
 
-void WalkingModule::updateTimeParam()
+void WalkingModule::updateTimeParam(double scale)
 {
-  period_time_ = walking_param_.period_time;  // * 1000;   // s -> ms
+  period_time_ = scale*walking_param_.period_time;  // * 1000;   // s -> ms
   dsp_ratio_ = walking_param_.dsp_ratio;
   ssp_ratio_ = 1 - dsp_ratio_;
 
@@ -406,12 +420,16 @@ void WalkingModule::startWalking()
   ctrl_running_ = true;
   real_running_ = true;
 
+  //updateTimeParam(1.5); // hs
+  //time_ = control_cycle_msec_ * 0.001;
+
   publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "Start walking");
 }
 
 void WalkingModule::stop()
 {
   ctrl_running_ = false;
+  //period_time_ = walking_param_.period_time *1.5; // hs
   publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "Stop walking");
 }
 
@@ -559,6 +577,8 @@ void WalkingModule::process(std::map<std::string, robotis_framework::Dynamixel *
     // result_[joint_name]->position_d_gain_ = walking_param_.d_gain;
   }
 
+  setJointGains(balancing_idx_);
+
   // time
   if (real_running_ == true)
   {
@@ -570,6 +590,84 @@ void WalkingModule::process(std::map<std::string, robotis_framework::Dynamixel *
     }
   }
 }
+
+void WalkingModule::setJointGains(int balancing_idx)
+{
+  if (balancing_idx == 2)
+  {
+    // L_BALANCING (L Support) first half
+    result_["r_hip_roll" ]->position_p_gain_ = 3000;
+    result_["l_hip_roll" ]->position_p_gain_ = 16000;
+
+    result_["r_knee" ]->position_p_gain_ = 4000;
+    result_["l_knee" ]->position_p_gain_ = 8000;
+
+    result_["r_ank_pitch" ]->position_p_gain_ = 1600;
+    result_["l_ank_pitch" ]->position_p_gain_ = 3200;
+
+    result_["r_ank_roll" ]->position_p_gain_ = 1600;
+    result_["l_ank_roll" ]->position_p_gain_ = 3200;
+  }
+  else if (balancing_idx == 3)
+  {
+    // L_BALANCING (L Support) second half
+    result_["r_hip_roll" ]->position_p_gain_ = 3000;
+    result_["l_hip_roll" ]->position_p_gain_ = 16000;
+
+    result_["r_knee" ]->position_p_gain_ = 4000;
+    result_["l_knee" ]->position_p_gain_ = 8000;
+
+    result_["r_ank_pitch" ]->position_p_gain_ = 1600;
+    result_["l_ank_pitch" ]->position_p_gain_ = 3200;
+
+    result_["r_ank_roll" ]->position_p_gain_ = 1600;
+    result_["l_ank_roll" ]->position_p_gain_ = 3200;
+  }
+  else if (balancing_idx == 6)
+  {
+    // R_BALANCING (R Support) first half
+    result_["r_hip_roll" ]->position_p_gain_ = 16000;
+    result_["l_hip_roll" ]->position_p_gain_ = 3000;
+    
+    result_["r_knee" ]->position_p_gain_ = 8000;
+    result_["l_knee" ]->position_p_gain_ = 4000;
+
+    result_["r_ank_pitch" ]->position_p_gain_ = 3200;
+    result_["l_ank_pitch" ]->position_p_gain_ = 1600;
+
+    result_["r_ank_roll" ]->position_p_gain_ = 3200;
+    result_["l_ank_roll" ]->position_p_gain_ = 1600;
+  }
+  else if (balancing_idx == 7)
+  {
+    // R_BALANCING (R Support) second half
+    result_["r_hip_roll" ]->position_p_gain_ = 16000;
+    result_["l_hip_roll" ]->position_p_gain_ = 3000;
+    
+    result_["r_knee" ]->position_p_gain_ = 8000;
+    result_["l_knee" ]->position_p_gain_ = 4000;
+
+    result_["r_ank_pitch" ]->position_p_gain_ = 3200;
+    result_["l_ank_pitch" ]->position_p_gain_ = 1600;
+
+    result_["r_ank_roll" ]->position_p_gain_ = 3200;
+    result_["l_ank_roll" ]->position_p_gain_ = 1600;
+  }
+  else
+  {
+    // DS
+    result_["r_hip_roll" ]->position_p_gain_ = 3000;
+    result_["l_hip_roll" ]->position_p_gain_ = 3000;
+    
+    result_["r_knee" ]->position_p_gain_ = 4000;
+    result_["l_knee" ]->position_p_gain_ = 4000;
+
+    result_["r_ank_roll" ]->position_p_gain_ = 1600;
+    result_["l_ank_roll" ]->position_p_gain_ = 1600;
+  }
+}
+
+
 
 void WalkingModule::processPhase(const double &time_unit)
 {
@@ -598,6 +696,10 @@ void WalkingModule::processPhase(const double &time_unit)
   else if (time_ >= (phase1_time_ - time_unit / 2) && time_ < (phase1_time_ + time_unit / 2))  // the position of left foot is the highest.
   {
     updateMovementParam();
+
+    updateTimeParam(); // hs
+    time_ = phase1_time_; // hs
+
     phase_ = PHASE1;
   }
   else if (time_ >= (phase2_time_ - time_unit / 2) && time_ < (phase2_time_ + time_unit / 2))  // middle of double support state
@@ -624,6 +726,8 @@ void WalkingModule::processPhase(const double &time_unit)
   else if (time_ >= (phase3_time_ - time_unit / 2) && time_ < (phase3_time_ + time_unit / 2))  // the position of right foot is the highest.
   {
     updateMovementParam();
+    updateTimeParam(); // hs
+    time_ = phase3_time_; // hs
     phase_ = PHASE3;
   }
 }
@@ -644,8 +748,9 @@ bool WalkingModule::computeLegAngle(double *leg_angle)
   swap.pitch = 0.0;
   swap.yaw = 0.0;
 
-  if (time_ <= l_ssp_start_time_)
+  if (time_ <= l_ssp_start_time_) // r support
   {
+    balancing_idx_ = BalancingPhase5;
     left_leg_move.x = wSin(l_ssp_start_time_, x_move_period_time_,
                            x_move_phase_shift_ + 2 * M_PI / x_move_period_time_ * l_ssp_start_time_, x_move_amplitude_,
                            x_move_amplitude_shift_);
@@ -675,6 +780,7 @@ bool WalkingModule::computeLegAngle(double *leg_angle)
   }
   else if (time_ <= l_ssp_end_time_)
   {
+    balancing_idx_ = BalancingPhase6;
     left_leg_move.x = wSin(time_, x_move_period_time_,
                            x_move_phase_shift_ + 2 * M_PI / x_move_period_time_ * l_ssp_start_time_, x_move_amplitude_,
                            x_move_amplitude_shift_);
@@ -708,6 +814,7 @@ bool WalkingModule::computeLegAngle(double *leg_angle)
   }
   else if (time_ <= r_ssp_start_time_)
   {
+    balancing_idx_ = BalancingPhase1;
     left_leg_move.x = wSin(l_ssp_end_time_, x_move_period_time_,
                            x_move_phase_shift_ + 2 * M_PI / x_move_period_time_ * l_ssp_start_time_, x_move_amplitude_,
                            x_move_amplitude_shift_);
@@ -737,6 +844,7 @@ bool WalkingModule::computeLegAngle(double *leg_angle)
   }
   else if (time_ <= r_ssp_end_time_)
   {
+    balancing_idx_ = BalancingPhase4;
     left_leg_move.x = wSin(time_, x_move_period_time_,
                            x_move_phase_shift_ + 2 * M_PI / x_move_period_time_ * r_ssp_start_time_ + M_PI,
                            x_move_amplitude_, x_move_amplitude_shift_);
@@ -770,6 +878,7 @@ bool WalkingModule::computeLegAngle(double *leg_angle)
   }
   else
   {
+    balancing_idx_ = BalancingPhase0;
     left_leg_move.x = wSin(r_ssp_end_time_, x_move_period_time_,
                            x_move_phase_shift_ + 2 * M_PI / x_move_period_time_ * r_ssp_start_time_ + M_PI,
                            x_move_amplitude_, x_move_amplitude_shift_);
@@ -819,6 +928,9 @@ bool WalkingModule::computeLegAngle(double *leg_angle)
   ep[10] = swap.pitch + left_leg_move.pitch + p_offset_;
   ep[11] = swap.yaw + left_leg_move.yaw + a_offset_ / 2;
 
+  std::cout << ep[0] << " " << ep[1] << " " << ep[2] << " " << ep[3] << " " << ep[4] << " " << ep[5] << " "
+            << ep[6] << " " << ep[7] << " " << ep[8] << " " << ep[9] << " " << ep[10] << " " << ep[11] << " " << std::endl;
+
   // Compute body swing
   if (time_ <= l_ssp_end_time_)
   {
@@ -844,6 +956,9 @@ bool WalkingModule::computeLegAngle(double *leg_angle)
     printf("IK not Solved EPL : %f %f %f %f %f %f\n", ep[6], ep[7], ep[8], ep[9], ep[10], ep[11]);
     return false;
   }
+
+  // std::cout << leg_angle[0] << " " << leg_angle[1] << " " << leg_angle[2] << " " << leg_angle[3] << " " << leg_angle[4] << " " << leg_angle[5] << " "
+  //           << leg_angle[6] << " " << leg_angle[7] << " " << leg_angle[8] << " " << leg_angle[9] << " " << leg_angle[10] << " " << leg_angle[11] << " " << std::endl;
 
   // Compute dxls angle
   for (int i = 0; i < 12; i++)

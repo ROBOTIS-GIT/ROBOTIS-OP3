@@ -16,8 +16,9 @@
 
 /* Authors: Kayman, Jay Song */
 
-#include <stdio.h>
+#include <cstdio>
 #include <sstream>
+#include "rclcpp/rclcpp.hpp"
 #include "op3_action_module/action_module.h"
 
 namespace robotis_op
@@ -31,7 +32,8 @@ std::string ActionModule::convertIntToString(int n)
 }
 
 ActionModule::ActionModule()
-    : control_cycle_msec_(8),
+    : Node("action_module"),
+      control_cycle_msec_(8),
       PRE_SECTION(0),
       MAIN_SECTION(1),
       POST_SECTION(2),
@@ -83,11 +85,10 @@ void ActionModule::initialize(const int control_cycle_msec, robotis_framework::R
   queue_thread_ = boost::thread(boost::bind(&ActionModule::queueThread, this));
 
   // init result, joint_id_table
-  for (std::map<std::string, robotis_framework::Dynamixel*>::iterator it = robot->dxls_.begin();
-      it != robot->dxls_.end(); it++)
+  for (auto& it : robot->dxls_)
   {
-    std::string joint_name = it->first;
-    robotis_framework::Dynamixel* dxl_info = it->second;
+    std::string joint_name = it.first;
+    robotis_framework::Dynamixel* dxl_info = it.second;
 
     joint_name_to_id_[joint_name] = dxl_info->id_;
     joint_id_to_name_[dxl_info->id_] = joint_name;
@@ -98,10 +99,10 @@ void ActionModule::initialize(const int control_cycle_msec, robotis_framework::R
     action_joints_enable_[joint_name] = false;
   }
 
-  ros::NodeHandle ros_node;
+  std::string path = ament_index_cpp::get_package_share_directory("op3_action_module") + "/data/motion_4095.bin";
 
-  std::string path = ros::package::getPath("op3_action_module") + "/data/motion_4095.bin";
-  std::string action_file_path = ros_node.param<std::string>("action_file_path", path);
+  this->declare_parameter<std::string>("action_file_path", path);
+  std::string action_file_path = this->get_parameter("action_file_path").as_string();
 
   loadFile(action_file_path);
 
@@ -110,44 +111,45 @@ void ActionModule::initialize(const int control_cycle_msec, robotis_framework::R
 
 void ActionModule::queueThread()
 {
-  ros::NodeHandle ros_node;
-  ros::CallbackQueue callback_queue;
-
-  ros_node.setCallbackQueue(&callback_queue);
+  auto executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+  executor->add_node(this->get_node_base_interface());
 
   /* publisher */
-  status_msg_pub_ = ros_node.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 0);
-  done_msg_pub_ = ros_node.advertise<std_msgs::String>("/robotis/movement_done", 1);
+  status_msg_pub_ = this->create_publisher<robotis_controller_msgs::msg::StatusMsg>("/robotis/status", 10);
+  done_msg_pub_ = this->create_publisher<std_msgs::msg::String>("/robotis/movement_done", 10);
 
   /* subscriber */
-  ros::Subscriber action_page_sub = ros_node.subscribe("/robotis/action/page_num", 0, &ActionModule::pageNumberCallback,
-                                                       this);
-  ros::Subscriber start_action_sub = ros_node.subscribe("/robotis/action/start_action", 0,
-                                                        &ActionModule::startActionCallback, this);
+  auto action_page_sub = this->create_subscription<std_msgs::msg::Int32>(
+      "/robotis/action/page_num", 10, std::bind(&ActionModule::pageNumberCallback, this, std::placeholders::_1));
+  auto start_action_sub = this->create_subscription<op3_action_module_msgs::msg::StartAction>(
+      "/robotis/action/start_action", 10, std::bind(&ActionModule::startActionCallback, this, std::placeholders::_1));
 
   /* ROS Service Callback Functions */
-  ros::ServiceServer is_running_server = ros_node.advertiseService("/robotis/action/is_running",
-                                                                   &ActionModule::isRunningServiceCallback, this);
+  auto is_running_server = this->create_service<op3_action_module_msgs::srv::IsRunning>(
+      "/robotis/action/is_running", std::bind(&ActionModule::isRunningServiceCallback, this, std::placeholders::_1, std::placeholders::_2));
 
-  ros::WallDuration duration(control_cycle_msec_ / 1000.0);
-  while (ros_node.ok())
-    callback_queue.callAvailable(duration);
+  rclcpp::Rate rate(1000.0 / control_cycle_msec_);
+  while (rclcpp::ok())
+  {
+    executor->spin_some();
+    rate.sleep();
+  }
 }
 
-bool ActionModule::isRunningServiceCallback(op3_action_module_msgs::IsRunning::Request &req,
-                                            op3_action_module_msgs::IsRunning::Response &res)
+bool ActionModule::isRunningServiceCallback(const std::shared_ptr<op3_action_module_msgs::srv::IsRunning::Request> req,
+                                            std::shared_ptr<op3_action_module_msgs::srv::IsRunning::Response> res)
 {
-  res.is_running = isRunning();
+  res->is_running = isRunning();
   return true;
 }
 
-void ActionModule::pageNumberCallback(const std_msgs::Int32::ConstPtr& msg)
+void ActionModule::pageNumberCallback(const std_msgs::msg::Int32::SharedPtr msg)
 {
   if (enable_ == false)
   {
     std::string status_msg = "Action Module is not enabled";
-    ROS_INFO_STREAM(status_msg);
-    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
+    RCLCPP_INFO(this->get_logger(), "%s", status_msg.c_str());
+    publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_ERROR, status_msg);
     return;
   }
 
@@ -161,33 +163,32 @@ void ActionModule::pageNumberCallback(const std_msgs::Int32::ConstPtr& msg)
   }
   else
   {
-    for (std::map<std::string, bool>::iterator joints_enable_it = action_joints_enable_.begin();
-        joints_enable_it != action_joints_enable_.end(); joints_enable_it++)
-      joints_enable_it->second = true;
+    for (auto& joints_enable_it : action_joints_enable_)
+      joints_enable_it.second = true;
 
     if (start(msg->data) == true)
     {
       std::string status_msg = "Succeed to start page " + convertIntToString(msg->data);
-      ROS_INFO_STREAM(status_msg);
-      publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, status_msg);
+      RCLCPP_INFO(this->get_logger(), "%s", status_msg.c_str());
+      publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_INFO, status_msg);
     }
     else
     {
       std::string status_msg = "Failed to start page " + convertIntToString(msg->data);
-      ROS_ERROR_STREAM(status_msg);
-      publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
+      RCLCPP_ERROR(this->get_logger(), "%s", status_msg.c_str());
+      publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_ERROR, status_msg);
       publishDoneMsg("action_failed");
     }
   }
 }
 
-void ActionModule::startActionCallback(const op3_action_module_msgs::StartAction::ConstPtr& msg)
+void ActionModule::startActionCallback(const op3_action_module_msgs::msg::StartAction::SharedPtr msg)
 {
   if (enable_ == false)
   {
     std::string status_msg = "Action Module is not enabled";
-    ROS_INFO_STREAM(status_msg);
-    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
+    RCLCPP_INFO(this->get_logger(), "%s", status_msg.c_str());
+    publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_ERROR, status_msg);
     return;
   }
 
@@ -201,20 +202,18 @@ void ActionModule::startActionCallback(const op3_action_module_msgs::StartAction
   }
   else
   {
-    for (std::map<std::string, bool>::iterator joints_enable_it = action_joints_enable_.begin();
-        joints_enable_it != action_joints_enable_.end(); joints_enable_it++)
-      joints_enable_it->second = false;
+    for (auto& joints_enable_it : action_joints_enable_)
+      joints_enable_it.second = false;
 
     int joint_name_array_size = msg->joint_name_array.size();
-    std::map<std::string, bool>::iterator joints_enable_it = action_joints_enable_.begin();
     for (int joint_idx = 0; joint_idx < joint_name_array_size; joint_idx++)
     {
-      joints_enable_it = action_joints_enable_.find(msg->joint_name_array[joint_idx]);
+      auto joints_enable_it = action_joints_enable_.find(msg->joint_name_array[joint_idx]);
       if (joints_enable_it == action_joints_enable_.end())
       {
         std::string status_msg = "Invalid Joint Name : " + msg->joint_name_array[joint_idx];
-        ROS_INFO_STREAM(status_msg);
-        publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
+        RCLCPP_INFO(this->get_logger(), "%s", status_msg.c_str());
+        publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_ERROR, status_msg);
         publishDoneMsg("action_failed");
         return;
       }
@@ -227,14 +226,14 @@ void ActionModule::startActionCallback(const op3_action_module_msgs::StartAction
     if (start(msg->page_num) == true)
     {
       std::string status_msg = "Succeed to start page " + convertIntToString(msg->page_num);
-      ROS_INFO_STREAM(status_msg);
-      publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, status_msg);
+      RCLCPP_INFO(this->get_logger(), "%s", status_msg.c_str());
+      publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_INFO, status_msg);
     }
     else
     {
       std::string status_msg = "Failed to start page " + convertIntToString(msg->page_num);
-      ROS_ERROR_STREAM(status_msg);
-      publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
+      RCLCPP_ERROR(this->get_logger(), "%s", status_msg.c_str());
+      publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_ERROR, status_msg);
       publishDoneMsg("action_failed");
     }
   }
@@ -248,18 +247,17 @@ void ActionModule::process(std::map<std::string, robotis_framework::Dynamixel *>
 
   if (action_module_enabled_ == true)
   {
-    for (std::map<std::string, robotis_framework::Dynamixel *>::iterator dxls_it = dxls.begin(); dxls_it != dxls.end();
-        dxls_it++)
+    for (auto& dxls_it : dxls)
     {
-      std::string joint_name = dxls_it->first;
+      std::string joint_name = dxls_it.first;
 
-      std::map<std::string, robotis_framework::DynamixelState*>::iterator result_it = result_.find(joint_name);
+      auto result_it = result_.find(joint_name);
       if (result_it == result_.end())
         continue;
       else
       {
-        result_it->second->goal_position_ = dxls_it->second->dxl_state_->goal_position_;
-        action_result_[joint_name]->goal_position_ = dxls_it->second->dxl_state_->goal_position_;
+        result_it->second->goal_position_ = dxls_it.second->dxl_state_->goal_position_;
+        action_result_[joint_name]->goal_position_ = dxls_it.second->dxl_state_->goal_position_;
       }
     }
     action_module_enabled_ = false;
@@ -267,11 +265,10 @@ void ActionModule::process(std::map<std::string, robotis_framework::Dynamixel *>
 
   actionPlayProcess(dxls);
 
-  for (std::map<std::string, bool>::iterator action_enable_it = action_joints_enable_.begin();
-      action_enable_it != action_joints_enable_.end(); action_enable_it++)
+  for (auto& action_enable_it : action_joints_enable_)
   {
-    if (action_enable_it->second == true)
-      result_[action_enable_it->first]->goal_position_ = action_result_[action_enable_it->first]->goal_position_;
+    if (action_enable_it.second == true)
+      result_[action_enable_it.first]->goal_position_ = action_result_[action_enable_it.first]->goal_position_;
   }
 
   previous_running_ = present_running_;
@@ -282,18 +279,17 @@ void ActionModule::process(std::map<std::string, robotis_framework::Dynamixel *>
     if (present_running_ == true)
     {
       std::string status_msg = "Action_Start";
-      //ROS_INFO_STREAM(status_msg);
-      publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, status_msg);
+      //RCLCPP_INFO(this->get_logger(), "%s", status_msg.c_str());
+      publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_INFO, status_msg);
     }
     else
     {
-      for (std::map<std::string, robotis_framework::DynamixelState*>::iterator action_result_it =
-          action_result_.begin(); action_result_it != action_result_.end(); action_result_it++)
-        action_result_it->second->goal_position_ = result_[action_result_it->first]->goal_position_;
+      for (auto& action_result_it : action_result_)
+        action_result_it.second->goal_position_ = result_[action_result_it.first]->goal_position_;
 
       std::string status_msg = "Action_Finish";
-      //ROS_INFO_STREAM(status_msg);
-      publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, status_msg);
+      //RCLCPP_INFO(this->get_logger(), "%s", status_msg.c_str());
+      publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_INFO, status_msg);
       publishDoneMsg("action");
     }
   }
@@ -369,8 +365,8 @@ bool ActionModule::loadFile(std::string file_name)
   if (action == 0)
   {
     std::string status_msg = "Can not open Action file!";
-    ROS_ERROR_STREAM(status_msg);
-    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
+    RCLCPP_ERROR(this->get_logger(), "%s", status_msg.c_str());
+    publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_ERROR, status_msg);
     return false;
   }
 
@@ -378,8 +374,8 @@ bool ActionModule::loadFile(std::string file_name)
   if (ftell(action) != (long) (sizeof(action_file_define::Page) * action_file_define::MAXNUM_PAGE))
   {
     std::string status_msg = "It's not an Action file!";
-    ROS_ERROR_STREAM(status_msg);
-    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
+    RCLCPP_ERROR(this->get_logger(), "%s", status_msg.c_str());
+    publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_ERROR, status_msg);
     fclose(action);
     return false;
   }
@@ -397,8 +393,8 @@ bool ActionModule::createFile(std::string file_name)
   if (action == 0)
   {
     std::string status_msg = "Can not create Action file!";
-    ROS_ERROR_STREAM(status_msg);
-    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
+    RCLCPP_ERROR(this->get_logger(), "%s", status_msg.c_str());
+    publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_ERROR, status_msg);
     return false;
   }
 
@@ -420,10 +416,9 @@ bool ActionModule::start(int page_number)
 {
   if (page_number < 1 || page_number >= action_file_define::MAXNUM_PAGE)
   {
-
     std::string status_msg = "Can not play page.(" + convertIntToString(page_number) + " is invalid index)";
-    ROS_ERROR_STREAM(status_msg);
-    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
+    RCLCPP_ERROR(this->get_logger(), "%s", status_msg.c_str());
+    publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_ERROR, status_msg);
     return false;
   }
 
@@ -452,8 +447,8 @@ bool ActionModule::start(std::string page_name)
   {
     std::string str_name_page = page_name;
     std::string status_msg = "Can not play page.(" + str_name_page + " is invalid name)\n";
-    ROS_ERROR_STREAM(status_msg);
-    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
+    RCLCPP_ERROR(this->get_logger(), "%s", status_msg.c_str());
+    publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_ERROR, status_msg);
     return false;
   }
   else
@@ -465,16 +460,16 @@ bool ActionModule::start(int page_number, action_file_define::Page* page)
   if (enable_ == false)
   {
     std::string status_msg = "Action Module is disabled";
-    ROS_ERROR_STREAM(status_msg);
-    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
+    RCLCPP_ERROR(this->get_logger(), "%s", status_msg.c_str());
+    publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_ERROR, status_msg);
     return false;
   }
 
   if (playing_ == true)
   {
     std::string status_msg = "Can not play page " + convertIntToString(page_number) + ".(Now playing)";
-    ROS_ERROR_STREAM(status_msg);
-    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
+    RCLCPP_ERROR(this->get_logger(), "%s", status_msg.c_str());
+    publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_ERROR, status_msg);
     return false;
   }
 
@@ -483,8 +478,8 @@ bool ActionModule::start(int page_number, action_file_define::Page* page)
   if (play_page_.header.repeat == 0 || play_page_.header.stepnum == 0)
   {
     std::string status_msg = "Page " + convertIntToString(page_number) + " has no action\n";
-    ROS_ERROR_STREAM(status_msg);
-    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, status_msg);
+    RCLCPP_ERROR(this->get_logger(), "%s", status_msg.c_str());
+    publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_ERROR, status_msg);
     return false;
   }
 
@@ -578,10 +573,9 @@ void ActionModule::resetPage(action_file_define::Page* page)
 
 void ActionModule::enableAllJoints()
 {
-  for (std::map<std::string, bool>::iterator it = action_joints_enable_.begin(); it != action_joints_enable_.end();
-      it++)
+  for (auto& it : action_joints_enable_)
   {
-    it->second = true;
+    it.second = true;
   }
 }
 
@@ -1063,20 +1057,20 @@ void ActionModule::actionPlayProcess(std::map<std::string, robotis_framework::Dy
 
 void ActionModule::publishStatusMsg(unsigned int type, std::string msg)
 {
-  robotis_controller_msgs::StatusMsg status;
-  status.header.stamp = ros::Time::now();
+  robotis_controller_msgs::msg::StatusMsg status;
+  status.header.stamp = rclcpp::Clock().now();
   status.type = type;
   status.module_name = "Action";
   status.status_msg = msg;
 
-  status_msg_pub_.publish(status);
+  status_msg_pub_->publish(status);
 }
 
 void ActionModule::publishDoneMsg(std::string msg)
 {
-  std_msgs::String done_msg;
+  std_msgs::msg::String done_msg;
   done_msg.data = msg;
 
-  done_msg_pub_.publish(done_msg);
+  done_msg_pub_->publish(done_msg);
 }
 }

@@ -22,23 +22,23 @@
 #define _USE_MATH_DEFINES
 
 #include <cmath>
-#include <ros/ros.h>
-#include <ros/package.h>
-#include <ros/callback_queue.h>
-#include <std_msgs/Int32.h>
-#include <std_msgs/String.h>
+#include <rclcpp/rclcpp.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
+#include <rclcpp/executors/single_threaded_executor.hpp>
+#include <std_msgs/msg/int32.hpp>
+#include <std_msgs/msg/string.hpp>
 #include <boost/thread.hpp>
 
-#include "robotis_controller_msgs/StatusMsg.h"
-#include "op3_action_module_msgs/IsRunning.h"
-#include "op3_action_module_msgs/StartAction.h"
+#include "robotis_controller_msgs/msg/status_msg.hpp"
+#include "op3_action_module_msgs/srv/is_running.hpp"
+#include "op3_action_module_msgs/msg/start_action.hpp"
 #include "robotis_framework_common/motion_module.h"
 #include "action_file_define.h"
 
 namespace robotis_op
 {
 
-class ActionModule : public robotis_framework::MotionModule, public robotis_framework::Singleton<ActionModule>
+class ActionModule : public robotis_framework::MotionModule, public robotis_framework::Singleton<ActionModule>, public rclcpp::Node
 {
  public:
   ActionModule();
@@ -86,11 +86,11 @@ private:
   void publishStatusMsg(unsigned int type, std::string msg);
   void publishDoneMsg(std::string msg);
 
-  bool isRunningServiceCallback(op3_action_module_msgs::IsRunning::Request  &req,
-                                op3_action_module_msgs::IsRunning::Response &res);
+  bool isRunningServiceCallback(const std::shared_ptr<op3_action_module_msgs::srv::IsRunning::Request> req,
+                                std::shared_ptr<op3_action_module_msgs::srv::IsRunning::Response> res);
 
-  void pageNumberCallback(const std_msgs::Int32::ConstPtr& msg);
-  void startActionCallback(const op3_action_module_msgs::StartAction::ConstPtr& msg);
+  void pageNumberCallback(const std_msgs::msg::Int32::SharedPtr msg);
+  void startActionCallback(const op3_action_module_msgs::msg::StartAction::SharedPtr msg);
 
   int convertRadTow4095(double rad);
   double convertw4095ToRad(int w4095);
@@ -102,8 +102,8 @@ private:
   boost::thread   queue_thread_;
 
   /* sample subscriber & publisher */
-  ros::Publisher status_msg_pub_;
-  ros::Publisher  done_msg_pub_;
+  rclcpp::Publisher<robotis_controller_msgs::msg::StatusMsg>::SharedPtr status_msg_pub_;
+  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr  done_msg_pub_;
   /////////////////////////////////////////////////////////////////////////
   std::map<std::string, int> joint_name_to_id_;
   std::map<int, std::string> joint_id_to_name_;

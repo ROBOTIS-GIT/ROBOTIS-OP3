@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
   <name>op3_action_module</name>
   <version>0.2.1</version>
   <description>
     The op3_action_module package
   </description>
-  <license>Apache 2.0</license>
+  <license>Apache-2.0</license>
   <author email="kmjung@robotis.com">Kayman</author>
   <author>Jay Song</author>
   <maintainer email="pyo@robotis.com">Pyo</maintainer>
@@ -13,13 +13,17 @@
   <url type="emanual">http://emanual.robotis.com/docs/en/platform/op3/introduction/</url>
   <url type="repository">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3</url>
   <url type="bugtracker">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3/issues</url>
-  <buildtool_depend>catkin</buildtool_depend>
-  <depend>roscpp</depend>
-  <depend>roslib</depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend>
   <depend>std_msgs</depend>
+  <depend>ament_index_cpp</depend>
+  <depend>dynamixel_sdk</depend>
   <depend>robotis_controller_msgs</depend>
   <depend>op3_action_module_msgs</depend>
   <depend>robotis_framework_common</depend>
   <depend>robotis_device</depend>
   <depend>boost</depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 </package>

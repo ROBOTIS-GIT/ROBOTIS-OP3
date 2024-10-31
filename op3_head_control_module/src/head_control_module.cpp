@@ -23,7 +23,8 @@ namespace robotis_op
 {
 
 HeadControlModule::HeadControlModule()
-  : control_cycle_msec_(0),
+  : Node("head_control_module"),
+    control_cycle_msec_(0),
     stop_process_(false),
     is_moving_(false),
     is_direct_control_(true),
@@ -56,7 +57,7 @@ HeadControlModule::HeadControlModule()
   goal_velocity_ = Eigen::MatrixXd::Zero(1, result_.size());
   goal_acceleration_ = Eigen::MatrixXd::Zero(1, result_.size());
 
-  last_msg_time_ = ros::Time::now();
+  last_msg_time_ = rclcpp::Clock().now();
 }
 
 HeadControlModule::~HeadControlModule()
@@ -66,76 +67,75 @@ HeadControlModule::~HeadControlModule()
 
 void HeadControlModule::initialize(const int control_cycle_msec, robotis_framework::Robot *robot)
 {
-  ros::NodeHandle param_nh("~");
-  angle_unit_ = param_nh.param("angle_unit", 35.0);
+  this->declare_parameter("angle_unit", 35.0);
+  angle_unit_ = this->get_parameter("angle_unit").as_double();
 
-  ROS_WARN_STREAM("Head control - angle unit : " << angle_unit_);
+  RCLCPP_WARN(this->get_logger(), "Head control - angle unit : %f", angle_unit_);
 
-  queue_thread_ = boost::thread(boost::bind(&HeadControlModule::queueThread, this));
+  queue_thread_ = std::thread(&HeadControlModule::queueThread, this);
 
   control_cycle_msec_ = control_cycle_msec;
 
-  ros::NodeHandle ros_node;
-
   /* publish topics */
-  status_msg_pub_ = ros_node.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 0);
-
+  status_msg_pub_ = this->create_publisher<robotis_controller_msgs::msg::StatusMsg>("/robotis/status", 10);
 }
 
 void HeadControlModule::queueThread()
 {
-  ros::NodeHandle ros_node;
-  ros::CallbackQueue callback_queue;
-
-  ros_node.setCallbackQueue(&callback_queue);
+  auto executor = rclcpp::executors::SingleThreadedExecutor();
+  executor.add_node(this->get_node_base_interface());
 
   /* subscribe topics */
-  ros::Subscriber set_head_joint_sub = ros_node.subscribe("/robotis/head_control/set_joint_states", 1,
-                                                          &HeadControlModule::setHeadJointCallback, this);
-  ros::Subscriber set_head_joint_offset_sub = ros_node.subscribe("/robotis/head_control/set_joint_states_offset", 1,
-                                                                 &HeadControlModule::setHeadJointOffsetCallback, this);
-  ros::Subscriber set_head_scan_sub = ros_node.subscribe("/robotis/head_control/scan_command", 1,
-                                                         &HeadControlModule::setHeadScanCallback, this);
+  auto set_head_joint_sub = this->create_subscription<sensor_msgs::msg::JointState>(
+      "/robotis/head_control/set_joint_states", 10, std::bind(&HeadControlModule::setHeadJointCallback, this, std::placeholders::_1));
+  auto set_head_joint_offset_sub = this->create_subscription<sensor_msgs::msg::JointState>(
+      "/robotis/head_control/set_joint_states_offset", 10, std::bind(&HeadControlModule::setHeadJointOffsetCallback, this, std::placeholders::_1));
+  auto set_head_scan_sub = this->create_subscription<std_msgs::msg::String>(
+      "/robotis/head_control/scan_command", 10, std::bind(&HeadControlModule::setHeadScanCallback, this, std::placeholders::_1));
 
-  ros::WallDuration duration(control_cycle_msec_ / 1000.0);
-  while(ros_node.ok())
-    callback_queue.callAvailable(duration);
+  rclcpp::Rate rate(1000.0 / control_cycle_msec_);
+  while (rclcpp::ok())
+  {
+    executor.spin_some();
+    rate.sleep();
+  }
 }
 
-void HeadControlModule::setHeadJointCallback(const sensor_msgs::JointState::ConstPtr &msg)
+void HeadControlModule::setHeadJointCallback(const sensor_msgs::msg::JointState::SharedPtr msg)
 {
   setHeadJoint(msg, false);
 }
 
-void HeadControlModule::setHeadJointOffsetCallback(const sensor_msgs::JointState::ConstPtr &msg)
+void HeadControlModule::setHeadJointOffsetCallback(const sensor_msgs::msg::JointState::SharedPtr msg)
 {
   setHeadJoint(msg, true);
 }
 
-void HeadControlModule::setHeadJoint(const sensor_msgs::JointState::ConstPtr &msg, bool is_offset)
+void HeadControlModule::setHeadJoint(const sensor_msgs::msg::JointState::SharedPtr msg, bool is_offset)
 {
   if (enable_ == false)
   {
-    ROS_INFO_THROTTLE(1, "Head module is not enable.");
-    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, "Not Enable");
+    RCLCPP_INFO_THROTTLE(this->get_logger(), *rclcpp::Clock::make_shared(), 1, "Head module is not enable.");
+    publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_ERROR, "Not Enable");
     return;
   }
 
   while(has_goal_position_ == false)
   {
     std::cout << "wait for receiving current position" << std::endl;
-    usleep(80 * 1000);
-}
+    std::this_thread::sleep_for(std::chrono::milliseconds(80));
+  }
+
   // moving time
   moving_time_ = is_offset ? 0.1 : 1.0;               // default : 1 sec
 
   // set target joint angle
   target_position_ = goal_position_;        // default
 
-  for (int ix = 0; ix < msg->name.size(); ix++)
+  for (size_t ix = 0; ix < msg->name.size(); ix++)
   {
     std::string joint_name = msg->name[ix];
-    std::map<std::string, int>::iterator joint_it = using_joint_name_.find(joint_name);
+    auto joint_it = using_joint_name_.find(joint_name);
 
     if (joint_it != using_joint_name_.end())
     {
@@ -152,7 +152,7 @@ void HeadControlModule::setHeadJoint(const sensor_msgs::JointState::ConstPtr &ms
       bool is_checked = checkAngleLimit(joint_index, target_position);
       if(is_checked == false)
       {
-        ROS_ERROR_STREAM("Failed to find limit angle \n    id : " << joint_index << ", value : " << (target_position_ * 180 / M_PI));
+        RCLCPP_ERROR(this->get_logger(), "Failed to find limit angle \n    id : %d, value : %f", joint_index, (target_position_ * 180 / M_PI).value());
       }
 
       // apply target position
@@ -161,8 +161,7 @@ void HeadControlModule::setHeadJoint(const sensor_msgs::JointState::ConstPtr &ms
       // set time
       //double angle_unit = 35 * M_PI / 180;
       double angle_unit = is_offset ? (angle_unit_ * M_PI / 180 * 1.5) : (angle_unit_ * M_PI / 180);
-      double calc_moving_time = fabs(goal_position_.coeff(0, joint_index) - target_position_.coeff(0, joint_index))
-          / angle_unit;
+      double calc_moving_time = fabs(goal_position_.coeff(0, joint_index) - target_position_.coeff(0, joint_index)) / angle_unit;
       if (calc_moving_time > moving_time_)
         moving_time_ = calc_moving_time;
 
@@ -177,19 +176,19 @@ void HeadControlModule::setHeadJoint(const sensor_msgs::JointState::ConstPtr &ms
   scan_state_ = NoScan;
 
   // generate trajectory
-  tra_gene_thread_ = new boost::thread(boost::bind(&HeadControlModule::jointTraGeneThread, this));
-  delete tra_gene_thread_;
+  tra_gene_thread_ = new std::thread(&HeadControlModule::jointTraGeneThread, this);
+  tra_gene_thread_->detach();
 }
 
-void HeadControlModule::setHeadScanCallback(const std_msgs::String::ConstPtr &msg)
+void HeadControlModule::setHeadScanCallback(const std_msgs::msg::String::SharedPtr msg)
 {
   if (enable_ == false)
   {
-    ROS_ERROR_THROTTLE(1, "Head control module is not enabled, scan command is canceled.");
+    RCLCPP_ERROR_THROTTLE(this->get_logger(), *rclcpp::Clock::make_shared(), 1, "Head control module is not enabled, scan command is canceled.");
     return;
   }
   else
-    ROS_INFO_THROTTLE(1, "Scan command is accepted. [%d]", scan_state_);
+    RCLCPP_INFO_THROTTLE(this->get_logger(), *rclcpp::Clock::make_shared(), 1, "Scan command is accepted. [%d]", scan_state_);
 
   if (msg->data == "scan" && scan_state_ == NoScan)
   {
@@ -361,7 +360,7 @@ void HeadControlModule::finishMoving()
   goal_acceleration_ = Eigen::MatrixXd::Zero(1, result_.size());
 
   // log
-  publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "Head movement is finished.");
+  publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_INFO, "Head movement is finished.");
 
   if (DEBUG)
     std::cout << "Trajectory End" << std::endl;
@@ -408,7 +407,7 @@ void HeadControlModule::stopMoving()
   goal_acceleration_ = Eigen::MatrixXd::Zero(1, result_.size());
 
   // log
-  publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_WARN, "Stop Module.");
+  publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_WARN, "Stop Module.");
 }
 
 void HeadControlModule::generateScanTra(const int head_direction)
@@ -463,8 +462,8 @@ void HeadControlModule::generateScanTra(const int head_direction)
   }
 
   // generate trajectory
-  tra_gene_thread_ = new boost::thread(boost::bind(&HeadControlModule::jointTraGeneThread, this));
-  delete tra_gene_thread_;
+  tra_gene_thread_ = new std::thread(&HeadControlModule::jointTraGeneThread, this);
+  tra_gene_thread_->detach();
 }
 
 /*
@@ -574,29 +573,29 @@ void HeadControlModule::jointTraGeneThread()
   tra_count_ = 0;
 
   if (DEBUG)
-    ROS_INFO("[ready] make trajectory : %d, %d", tra_size_, tra_count_);
+    RCLCPP_INFO(this->get_logger(), "[ready] make trajectory : %d, %d", tra_size_, tra_count_);
 
   tra_lock_.unlock();
 }
 
 void HeadControlModule::publishStatusMsg(unsigned int type, std::string msg)
 {
-  ros::Time now = ros::Time::now();
+  rclcpp::Time now = rclcpp::Clock().now();
 
   if(msg.compare(last_msg_) == 0)
   {
-    ros::Duration dur = now - last_msg_time_;
-    if(dur.sec < 1)
+    rclcpp::Duration dur = now - last_msg_time_;
+    if(dur.seconds() < 1)
       return;
   }
 
-  robotis_controller_msgs::StatusMsg status_msg;
+  auto status_msg = robotis_controller_msgs::msg::StatusMsg();
   status_msg.header.stamp = now;
   status_msg.type = type;
   status_msg.module_name = "Head Control";
   status_msg.status_msg = msg;
 
-  status_msg_pub_.publish(status_msg);
+  status_msg_pub_->publish(status_msg);
 
   last_msg_ = msg;
   last_msg_time_ = now;

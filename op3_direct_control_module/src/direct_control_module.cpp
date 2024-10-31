@@ -123,10 +123,9 @@ void DirectControlModule::queueThread()
 
 void DirectControlModule::setJointCallback(const sensor_msgs::msg::JointState::SharedPtr msg)
 {
-  rclcpp::Clock clock;
   if (enable_ == false)
   {
-    RCLCPP_INFO_THROTTLE(this->get_logger(), clock, 1, "Direct control module is not enabled.");
+    RCLCPP_INFO_THROTTLE(this->get_logger(), *rclcpp::Clock::make_shared(), 1, "Direct control module is not enabled.");
     publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_ERROR, "Not Enabled");
     return;
   }

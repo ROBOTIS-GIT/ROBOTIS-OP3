@@ -20,21 +20,20 @@
 #define BASEMODULE_H_
 
 #include <map>
-#include <boost/thread.hpp>
+#include <thread>
 #include <yaml-cpp/yaml.h>
 
-#include <ros/ros.h>
-#include <ros/callback_queue.h>
-#include <ros/package.h>
-#include <std_msgs/Int16.h>
-#include <std_msgs/Float64.h>
-#include <std_msgs/String.h>
-#include <geometry_msgs/Pose.h>
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/int16.hpp>
+#include <std_msgs/msg/float64.hpp>
+#include <std_msgs/msg/string.hpp>
+#include <geometry_msgs/msg/pose.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 
 #include "robotis_framework_common/motion_module.h"
-#include "robotis_controller_msgs/JointCtrlModule.h"
-#include "robotis_controller_msgs/SetModule.h"
-#include "robotis_controller_msgs/StatusMsg.h"
+#include "robotis_controller_msgs/msg/joint_ctrl_module.hpp"
+#include "robotis_controller_msgs/srv/set_module.hpp"
+#include "robotis_controller_msgs/msg/status_msg.hpp"
 #include "robotis_math/robotis_math.h"
 #include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
 
@@ -66,7 +65,7 @@ class BaseJointState
 
 };
 
-class BaseModule : public robotis_framework::MotionModule, public robotis_framework::Singleton<BaseModule>
+class BaseModule : public robotis_framework::MotionModule, public robotis_framework::Singleton<BaseModule>, public rclcpp::Node
 {
  public:
   BaseModule();
@@ -83,7 +82,7 @@ class BaseModule : public robotis_framework::MotionModule, public robotis_framew
   void onModuleDisable();
 
   /* ROS Topic Callback Functions */
-  void initPoseMsgCallback(const std_msgs::String::ConstPtr& msg);
+  void initPoseMsgCallback(const std_msgs::msg::String::SharedPtr msg);
 
   /* ROS Calculation Functions */
   void initPoseTrajGenerateProc();
@@ -103,13 +102,13 @@ class BaseModule : public robotis_framework::MotionModule, public robotis_framew
   void publishStatusMsg(unsigned int type, std::string msg);
 
   int control_cycle_msec_;
-  boost::thread queue_thread_;
-  boost::thread tra_gene_tread_;
+  std::thread queue_thread_;
+  std::thread tra_gene_tread_;
 
-  ros::Publisher status_msg_pub_;
-  ros::Publisher set_ctrl_module_pub_;
+  rclcpp::Publisher<robotis_controller_msgs::msg::StatusMsg>::SharedPtr status_msg_pub_;
+  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr set_ctrl_module_pub_;
 
-  ros::ServiceClient set_module_client_;
+  rclcpp::Client<robotis_controller_msgs::srv::SetModule>::SharedPtr set_module_client_;
 
   std::map<std::string, int> joint_name_to_id_;
 

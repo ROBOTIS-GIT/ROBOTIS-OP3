@@ -1,100 +1,62 @@
-################################################################################
-# Set minimum required version of cmake, project name and compile options
-################################################################################
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(op3_base_module)
 
-################################################################################
-# Find catkin packages and libraries for catkin and system dependencies
-################################################################################
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  roslib
-  std_msgs
-  geometry_msgs
-  robotis_controller_msgs
-  cmake_modules
-  robotis_framework_common
-  robotis_device
-  robotis_math
-  op3_kinematics_dynamics
-)
-
-find_package(Boost REQUIRED)
+find_package(ament_cmake REQUIRED)
+find_package(ament_index_cpp REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(dynamixel_sdk REQUIRED)
+find_package(robotis_controller_msgs REQUIRED)
+find_package(robotis_framework_common REQUIRED)
+find_package(robotis_device REQUIRED)
+find_package(robotis_math REQUIRED)
+find_package(op3_kinematics_dynamics REQUIRED)
 find_package(Eigen3 REQUIRED)
-
-## Resolve system dependency on yaml-cpp, which apparently does not
-## provide a CMake find_package() module.
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
-find_path(YAML_CPP_INCLUDE_DIR
-  NAMES yaml_cpp.h
-  PATHS ${YAML_CPP_INCLUDE_DIRS}
-)
-find_library(YAML_CPP_LIBRARY
-  NAMES YAML_CPP
-  PATHS ${YAML_CPP_LIBRARY_DIRS}
-)
+find_path(YAML_CPP_INCLUDE_DIR NAMES yaml_cpp.h PATHS ${YAML_CPP_INCLUDE_DIRS})
+find_library(YAML_CPP_LIBRARY NAMES YAML_CPP PATHS ${YAML_CPP_LIBRARY_DIRS})
 link_directories(${YAML_CPP_LIBRARY_DIRS})
 
 if(NOT ${YAML_CPP_VERSION} VERSION_LESS "0.5")
-add_definitions(-DHAVE_NEW_YAMLCPP)
-endif(NOT ${YAML_CPP_VERSION} VERSION_LESS "0.5")
+  add_definitions(-DHAVE_NEW_YAMLCPP)
+endif()
 
-################################################################################
-# Setup for python modules and scripts
-################################################################################
+ament_export_dependencies(rclcpp std_msgs geometry_msgs robotis_controller_msgs robotis_framework_common robotis_device robotis_math op3_kinematics_dynamics Eigen3)
+ament_export_include_directories(include)
+ament_export_libraries(${PROJECT_NAME})
 
-################################################################################
-# Declare ROS messages, services and actions
-################################################################################
-
-################################################################################
-# Declare ROS dynamic reconfigure parameters
-################################################################################
-
-################################################################################
-# Declare catkin specific configuration to be passed to dependent projects
-################################################################################
-catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS roscpp roslib std_msgs geometry_msgs robotis_controller_msgs cmake_modules robotis_framework_common robotis_device robotis_math op3_kinematics_dynamics
-  DEPENDS Boost EIGEN3
-)
-
-################################################################################
-# Build
-################################################################################
 include_directories(
   include
-  ${catkin_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS}
+  ${rclcpp_INCLUDE_DIRS}
+  ${std_msgs_INCLUDE_DIRS}
+  ${geometry_msgs_INCLUDE_DIRS}
+  ${robotis_controller_msgs_INCLUDE_DIRS}
+  ${robotis_framework_common_INCLUDE_DIRS}
+  ${robotis_device_INCLUDE_DIRS}
+  ${robotis_math_INCLUDE_DIRS}
+  ${op3_kinematics_dynamics_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
   ${YAML_CPP_INCLUDE_DIRS}
 )
 
 add_library(${PROJECT_NAME} src/base_module.cpp src/base_module_state.cpp)
-add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${Eigen3_LIBRARIES} ${YAML_CPP_LIBRARIES})
+ament_target_dependencies(${PROJECT_NAME} ament_index_cpp rclcpp std_msgs geometry_msgs dynamixel_sdk robotis_controller_msgs robotis_framework_common robotis_device robotis_math op3_kinematics_dynamics Eigen3)
+target_link_libraries(${PROJECT_NAME} ${YAML_CPP_LIBRARIES})
 
-################################################################################
-# Install
-################################################################################
 install(TARGETS ${PROJECT_NAME}
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  DESTINATION include/${PROJECT_NAME}
 )
 
 install(DIRECTORY data
-	DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+  DESTINATION share/${PROJECT_NAME}
 )
 
-################################################################################
-# Test
-################################################################################
+ament_package()

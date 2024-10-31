@@ -16,14 +16,22 @@
 
 /* Author: Kayman, SCH */
 
-#include <stdio.h>
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/string.hpp>
+#include <robotis_controller_msgs/msg/status_msg.hpp>
+#include <robotis_controller_msgs/srv/set_module.hpp>
+#include <yaml-cpp/yaml.h>
+#include <Eigen/Dense>
+#include <thread>
+#include <chrono>
 #include "op3_base_module/base_module.h"
 
 namespace robotis_op
 {
 
 BaseModule::BaseModule()
-  : control_cycle_msec_(0),
+  : Node("base_module"),
+    control_cycle_msec_(0),
     has_goal_joints_(false),
     ini_pose_only_(false),
     init_pose_file_path_("")
@@ -38,34 +46,30 @@ BaseModule::BaseModule()
 
 BaseModule::~BaseModule()
 {
-  queue_thread_.join();
+  if (queue_thread_.joinable())
+    queue_thread_.join();
 }
 
 void BaseModule::initialize(const int control_cycle_msec, robotis_framework::Robot *robot)
 {
   control_cycle_msec_ = control_cycle_msec;
-  queue_thread_ = boost::thread(boost::bind(&BaseModule::queueThread, this));
+  queue_thread_ = std::thread(&BaseModule::queueThread, this);
 
   // init result, joint_id_table
-  for (std::map<std::string, robotis_framework::Dynamixel*>::iterator it = robot->dxls_.begin();
-       it != robot->dxls_.end(); it++)
+  for (const auto& [joint_name, dxl_info] : robot->dxls_)
   {
-    std::string joint_name = it->first;
-    robotis_framework::Dynamixel* dxl_info = it->second;
-
     joint_name_to_id_[joint_name] = dxl_info->id_;
     result_[joint_name] = new robotis_framework::DynamixelState();
     result_[joint_name]->goal_position_ = dxl_info->dxl_state_->goal_position_;
   }
 
-  ros::NodeHandle ros_node;
-
   /* Load ROS Parameter */
-  ros_node.param<std::string>("init_pose_file_path", init_pose_file_path_, ros::package::getPath("op3_base_module") + "/data/ini_pose.yaml");
+  this->declare_parameter<std::string>("init_pose_file_path", ament_index_cpp::get_package_share_directory("op3_base_module") + "/data/ini_pose.yaml");
+  init_pose_file_path_ = this->get_parameter("init_pose_file_path").as_string();
 
   /* publish topics */
-  status_msg_pub_ = ros_node.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 1);
-  set_ctrl_module_pub_ = ros_node.advertise<std_msgs::String>("/robotis/enable_ctrl_module", 1);
+  status_msg_pub_ = this->create_publisher<robotis_controller_msgs::msg::StatusMsg>("/robotis/status", 1);
+  set_ctrl_module_pub_ = this->create_publisher<std_msgs::msg::String>("/robotis/enable_ctrl_module", 1);
 }
 
 void BaseModule::parseInitPoseData(const std::string &path)
@@ -77,7 +81,7 @@ void BaseModule::parseInitPoseData(const std::string &path)
     doc = YAML::LoadFile(path.c_str());
   } catch (const std::exception& e)
   {
-    ROS_ERROR("Fail to load yaml file.");
+    RCLCPP_ERROR(this->get_logger(), "Fail to load yaml file.");
     return;
   }
 
@@ -142,22 +146,23 @@ void BaseModule::parseInitPoseData(const std::string &path)
 
 void BaseModule::queueThread()
 {
-  ros::NodeHandle ros_node;
-  ros::CallbackQueue callback_queue;
-
-  ros_node.setCallbackQueue(&callback_queue);
+  auto executor = rclcpp::executors::SingleThreadedExecutor();
+  executor.add_node(this->get_node_base_interface());
 
   /* subscribe topics */
-  ros::Subscriber ini_pose_msg_sub = ros_node.subscribe("/robotis/base/ini_pose", 5, &BaseModule::initPoseMsgCallback,
-                                                        this);
-  set_module_client_ = ros_node.serviceClient<robotis_controller_msgs::SetModule>("/robotis/set_present_ctrl_modules");
+  auto ini_pose_msg_sub = this->create_subscription<std_msgs::msg::String>("/robotis/base/ini_pose", 5, 
+                                    std::bind(&BaseModule::initPoseMsgCallback, this, std::placeholders::_1));
+  set_module_client_ = this->create_client<robotis_controller_msgs::srv::SetModule>("/robotis/set_present_ctrl_modules");
 
-  ros::WallDuration duration(control_cycle_msec_ / 1000.0);
-  while (ros_node.ok())
-    callback_queue.callAvailable(duration);
+  rclcpp::Rate rate(1000.0 / control_cycle_msec_);
+  while (rclcpp::ok())
+  {
+    executor.spin_some();
+    rate.sleep();
+  }
 }
 
-void BaseModule::initPoseMsgCallback(const std_msgs::String::ConstPtr& msg)
+void BaseModule::initPoseMsgCallback(const std_msgs::msg::String::SharedPtr msg)
 {
   if (base_module_state_->is_moving_ == false)
   {
@@ -168,17 +173,17 @@ void BaseModule::initPoseMsgCallback(const std_msgs::String::ConstPtr& msg)
 
       // wait for changing the module to base_module and getting the goal position
       while (enable_ == false || has_goal_joints_ == false)
-        usleep(8 * 1000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(8));
 
       // parse initial pose
       parseInitPoseData(init_pose_file_path_);
 
       // generate trajectory
-      tra_gene_tread_ = boost::thread(boost::bind(&BaseModule::initPoseTrajGenerateProc, this));
+      tra_gene_tread_ = std::thread(&BaseModule::initPoseTrajGenerateProc, this);
     }
   }
   else
-    ROS_INFO("previous task is alive");
+    RCLCPP_INFO(this->get_logger(), "previous task is alive");
 
   return;
 }
@@ -215,7 +220,7 @@ void BaseModule::initPoseTrajGenerateProc()
 
   base_module_state_->is_moving_ = true;
   base_module_state_->cnt_ = 0;
-  ROS_INFO("[start] send trajectory");
+  RCLCPP_INFO(this->get_logger(), "[start] send trajectory");
 }
 
 void BaseModule::poseGenerateProc(Eigen::MatrixXd joint_angle_pose)
@@ -223,7 +228,7 @@ void BaseModule::poseGenerateProc(Eigen::MatrixXd joint_angle_pose)
   callServiceSettingModule(module_name_);
 
   while (enable_ == false || has_goal_joints_ == false)
-    usleep(8 * 1000);
+    std::this_thread::sleep_for(std::chrono::milliseconds(8));
 
   base_module_state_->mov_time_ = 5.0;
   base_module_state_->all_time_steps_ = int(base_module_state_->mov_time_ / base_module_state_->smp_time_) + 1;
@@ -237,7 +242,7 @@ void BaseModule::poseGenerateProc(Eigen::MatrixXd joint_angle_pose)
     double ini_value = joint_state_->goal_joint_state_[id].position_;
     double tar_value = base_module_state_->joint_pose_.coeff(id, 0);
 
-    ROS_INFO_STREAM("[ID : " << id << "] ini_value : " << ini_value << "  tar_value : " << tar_value);
+    RCLCPP_INFO(this->get_logger(), "[ID : %d] ini_value : %f  tar_value : %f", id, ini_value, tar_value);
 
     Eigen::MatrixXd tra = robotis_framework::calcMinimumJerkTra(ini_value, 0.0, 0.0, tar_value, 0.0, 0.0,
                                                                 base_module_state_->smp_time_,
@@ -249,7 +254,7 @@ void BaseModule::poseGenerateProc(Eigen::MatrixXd joint_angle_pose)
   base_module_state_->is_moving_ = true;
   base_module_state_->cnt_ = 0;
   ini_pose_only_ = true;
-  ROS_INFO("[start] send trajectory");
+  RCLCPP_INFO(this->get_logger(), "[start] send trajectory");
 }
 
 void BaseModule::poseGenerateProc(std::map<std::string, double>& joint_angle_pose)
@@ -257,20 +262,16 @@ void BaseModule::poseGenerateProc(std::map<std::string, double>& joint_angle_pos
   callServiceSettingModule(module_name_);
 
   while (enable_ == false || has_goal_joints_ == false)
-    usleep(8 * 1000);
+    std::this_thread::sleep_for(std::chrono::milliseconds(8));
 
   Eigen::MatrixXd target_pose = Eigen::MatrixXd::Zero( MAX_JOINT_ID + 1, 1);
 
-  for (std::map<std::string, double>::iterator joint_angle_it = joint_angle_pose.begin();
-       joint_angle_it != joint_angle_pose.end(); joint_angle_it++)
+  for (const auto& [joint_name, joint_angle_rad] : joint_angle_pose)
   {
-    std::string joint_name = joint_angle_it->first;
-    double joint_angle_rad = joint_angle_it->second;
-
-    std::map<std::string, int>::iterator joint_name_to_id_it = joint_name_to_id_.find(joint_name);
-    if (joint_name_to_id_it != joint_name_to_id_.end())
+    auto it = joint_name_to_id_.find(joint_name);
+    if (it != joint_name_to_id_.end())
     {
-      target_pose.coeffRef(joint_name_to_id_it->second, 0) = joint_angle_rad;
+      target_pose.coeffRef(it->second, 0) = joint_angle_rad;
     }
   }
 
@@ -286,7 +287,7 @@ void BaseModule::poseGenerateProc(std::map<std::string, double>& joint_angle_pos
     double ini_value = joint_state_->goal_joint_state_[id].position_;
     double tar_value = base_module_state_->joint_pose_.coeff(id, 0);
 
-    ROS_INFO_STREAM("[ID : " << id << "] ini_value : " << ini_value << "  tar_value : " << tar_value);
+    RCLCPP_INFO(this->get_logger(), "[ID : %d] ini_value : %f  tar_value : %f", id, ini_value, tar_value);
 
     Eigen::MatrixXd tra = robotis_framework::calcMinimumJerkTra(ini_value, 0.0, 0.0, tar_value, 0.0, 0.0,
                                                                 base_module_state_->smp_time_,
@@ -298,7 +299,7 @@ void BaseModule::poseGenerateProc(std::map<std::string, double>& joint_angle_pos
   base_module_state_->is_moving_ = true;
   base_module_state_->cnt_ = 0;
   ini_pose_only_ = true;
-  ROS_INFO("[start] send trajectory");
+  RCLCPP_INFO(this->get_logger(), "[start] send trajectory");
 }
 
 bool BaseModule::isRunning()
@@ -313,16 +314,9 @@ void BaseModule::process(std::map<std::string, robotis_framework::Dynamixel *> d
     return;
 
   /*----- write curr position -----*/
-  for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_iter = result_.begin();
-       state_iter != result_.end(); state_iter++)
+  for (const auto& [joint_name, dxl] : dxls)
   {
-    std::string joint_name = state_iter->first;
-
-    robotis_framework::Dynamixel *dxl = NULL;
-    std::map<std::string, robotis_framework::Dynamixel*>::iterator dxl_it = dxls.find(joint_name);
-    if (dxl_it != dxls.end())
-      dxl = dxl_it->second;
-    else
+    if (result_.find(joint_name) == result_.end())
       continue;
 
     double joint_curr_position = dxl->dxl_state_->present_position_;
@@ -338,7 +332,7 @@ void BaseModule::process(std::map<std::string, robotis_framework::Dynamixel *> d
   if (base_module_state_->is_moving_ == true)
   {
     if (base_module_state_->cnt_ == 1)
-      publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "Start Init Pose");
+      publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_INFO, "Start Init Pose");
 
     for (int id = 1; id <= MAX_JOINT_ID; id++)
       joint_state_->goal_joint_state_[id].position_ = base_module_state_->calc_joint_tra_(base_module_state_->cnt_, id);
@@ -347,21 +341,18 @@ void BaseModule::process(std::map<std::string, robotis_framework::Dynamixel *> d
   }
 
   /*----- set joint data -----*/
-  for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_iter = result_.begin();
-       state_iter != result_.end(); state_iter++)
+  for (const auto& [joint_name, state] : result_)
   {
-    std::string joint_name = state_iter->first;
-
-    result_[joint_name]->goal_position_ = joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].position_;
+    state->goal_position_ = joint_state_->goal_joint_state_[joint_name_to_id_[joint_name]].position_;
   }
 
   /*---------- initialize count number ----------*/
 
   if ((base_module_state_->cnt_ >= base_module_state_->all_time_steps_) && (base_module_state_->is_moving_ == true))
   {
-    ROS_INFO("[end] send trajectory");
+    RCLCPP_INFO(this->get_logger(), "[end] send trajectory");
 
-    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "Finish Init Pose");
+    publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_INFO, "Finish Init Pose");
 
     base_module_state_->is_moving_ = false;
     base_module_state_->cnt_ = 0;
@@ -382,7 +373,7 @@ void BaseModule::stop()
 
 void BaseModule::onModuleEnable()
 {
-  ROS_INFO("Base Module is enabled");
+  RCLCPP_INFO(this->get_logger(), "Base Module is enabled");
 }
 
 void BaseModule::onModuleDisable()
@@ -392,20 +383,21 @@ void BaseModule::onModuleDisable()
 
 void BaseModule::setCtrlModule(std::string module)
 {
-  std_msgs::String control_msg;
+  std_msgs::msg::String control_msg;
   control_msg.data = module_name_;
 
-  set_ctrl_module_pub_.publish(control_msg);
+  set_ctrl_module_pub_->publish(control_msg);
 }
 
 void BaseModule::callServiceSettingModule(const std::string &module_name)
 {
-  robotis_controller_msgs::SetModule set_module_srv;
-  set_module_srv.request.module_name = module_name;
+  auto request = std::make_shared<robotis_controller_msgs::srv::SetModule::Request>();
+  request->module_name = module_name;
 
-  if (set_module_client_.call(set_module_srv) == false)
+  auto result = set_module_client_->async_send_request(request);
+  if (rclcpp::spin_until_future_complete(this->get_node_base_interface(), result) != rclcpp::FutureReturnCode::SUCCESS)
   {
-    ROS_ERROR("Failed to set module");
+    RCLCPP_ERROR(this->get_logger(), "Failed to set module");
     return;
   }
 
@@ -414,12 +406,12 @@ void BaseModule::callServiceSettingModule(const std::string &module_name)
 
 void BaseModule::publishStatusMsg(unsigned int type, std::string msg)
 {
-  robotis_controller_msgs::StatusMsg status_msg;
-  status_msg.header.stamp = ros::Time::now();
+  auto status_msg = robotis_controller_msgs::msg::StatusMsg();
+  status_msg.header.stamp = rclcpp::Clock().now();
   status_msg.type = type;
   status_msg.module_name = "Base";
   status_msg.status_msg = msg;
 
-  status_msg_pub_.publish(status_msg);
+  status_msg_pub_->publish(status_msg);
 }
 }

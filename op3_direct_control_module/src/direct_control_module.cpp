@@ -16,14 +16,17 @@
 
 /* Author: Kayman */
 
-#include <stdio.h>
+#include <cstdio>
 #include "op3_direct_control_module/direct_control_module.h"
+
+using namespace std::chrono_literals;
 
 namespace robotis_op
 {
 
 DirectControlModule::DirectControlModule()
-  : control_cycle_msec_(0),
+  : Node("direct_control_module"),
+    control_cycle_msec_(0),
     stop_process_(false),
     is_moving_(false),
     is_updated_(false),
@@ -48,7 +51,7 @@ DirectControlModule::DirectControlModule()
   module_name_ = "direct_control_module";
   control_mode_ = robotis_framework::PositionControl;
 
-  last_msg_time_ = ros::Time::now();
+  last_msg_time_ = rclcpp::Clock().now();
 }
 
 DirectControlModule::~DirectControlModule()
@@ -83,43 +86,48 @@ void DirectControlModule::initialize(const int control_cycle_msec, robotis_frame
   goal_acceleration_ = Eigen::MatrixXd::Zero(1, result_.size());
 
   // setting of queue thread
-  queue_thread_ = boost::thread(boost::bind(&DirectControlModule::queueThread, this));
+  queue_thread_ = std::thread(&DirectControlModule::queueThread, this);
 
   control_cycle_msec_ = control_cycle_msec;
 
-  ros::NodeHandle ros_node;
-
   /* get Param */
-  ros_node.param<double>("/robotis/direct_control/default_moving_time", default_moving_time_, default_moving_time_);
-  ros_node.param<double>("/robotis/direct_control/default_moving_angle", default_moving_angle_, default_moving_angle_);
-  ros_node.param<bool>("/robotis/direct_control/check_collision", check_collision_, check_collision_);
+  this->declare_parameter<double>("/robotis/direct_control/default_moving_time", default_moving_time_);
+  this->declare_parameter<double>("/robotis/direct_control/default_moving_angle", default_moving_angle_);
+  this->declare_parameter<bool>("/robotis/direct_control/check_collision", check_collision_);
+
+  this->get_parameter("/robotis/direct_control/default_moving_time", default_moving_time_);
+  this->get_parameter("/robotis/direct_control/default_moving_angle", default_moving_angle_);
+  this->get_parameter("/robotis/direct_control/check_collision", check_collision_);
 
   /* publish topics */
-  status_msg_pub_ = ros_node.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 0);
+  status_msg_pub_ = this->create_publisher<robotis_controller_msgs::msg::StatusMsg>("/robotis/status", 10);
 }
 
 void DirectControlModule::queueThread()
 {
-  ros::NodeHandle ros_node;
-  ros::CallbackQueue callback_queue;
-
-  ros_node.setCallbackQueue(&callback_queue);
+  auto executor = rclcpp::executors::SingleThreadedExecutor();
+  executor.add_node(this->get_node_base_interface());
 
   /* subscribe topics */
-  ros::Subscriber set_head_joint_sub = ros_node.subscribe("/robotis/direct_control/set_joint_states", 1,
-                                                          &DirectControlModule::setJointCallback, this);
+  auto set_head_joint_sub = this->create_subscription<sensor_msgs::msg::JointState>(
+      "/robotis/direct_control/set_joint_states", 1,
+      std::bind(&DirectControlModule::setJointCallback, this, std::placeholders::_1));
 
-  ros::WallDuration duration(control_cycle_msec_ / 1000.0);
-  while(ros_node.ok())
-    callback_queue.callAvailable(duration);
+  rclcpp::Rate rate(1000.0 / control_cycle_msec_);
+  while (rclcpp::ok())
+  {
+    executor.spin_some();
+    rate.sleep();
+  }
 }
 
-void DirectControlModule::setJointCallback(const sensor_msgs::JointState::ConstPtr &msg)
+void DirectControlModule::setJointCallback(const sensor_msgs::msg::JointState::SharedPtr msg)
 {
+  rclcpp::Clock clock;
   if (enable_ == false)
   {
-    ROS_INFO_THROTTLE(1, "Direct control module is not enable.");
-    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_ERROR, "Not Enable");
+    RCLCPP_INFO_THROTTLE(this->get_logger(), clock, 1, "Direct control module is not enabled.");
+    publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_ERROR, "Not Enabled");
     return;
   }
 
@@ -127,10 +135,10 @@ void DirectControlModule::setJointCallback(const sensor_msgs::JointState::ConstP
   int waiting_count = 0;
   while(is_updated_ == false)
   {
-    usleep(control_cycle_msec_ * 1000);
+    std::this_thread::sleep_for(std::chrono::milliseconds(control_cycle_msec_));
     if(++waiting_count > 100)
     {
-      ROS_ERROR("present joint angle is not updated");
+      RCLCPP_ERROR(this->get_logger(), "Present joint angle is not updated");
       return;
     }
   }
@@ -221,9 +229,8 @@ void DirectControlModule::setJointCallback(const sensor_msgs::JointState::ConstP
   }
 
   // generate trajectory
-  tra_gene_thread_ = new boost::thread(boost::bind(&DirectControlModule::jointTraGeneThread, this));
-  tra_gene_thread_->join();
-  delete tra_gene_thread_;
+  tra_gene_thread_ = std::thread(&DirectControlModule::jointTraGeneThread, this);
+  tra_gene_thread_.join();
 }
 
 void DirectControlModule::process(std::map<std::string, robotis_framework::Dynamixel *> dxls,
@@ -235,23 +242,20 @@ void DirectControlModule::process(std::map<std::string, robotis_framework::Dynam
   tra_lock_.lock();
 
   // get joint data from robot
-  for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_it = result_.begin();
-       state_it != result_.end(); state_it++)
+  for (const auto& [joint_name, dxl] : dxls)
   {
-    std::string joint_name = state_it->first;
-    int index = using_joint_name_[joint_name];
-
-    robotis_framework::Dynamixel *_dxl = NULL;
-    std::map<std::string, robotis_framework::Dynamixel*>::iterator dxl_it = dxls.find(joint_name);
-    if (dxl_it != dxls.end())
-      _dxl = dxl_it->second;
-    else
+    if (result_.find(joint_name) == result_.end())
       continue;
 
-    present_position_.coeffRef(0, index) = _dxl->dxl_state_->present_position_;
-    goal_position_.coeffRef(0, index) = _dxl->dxl_state_->goal_position_;
-    result_[joint_name]->goal_position_ = _dxl->dxl_state_->goal_position_;
-    collision_[joint_name] = false;
+    auto it = using_joint_name_.find(joint_name);
+    if (it != using_joint_name_.end())
+    {
+      int index = it->second;
+      present_position_.coeffRef(0, index) = dxl->dxl_state_->present_position_;
+      goal_position_.coeffRef(0, index) = dxl->dxl_state_->goal_position_;
+      result_[joint_name]->goal_position_ = dxl->dxl_state_->goal_position_;
+      collision_[joint_name] = false;
+    }
   }
 
   is_updated_ = true;
@@ -290,15 +294,12 @@ void DirectControlModule::process(std::map<std::string, robotis_framework::Dynam
   if(check_collision_ == true)
   {
     // set goal angle and run forward kinematics
-    for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_it = result_.begin();
-         state_it != result_.end(); state_it++)
+    for (const auto& [joint_name, state] : result_)
     {
-      std::string joint_name = state_it->first;
       int index = using_joint_name_[joint_name];
       double goal_position = goal_position_.coeff(0, index);
-
-      LinkData *op3_link = op3_kinematics_->getLinkData(joint_name);
-      if(op3_link != NULL)
+      auto* op3_link = op3_kinematics_->getLinkData(joint_name);
+      if (op3_link != nullptr)
         op3_link->joint_angle_ = goal_position;
     }
 
@@ -309,15 +310,13 @@ void DirectControlModule::process(std::map<std::string, robotis_framework::Dynam
   }
 
   // set joint data to robot
-  for (std::map<std::string, robotis_framework::DynamixelState *>::iterator state_it = result_.begin();
-       state_it != result_.end(); state_it++)
+  for (const auto& [joint_name, state] : result_)
   {
-    std::string joint_name = state_it->first;
     int index = using_joint_name_[joint_name];
     double goal_position = goal_position_.coeff(0, index);
 
-    if(collision_[joint_name] == false || check_collision_ == false)
-      result_[joint_name]->goal_position_ = goal_position;
+    if (collision_[joint_name] == false || check_collision_ == false)
+      state->goal_position_ = goal_position;
   }
 }
 
@@ -367,7 +366,7 @@ void DirectControlModule::finishMoving()
   is_moving_ = false;
 
   // log
-  publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "Head movement is finished.");
+  publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_INFO, "Head movement is finished.");
 
   if (DEBUG)
     std::cout << "Trajectory End" << std::endl;
@@ -383,7 +382,7 @@ void DirectControlModule::stopMoving()
   stop_process_ = false;
 
   // log
-  publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_WARN, "Stop Module.");
+  publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_WARN, "Stop Module.");
 }
 
 /*
@@ -458,12 +457,13 @@ bool DirectControlModule::checkSelfCollision()
   // get length between right arm and base
   double diff_length = 0.0;
   bool result = getDiff(op3_kinematics_, RIGHT_END_EFFECTOR_INDEX, BASE_INDEX, diff_length);
+  rclcpp::Clock clock;
 
   // check collision
   if(result == true && diff_length < collision_boundary)
   {
     if(DEBUG == true)
-      ROS_WARN_STREAM_THROTTLE(1, "Self Collision : RIGHT_ARM and BASE | "  << diff_length << " / " << collision_boundary);
+      RCLCPP_WARN_STREAM_THROTTLE(this->get_logger(), clock, 1, "Self Collision : RIGHT_ARM and BASE | "  << diff_length << " / " << collision_boundary);
     collision_["r_sho_pitch"] = true;
     collision_["r_sho_roll"] = true;
     collision_["r_el"] = true;
@@ -480,7 +480,7 @@ bool DirectControlModule::checkSelfCollision()
   if(result == true && diff_length < collision_boundary)
   {
     if(DEBUG == true)
-      ROS_WARN_STREAM_THROTTLE(1, "Self Collision : RIGHT_ELBOW and BASE | " << diff_length << " / " << collision_boundary);
+      RCLCPP_WARN_STREAM_THROTTLE(this->get_logger(), clock, 1, "Self Collision : RIGHT_ELBOW and BASE | " << diff_length << " / " << collision_boundary);
     collision_["r_sho_pitch"] = true;
     collision_["r_sho_roll"] = true;
 
@@ -496,7 +496,7 @@ bool DirectControlModule::checkSelfCollision()
   if(result == true && diff_length < collision_boundary)
   {
     if(DEBUG == true)
-      ROS_WARN_STREAM_THROTTLE(1, "Self Collision : LEFT_ARM and BASE | " << diff_length << " / " << collision_boundary);
+      RCLCPP_WARN_STREAM_THROTTLE(this->get_logger(), clock, 1, "Self Collision : LEFT_ARM and BASE | " << diff_length << " / " << collision_boundary);
     collision_["l_sho_pitch"] = true;
     collision_["l_sho_roll"] = true;
     collision_["l_el"] = true;
@@ -513,7 +513,7 @@ bool DirectControlModule::checkSelfCollision()
   if(result == true && diff_length < collision_boundary)
   {
     if(DEBUG == true)
-      ROS_WARN_STREAM_THROTTLE(1, "Self Collision : LEFT_ELBOW and BASE | " << diff_length << " / " << collision_boundary);
+      RCLCPP_WARN_STREAM_THROTTLE(this->get_logger(), clock, 1, "Self Collision : LEFT_ELBOW and BASE | " << diff_length << " / " << collision_boundary);
     collision_["l_sho_pitch"] = true;
     collision_["l_sho_roll"] = true;
 
@@ -521,14 +521,14 @@ bool DirectControlModule::checkSelfCollision()
   }
 
   if(collision_result == false && DEBUG == true)
-    ROS_WARN("============================================");
+    RCLCPP_WARN(this->get_logger(), "============================================");
 
   return collision_result;
 }
 
 bool DirectControlModule::getDiff(OP3KinematicsDynamics *kinematics, int end_index, int base_index, double &diff)
 {
-  if(kinematics->op3_link_data_[end_index] == NULL | kinematics->op3_link_data_[base_index] == NULL)
+  if(kinematics->op3_link_data_[end_index] == NULL || kinematics->op3_link_data_[base_index] == NULL)
     return false;
 
   Eigen::Vector3d end_position = kinematics->op3_link_data_[end_index]->position_;
@@ -538,9 +538,10 @@ bool DirectControlModule::getDiff(OP3KinematicsDynamics *kinematics, int end_ind
 
   diff = diff_vec.norm();
 
-  ROS_WARN_STREAM_COND(DEBUG, "\nBase Position [" << base_position.coeff(0) << ", " << base_position.coeff(1) << ", " << base_position.coeff(2) << "] \n"
-                       << "End Position [" << end_position.coeff(0) << ", " << end_position.coeff(1) << ", " << end_position.coeff(2) << "] \n"
-                       << "Diff : " << diff);
+  RCLCPP_WARN_EXPRESSION(this->get_logger(), DEBUG, "\nBase Position [%f, %f, %f] \n"
+                       "End Position [%f, %f, %f] \n"
+                       "Diff : %f", base_position.coeff(0), base_position.coeff(1), base_position.coeff(2),
+                       end_position.coeff(0), end_position.coeff(1), end_position.coeff(2), diff);
 
   return true;
 }
@@ -590,29 +591,29 @@ void DirectControlModule::jointTraGeneThread()
   tra_count_ = 0;
 
   if (DEBUG)
-    ROS_INFO("[ready] make trajectory : %d, %d", tra_size_, tra_count_);
+    RCLCPP_INFO(this->get_logger(), "[ready] make trajectory : %d, %d", tra_size_, tra_count_);
 
   tra_lock_.unlock();
 }
 
 void DirectControlModule::publishStatusMsg(unsigned int type, std::string msg)
 {
-  ros::Time now = ros::Time::now();
+  rclcpp::Time now = rclcpp::Clock().now();
 
   if(msg.compare(last_msg_) == 0)
   {
-    ros::Duration dur = now - last_msg_time_;
-    if(dur.sec < 1)
+    rclcpp::Duration dur = now - last_msg_time_;
+    if(dur.seconds() < 1)
       return;
   }
 
-  robotis_controller_msgs::StatusMsg status_msg;
-  status_msg.header.stamp = now;
-  status_msg.type = type;
-  status_msg.module_name = "Direct Control";
-  status_msg.status_msg = msg;
+  auto status_msg = std::make_shared<robotis_controller_msgs::msg::StatusMsg>();
+  status_msg->header.stamp = now;
+  status_msg->type = type;
+  status_msg->module_name = "Direct Control";
+  status_msg->status_msg = msg;
 
-  status_msg_pub_.publish(status_msg);
+  status_msg_pub_->publish(*status_msg);
 
   last_msg_ = msg;
   last_msg_time_ = now;

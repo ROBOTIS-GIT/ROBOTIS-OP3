@@ -19,16 +19,16 @@
 #ifndef DIRECT_CONTROL_MODULE_H_
 #define DIRECT_CONTROL_MODULE_H_
 
-#include <boost/thread.hpp>
+#include <thread>
+#include <mutex>
 #include <eigen3/Eigen/Eigen>
 
-#include <ros/ros.h>
-#include <ros/callback_queue.h>
-#include <std_msgs/Empty.h>
-#include <std_msgs/String.h>
-#include <sensor_msgs/JointState.h>
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/empty.hpp>
+#include <std_msgs/msg/string.hpp>
+#include <sensor_msgs/msg/joint_state.hpp>
 
-#include "robotis_controller_msgs/StatusMsg.h"
+#include "robotis_controller_msgs/msg/status_msg.hpp"
 #include "robotis_framework_common/motion_module.h"
 #include "robotis_math/robotis_math.h"
 
@@ -37,7 +37,7 @@
 namespace robotis_op
 {
 
-class DirectControlModule : public robotis_framework::MotionModule, public robotis_framework::Singleton<DirectControlModule>
+class DirectControlModule : public robotis_framework::MotionModule, public robotis_framework::Singleton<DirectControlModule>, public rclcpp::Node
 {
  public:
   DirectControlModule();
@@ -69,7 +69,7 @@ class DirectControlModule : public robotis_framework::MotionModule, public robot
    const int LEFT_ELBOW_INDEX;
 
   /* ROS Topic Callback Functions */
-  void setJointCallback(const sensor_msgs::JointState::ConstPtr &msg);
+  void setJointCallback(const sensor_msgs::msg::JointState::SharedPtr msg);
 
   void queueThread();
   void jointTraGeneThread();
@@ -93,10 +93,10 @@ class DirectControlModule : public robotis_framework::MotionModule, public robot
   bool check_collision_;
 
   int control_cycle_msec_;
-  boost::thread queue_thread_;
-  boost::thread *tra_gene_thread_;
-  boost::mutex tra_lock_;
-  ros::Publisher status_msg_pub_;
+  std::thread queue_thread_;
+  std::thread tra_gene_thread_;
+  std::mutex tra_lock_;
+  rclcpp::Publisher<robotis_controller_msgs::msg::StatusMsg>::SharedPtr status_msg_pub_;
   const bool DEBUG;
   bool stop_process_;
   bool is_moving_;
@@ -120,7 +120,7 @@ class DirectControlModule : public robotis_framework::MotionModule, public robot
   std::map<int, double> max_angle_;
   std::map<int, double> min_angle_;
 
-  ros::Time last_msg_time_;
+  rclcpp::Time last_msg_time_;
   std::string last_msg_;
 
   OP3KinematicsDynamics *op3_kinematics_;

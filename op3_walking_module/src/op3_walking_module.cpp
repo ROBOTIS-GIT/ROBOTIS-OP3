@@ -928,8 +928,8 @@ bool WalkingModule::computeLegAngle(double *leg_angle)
   ep[10] = swap.pitch + left_leg_move.pitch + p_offset_;
   ep[11] = swap.yaw + left_leg_move.yaw + a_offset_ / 2;
 
-  std::cout << ep[0] << " " << ep[1] << " " << ep[2] << " " << ep[3] << " " << ep[4] << " " << ep[5] << " "
-            << ep[6] << " " << ep[7] << " " << ep[8] << " " << ep[9] << " " << ep[10] << " " << ep[11] << " " << std::endl;
+  //std::cout << ep[0] << " " << ep[1] << " " << ep[2] << " " << ep[3] << " " << ep[4] << " " << ep[5] << " "
+  //          << ep[6] << " " << ep[7] << " " << ep[8] << " " << ep[9] << " " << ep[10] << " " << ep[11] << " " << std::endl;
 
   // Compute body swing
   if (time_ <= l_ssp_end_time_)

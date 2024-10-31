@@ -46,4 +46,8 @@ install(DIRECTORY data
   DESTINATION share/${PROJECT_NAME}
 )
 
+ament_export_include_directories(include)
+ament_export_libraries(${PROJECT_NAME})
+ament_export_dependencies(ament_index_cpp rclcpp std_msgs dynamixel_sdk robotis_controller_msgs op3_action_module_msgs robotis_framework_common robotis_device Boost)
+
 ament_package()

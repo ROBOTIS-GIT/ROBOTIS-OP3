@@ -18,32 +18,33 @@
 
 // include
 #include "op3_localization/op3_localization.h"
+#include "rclcpp/rclcpp.hpp"
 
 //node main
 int main(int argc, char **argv)
 {
   //init ros
-  ros::init(argc, argv, "op3_localization");
+  rclcpp::init(argc, argv);
 
   //create ros wrapper object
-  robotis_op::OP3Localization op3_localization;
+  auto node = std::make_shared<robotis_op::OP3Localization>();
 
   //set node loop rate
-  ros::Rate loop_rate(10);
+  rclcpp::Rate loop_rate(10);
 
   //node loop
-  while ( ros::ok() )
+  while ( rclcpp::ok() )
   {
-    op3_localization.process();
+    node->process();
 
     //execute pending callbacks
-    ros::spinOnce();
+    rclcpp::spin_some(node);
 
     //relax to fit output rate
     loop_rate.sleep();
   }
 
   //exit program
+  rclcpp::shutdown();
   return 0;
 }
-

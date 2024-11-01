@@ -17,16 +17,18 @@
 /* Author: SCH */
 
 #include "op3_localization/op3_localization.h"
+#include "robotis_math/robotis_math.h"
 
 namespace robotis_op
 {
 
 OP3Localization::OP3Localization()
- : ros_node_(),
+ : Node("op3_localization"),
    transform_tolerance_(0.0),
    err_tol_(0.2),
    is_moving_walking_(false)
 {
+  broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(this);
   initialize();
 
   pelvis_pose_base_walking_.pose.position.x = 0.0;
@@ -64,32 +66,30 @@ OP3Localization::~OP3Localization()
 void OP3Localization::initialize()
 {
   // subscriber
-  pelvis_pose_msg_sub_ = ros_node_.subscribe("/robotis/pelvis_pose", 5,
-                                             &OP3Localization::pelvisPoseCallback, this);
-//  pelvis_base_walking_msg_sub_ = ros_node_.subscribe("/robotis/pelvis_pose_base_walking", 5,
-//                                                               &OP3Localization::pelvisPoseBaseWalkingCallback, this);
+  pelvis_pose_msg_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
+    "/robotis/pelvis_pose", 5, std::bind(&OP3Localization::pelvisPoseCallback, this, std::placeholders::_1));
+//  pelvis_base_walking_msg_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
+//      "/robotis/pelvis_pose_base_walking", 5, std::bind(&OP3Localization::pelvisPoseBaseWalkingCallback, this, std::placeholders::_1));
 
-  pelvis_reset_msg_sub_ = ros_node_.subscribe("/robotis/pelvis_pose_reset", 5,
-                                                       &OP3Localization::pelvisPoseResetCallback, this);
+  pelvis_reset_msg_sub_ = this->create_subscription<std_msgs::msg::String>(
+    "/robotis/pelvis_pose_reset", 5, std::bind(&OP3Localization::pelvisPoseResetCallback, this, std::placeholders::_1));
 
 }
 
-void OP3Localization::pelvisPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
+void OP3Localization::pelvisPoseCallback(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
 {
-  mutex_.lock();
+  std::lock_guard<std::mutex> lock(mutex_);
 
   pelvis_pose_offset_ = *msg;
   pelvis_pose_.header.stamp = pelvis_pose_offset_.header.stamp;
-
-  mutex_.unlock();
 }
 
-//void OP3Localization::pelvisPoseBaseWalkingCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
+//void OP3Localization::pelvisPoseBaseWalkingCallback(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
 //{
-//  mutex_.lock();
+//  std::lock_guard<std::mutex> lock(mutex_);
 
 //  Eigen::Quaterniond msg_q;
-//  tf::quaternionMsgToEigen(msg->pose.orientation, msg_q);
+//  tf2::fromMsg(msg->pose.orientation, msg_q);
 
 //  Eigen::MatrixXd rpy = robotis_framework::convertQuaternionToRPY(msg_q);
 //  double yaw = rpy.coeff(2,0);
@@ -100,7 +100,7 @@ void OP3Localization::pelvisPoseCallback(const geometry_msgs::PoseStamped::Const
 //  {
 //    if (is_moving_walking_ == true)
 //    {
-//      ROS_INFO("Walking Pelvis Pose Update");
+//      RCLCPP_INFO(this->get_logger(), "Walking Pelvis Pose Update");
 //      pelvis_pose_old_.pose.position.x += pelvis_pose_base_walking_new_.pose.position.x;
 //      pelvis_pose_old_.pose.position.y += pelvis_pose_base_walking_new_.pose.position.y;
 
@@ -115,7 +115,7 @@ void OP3Localization::pelvisPoseCallback(const geometry_msgs::PoseStamped::Const
 //                                              pelvis_pose_base_walking_.pose.orientation.z);
 
 //      Eigen::Quaterniond q = pose_old_quaternion * pose_base_quaternion;
-//      tf::quaternionEigenToMsg(q, pelvis_pose_old_.pose.orientation);
+//      pelvis_pose_old_.pose.orientation = tf2::toMsg(q);
 
 //      is_moving_walking_ = false;
 //    }
@@ -127,22 +127,20 @@ void OP3Localization::pelvisPoseCallback(const geometry_msgs::PoseStamped::Const
 
 //  pelvis_pose_base_walking_ = *msg;
 //  pelvis_pose_.header.stamp = pelvis_pose_base_walking_.header.stamp;
-
-//  mutex_.unlock();
 //}
 
-void OP3Localization::pelvisPoseResetCallback(const std_msgs::String::ConstPtr& msg)
+void OP3Localization::pelvisPoseResetCallback(const std_msgs::msg::String::SharedPtr msg)
 {
   if (msg->data == "reset")
   {
-    ROS_INFO("Pelvis Pose Reset");
+   RCLCPP_INFO(this->get_logger(), "Pelvis Pose Reset");
 
-    pelvis_pose_old_.pose.position.x = 0.0;
-    pelvis_pose_old_.pose.position.y = 0.0;
-    pelvis_pose_old_.pose.orientation.x = 0.0;
-    pelvis_pose_old_.pose.orientation.y = 0.0;
-    pelvis_pose_old_.pose.orientation.z = 0.0;
-    pelvis_pose_old_.pose.orientation.w = 1.0;
+   pelvis_pose_old_.pose.position.x = 0.0;
+   pelvis_pose_old_.pose.position.y = 0.0;
+   pelvis_pose_old_.pose.orientation.x = 0.0;
+   pelvis_pose_old_.pose.orientation.y = 0.0;
+   pelvis_pose_old_.pose.orientation.z = 0.0;
+   pelvis_pose_old_.pose.orientation.w = 1.0;
   }
 }
 
@@ -150,29 +148,30 @@ void OP3Localization::process()
 {
   update();
 
-  pelvis_trans_.setOrigin(tf::Vector3(pelvis_pose_.pose.position.x,
-                                      pelvis_pose_.pose.position.y,
-                                      pelvis_pose_.pose.position.z)
-                          );
+  pelvis_trans_.transform.translation.x = pelvis_pose_.pose.position.x;
+  pelvis_trans_.transform.translation.y = pelvis_pose_.pose.position.y;
+  pelvis_trans_.transform.translation.z = pelvis_pose_.pose.position.z;
 
-  tf::Quaternion q(pelvis_pose_.pose.orientation.x,
-                   pelvis_pose_.pose.orientation.y,
-                   pelvis_pose_.pose.orientation.z,
-                   pelvis_pose_.pose.orientation.w);
+  pelvis_trans_.transform.rotation = pelvis_pose_.pose.orientation;
 
-  pelvis_trans_.setRotation(q);
+  rclcpp::Duration transform_tolerance = rclcpp::Duration::from_seconds(transform_tolerance_);
+  rclcpp::Time transform_expiration = (pelvis_pose_.header.stamp + transform_tolerance);
 
-  ros::Duration transform_tolerance(transform_tolerance_);
-  ros::Time transform_expiration = (pelvis_pose_.header.stamp + transform_tolerance);
+  geometry_msgs::msg::TransformStamped tmp_tf_stamped;
+  tmp_tf_stamped.header.stamp = transform_expiration;
+  tmp_tf_stamped.header.frame_id = "world";
+  tmp_tf_stamped.child_frame_id = "body_link";
+  tmp_tf_stamped.transform.translation.x = pelvis_trans_.transform.translation.x;
+  tmp_tf_stamped.transform.translation.y = pelvis_trans_.transform.translation.y;
+  tmp_tf_stamped.transform.translation.z = pelvis_trans_.transform.translation.z;
+  tmp_tf_stamped.transform.rotation = pelvis_trans_.transform.rotation;
 
-  tf::StampedTransform tmp_tf_stamped(pelvis_trans_, transform_expiration, "world", "body_link");
-
-  broadcaster_.sendTransform(tmp_tf_stamped);
+  broadcaster_->sendTransform(tmp_tf_stamped);
 }
 
 void OP3Localization::update()
 {
-  mutex_.lock();
+  std::lock_guard<std::mutex> lock(mutex_);
 
   Eigen::Quaterniond pose_old_quaternion(pelvis_pose_old_.pose.orientation.w,
                                          pelvis_pose_old_.pose.orientation.x,
@@ -229,9 +228,7 @@ void OP3Localization::update()
   pelvis_pose_.pose.position.z =
       pelvis_pose_offset_.pose.position.z;
 
-  tf::quaternionEigenToMsg(pose_quaternion, pelvis_pose_.pose.orientation);
-
-  mutex_.unlock();
+  pelvis_pose_.pose.orientation = tf2::toMsg(pose_quaternion);
 }
 
 } // namespace robotis_op

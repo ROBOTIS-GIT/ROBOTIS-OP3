@@ -24,21 +24,19 @@
 #include <stdio.h>
 #include <math.h>
 #include <fstream>
-#include <boost/thread.hpp>
+#include <thread>
 #include <eigen3/Eigen/Eigen>
 #include <yaml-cpp/yaml.h>
 
-#include <ros/ros.h>
-#include <ros/callback_queue.h>
-#include <ros/package.h>
-#include <std_msgs/String.h>
-#include <sensor_msgs/Imu.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/string.hpp>
+#include <sensor_msgs/msg/imu.hpp>
+#include <geometry_msgs/msg/pose.hpp>
 
-#include "robotis_controller_msgs/StatusMsg.h"
-#include "op3_walking_module_msgs/WalkingParam.h"
-#include "op3_walking_module_msgs/GetWalkingParam.h"
-#include "op3_walking_module_msgs/SetWalkingParam.h"
+#include "robotis_controller_msgs/msg/status_msg.hpp"
+#include "op3_walking_module_msgs/msg/walking_param.hpp"
+#include "op3_walking_module_msgs/srv/get_walking_param.hpp"
+#include "op3_walking_module_msgs/srv/set_walking_param.hpp"
 
 #include "robotis_framework_common/motion_module.h"
 #include "robotis_math/robotis_math.h"
@@ -107,10 +105,10 @@ class WalkingModule : public robotis_framework::MotionModule, public robotis_fra
   void queueThread();
 
   /* ROS Topic Callback Functions */
-  void walkingCommandCallback(const std_msgs::String::ConstPtr &msg);
-  void walkingParameterCallback(const op3_walking_module_msgs::WalkingParam::ConstPtr &msg);
-  bool getWalkigParameterCallback(op3_walking_module_msgs::GetWalkingParam::Request &req,
-                                  op3_walking_module_msgs::GetWalkingParam::Response &res);
+  void walkingCommandCallback(const std_msgs::msg::String::SharedPtr msg);
+  void walkingParameterCallback(const op3_walking_module_msgs::msg::WalkingParam::SharedPtr msg);
+  bool getWalkingParameterCallback(const std::shared_ptr<op3_walking_module_msgs::srv::GetWalkingParam::Request> req,
+                                   std::shared_ptr<op3_walking_module_msgs::srv::GetWalkingParam::Response> res);
 
   /* ROS Service Callback Functions */
   void processPhase(const double &time_unit);
@@ -132,12 +130,12 @@ class WalkingModule : public robotis_framework::MotionModule, public robotis_fra
   OP3KinematicsDynamics* op3_kd_;
   int control_cycle_msec_;
   std::string param_path_;
-  boost::thread queue_thread_;
-  boost::mutex publish_mutex_;
+  std::thread queue_thread_;
+  std::mutex publish_mutex_;
 
   /* ROS Topic Publish Functions */
-  ros::Publisher robot_pose_pub_;
-  ros::Publisher status_msg_pub_;
+  rclcpp::Publisher<geometry_msgs::msg::Pose>::SharedPtr robot_pose_pub_;
+  rclcpp::Publisher<robotis_controller_msgs::msg::StatusMsg>::SharedPtr status_msg_pub_;
 
   Eigen::MatrixXd calc_joint_tra_;
 
@@ -148,7 +146,7 @@ class WalkingModule : public robotis_framework::MotionModule, public robotis_fra
   std::map<std::string, int> joint_table_;
   int walking_state_;
   int init_pose_count_;
-  op3_walking_module_msgs::WalkingParam walking_param_;
+  op3_walking_module_msgs::msg::WalkingParam walking_param_;
   double previous_x_move_amplitude_;
 
   // variable for walking

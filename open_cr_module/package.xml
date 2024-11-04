@@ -22,6 +22,5 @@
   <depend>robotis_framework_common</depend>
   <depend>robotis_device</depend>
   <depend>robotis_math</depend>
-  <depend>boost</depend>
   <depend>eigen3</depend>
 </package>

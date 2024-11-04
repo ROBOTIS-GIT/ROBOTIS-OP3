@@ -20,32 +20,31 @@
 #define TuningModule_H_
 
 #include <map>
-#include <boost/thread.hpp>
+#include <thread>
+#include <mutex>
 #include <yaml-cpp/yaml.h>
 #include <numeric>
 #include <fstream>
 
-#include <ros/ros.h>
-#include <ros/callback_queue.h>
-#include <ros/package.h>
-#include <std_msgs/Bool.h>
-#include <std_msgs/Int16.h>
-#include <std_msgs/Float64.h>
-#include <std_msgs/String.h>
-#include <geometry_msgs/Pose.h>
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <std_msgs/msg/int16.hpp>
+#include <std_msgs/msg/float64.hpp>
+#include <std_msgs/msg/string.hpp>
+#include <geometry_msgs/msg/pose.hpp>
 
 #include "robotis_framework_common/motion_module.h"
-#include "robotis_controller_msgs/SyncWriteItem.h"
-#include "robotis_controller_msgs/JointCtrlModule.h"
-#include "robotis_controller_msgs/SetModule.h"
-#include "robotis_controller_msgs/StatusMsg.h"
-#include "robotis_controller_msgs/LoadOffset.h"
+#include "robotis_controller_msgs/msg/sync_write_item.hpp"
+#include "robotis_controller_msgs/msg/joint_ctrl_module.hpp"
+#include "robotis_controller_msgs/msg/status_msg.hpp"
+#include "robotis_controller_msgs/srv/set_module.hpp"
+#include "robotis_controller_msgs/srv/load_offset.hpp"
 #include "robotis_math/robotis_math.h"
 #include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
 
-#include "op3_tuning_module_msgs/JointOffsetData.h"
-#include "op3_tuning_module_msgs/JointTorqueOnOffArray.h"
-#include "op3_tuning_module_msgs/GetPresentJointOffsetData.h"
+#include "op3_tuning_module_msgs/msg/joint_offset_data.hpp"
+#include "op3_tuning_module_msgs/msg/joint_torque_on_off_array.hpp"
+#include "op3_tuning_module_msgs/srv/get_present_joint_offset_data.hpp"
 
 #include "tuning_module_state.h"
 #include "tuning_data.h"
@@ -75,13 +74,13 @@ class TuneJointState
 
 };
 
-class TuningModule : public robotis_framework::MotionModule, public robotis_framework::Singleton<TuningModule>
+class TuningModule : public robotis_framework::MotionModule, public robotis_framework::Singleton<TuningModule>, public rclcpp::Node
 {
  public:
   TuningModule();
   virtual ~TuningModule();
 
-  /* ROS Framework Functions */
+  /* ROS2 Framework Functions */
   void initialize(const int control_cycle_msec, robotis_framework::Robot *robot);
   void process(std::map<std::string, robotis_framework::Dynamixel *> dxls, std::map<std::string, double> sensors);
 
@@ -91,16 +90,16 @@ class TuningModule : public robotis_framework::MotionModule, public robotis_fram
   void onModuleEnable();
   void onModuleDisable();
 
-  /* ROS Topic Callback Functions */
-  void tunePoseMsgCallback(const std_msgs::String::ConstPtr& msg);
-  void commandCallback(const std_msgs::String::ConstPtr& msg);
-  void jointOffsetDataCallback(const op3_tuning_module_msgs::JointOffsetData::ConstPtr &msg);
-  void jointGainDataCallback(const op3_tuning_module_msgs::JointOffsetData::ConstPtr &msg);
-  void jointTorqueOnOffCallback(const op3_tuning_module_msgs::JointTorqueOnOffArray::ConstPtr& msg);
-  bool getPresentJointOffsetDataServiceCallback(op3_tuning_module_msgs::GetPresentJointOffsetData::Request &req,
-                                                op3_tuning_module_msgs::GetPresentJointOffsetData::Response &res);
+  /* ROS2 Topic Callback Functions */
+  void tunePoseMsgCallback(const std_msgs::msg::String::SharedPtr msg);
+  void commandCallback(const std_msgs::msg::String::SharedPtr msg);
+  void jointOffsetDataCallback(const op3_tuning_module_msgs::msg::JointOffsetData::SharedPtr msg);
+  void jointGainDataCallback(const op3_tuning_module_msgs::msg::JointOffsetData::SharedPtr msg);
+  void jointTorqueOnOffCallback(const op3_tuning_module_msgs::msg::JointTorqueOnOffArray::SharedPtr msg);
+  bool getPresentJointOffsetDataServiceCallback(const std::shared_ptr<op3_tuning_module_msgs::srv::GetPresentJointOffsetData::Request> req,
+                                                std::shared_ptr<op3_tuning_module_msgs::srv::GetPresentJointOffsetData::Response> res);
 
-  /* ROS Calculation Functions */
+  /* ROS2 Calculation Functions */
   void targetPoseTrajGenerateProc();
 
   void poseGenerateProc(Eigen::MatrixXd joint_angle_pose);
@@ -130,25 +129,25 @@ class TuningModule : public robotis_framework::MotionModule, public robotis_fram
   void saveDxlInit(const std::string &path);
 
   int control_cycle_msec_;
-  boost::thread queue_thread_;
-  boost::thread tra_gene_tread_;
-  boost::mutex data_mutex_;
+  std::thread queue_thread_;
+  std::thread tra_gene_thread_;
+  std::mutex data_mutex_;
 
   // init pose
-  ros::Publisher status_msg_pub_;
-  ros::Publisher set_ctrl_module_pub_;
-  ros::ServiceClient set_module_client_;
+  rclcpp::Publisher<robotis_controller_msgs::msg::StatusMsg>::SharedPtr status_msg_pub_;
+  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr set_ctrl_module_pub_;
+  rclcpp::Client<robotis_controller_msgs::srv::SetModule>::SharedPtr set_module_client_;
 
   // offset tuner
-  ros::Publisher sync_write_pub_;
-  ros::Publisher enable_offset_pub_;
-  ros::Subscriber send_tra_sub_;
-  ros::Subscriber joint_offset_data_sub_;
-  ros::Subscriber joint_gain_data_sub_;
-  ros::Subscriber joint_torque_enable_sub_;
-  ros::Subscriber command_sub_;
-  ros::ServiceServer offset_data_server_;
-  ros::ServiceClient load_offset_client_;
+  rclcpp::Publisher<robotis_controller_msgs::msg::SyncWriteItem>::SharedPtr sync_write_pub_;
+  rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr enable_offset_pub_;
+  rclcpp::Subscription<std_msgs::msg::String>::SharedPtr send_tra_sub_;
+  rclcpp::Subscription<op3_tuning_module_msgs::msg::JointOffsetData>::SharedPtr joint_offset_data_sub_;
+  rclcpp::Subscription<op3_tuning_module_msgs::msg::JointOffsetData>::SharedPtr joint_gain_data_sub_;
+  rclcpp::Subscription<op3_tuning_module_msgs::msg::JointTorqueOnOffArray>::SharedPtr joint_torque_enable_sub_;
+  rclcpp::Subscription<std_msgs::msg::String>::SharedPtr command_sub_;
+  rclcpp::Service<op3_tuning_module_msgs::srv::GetPresentJointOffsetData>::SharedPtr offset_data_server_;
+  rclcpp::Client<robotis_controller_msgs::srv::LoadOffset>::SharedPtr load_offset_client_;
 
   std::map<std::string, int> joint_name_to_id_;
   // data set for tuner client

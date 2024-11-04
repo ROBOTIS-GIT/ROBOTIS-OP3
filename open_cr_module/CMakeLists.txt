@@ -11,7 +11,6 @@ find_package(robotis_controller_msgs REQUIRED)
 find_package(robotis_framework_common REQUIRED)
 find_package(robotis_device REQUIRED)
 find_package(robotis_math REQUIRED)
-find_package(Boost REQUIRED COMPONENTS thread)
 find_package(Eigen3 REQUIRED)
 
 # Include directories
@@ -24,7 +23,6 @@ include_directories(
   ${robotis_framework_common_INCLUDE_DIRS}
   ${robotis_device_INCLUDE_DIRS}
   ${robotis_math_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
 )
 
@@ -39,7 +37,6 @@ ament_target_dependencies(${PROJECT_NAME}
   robotis_framework_common
   robotis_device
   robotis_math
-  Boost
   Eigen3
 )
 
@@ -56,7 +53,7 @@ install(DIRECTORY include/${PROJECT_NAME}/
 
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
-ament_export_dependencies(rclcpp std_msgs sensor_msgs dynamixel_sdk robotis_controller_msgs robotis_framework_common robotis_device robotis_math Boost Eigen3)
+ament_export_dependencies(rclcpp std_msgs sensor_msgs dynamixel_sdk robotis_controller_msgs robotis_framework_common robotis_device robotis_math Eigen3)
 
 # Ament package
 ament_package()

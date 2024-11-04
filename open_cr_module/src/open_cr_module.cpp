@@ -17,6 +17,11 @@
 /* Author: Kayman */
 
 #include <stdio.h>
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/string.hpp>
+#include <sensor_msgs/msg/imu.hpp>
+#include <robotis_controller_msgs/msg/status_msg.hpp>
+#include <robotis_controller_msgs/msg/sync_write_item.hpp>
 
 #include "open_cr_module/open_cr_module.h"
 
@@ -24,7 +29,8 @@ namespace robotis_op
 {
 
 OpenCRModule::OpenCRModule()
-    : control_cycle_msec_(8),
+    : Node("open_cr_module"),
+      control_cycle_msec_(8),
       DEBUG_PRINT(false),
       present_volt_(0.0)
 {
@@ -63,7 +69,7 @@ OpenCRModule::OpenCRModule()
   previous_result_["acc_y"] = 0.0;
   previous_result_["acc_z"] = 0.0;
 
-  last_msg_time_ = ros::Time::now();
+  last_msg_time_ = rclcpp::Clock().now();
 }
 
 OpenCRModule::~OpenCRModule()
@@ -74,25 +80,26 @@ OpenCRModule::~OpenCRModule()
 void OpenCRModule::initialize(const int control_cycle_msec, robotis_framework::Robot *robot)
 {
   control_cycle_msec_ = control_cycle_msec;
-  queue_thread_ = boost::thread(boost::bind(&OpenCRModule::queueThread, this));
+  queue_thread_ = std::thread(&OpenCRModule::queueThread, this);
 }
 
 void OpenCRModule::queueThread()
 {
-  ros::NodeHandle ros_node;
-  ros::CallbackQueue callback_queue;
-
-  ros_node.setCallbackQueue(&callback_queue);
+  auto executor = rclcpp::executors::SingleThreadedExecutor();
+  executor.add_node(this->get_node_base_interface());
 
   /* publisher */
-  status_msg_pub_ = ros_node.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 1);
-  imu_pub_ = ros_node.advertise<sensor_msgs::Imu>("/robotis/open_cr/imu", 1);
-  button_pub_ = ros_node.advertise<std_msgs::String>("/robotis/open_cr/button", 1);
-  dxl_power_msg_pub_ = ros_node.advertise<robotis_controller_msgs::SyncWriteItem>("/robotis/sync_write_item", 0);
+  status_msg_pub_ = this->create_publisher<robotis_controller_msgs::msg::StatusMsg>("/robotis/status", 1);
+  imu_pub_ = this->create_publisher<sensor_msgs::msg::Imu>("/robotis/open_cr/imu", 1);
+  button_pub_ = this->create_publisher<std_msgs::msg::String>("/robotis/open_cr/button", 1);
+  dxl_power_msg_pub_ = this->create_publisher<robotis_controller_msgs::msg::SyncWriteItem>("/robotis/sync_write_item", 0);
 
-  ros::WallDuration duration(control_cycle_msec_ / 1000.0);
-  while (ros_node.ok())
-    callback_queue.callAvailable(duration);
+  rclcpp::WallRate rate(1000.0 / control_cycle_msec_);
+  while (rclcpp::ok())
+  {
+    executor.spin_some();
+    rate.sleep();
+  }
 }
 
 void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *> dxls,
@@ -115,24 +122,22 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
   result_["gyro_y"] = lowPassFilter(0.4, -getGyroValue(gyro_y), previous_result_["gyro_y"]);
   result_["gyro_z"] = lowPassFilter(0.4, getGyroValue(gyro_z), previous_result_["gyro_z"]);
 
-  ROS_INFO_COND(DEBUG_PRINT, " ======================= Gyro ======================== ");
-  ROS_INFO_COND(DEBUG_PRINT, "Raw : %d, %d, %d", gyro_x, gyro_y, gyro_z);
-  ROS_INFO_COND(DEBUG_PRINT, "Filtered : %f, %f, %f", result_["gyro_x"], result_["gyro_y"], result_["gyro_z"]);
+  RCLCPP_INFO(this->get_logger(), " ======================= Gyro ======================== ");
+  RCLCPP_INFO(this->get_logger(), "Raw : %d, %d, %d", gyro_x, gyro_y, gyro_z);
+  RCLCPP_INFO(this->get_logger(), "Filtered : %f, %f, %f", result_["gyro_x"], result_["gyro_y"], result_["gyro_z"]);
 
   // align axis of Accelerometer to robot and
   result_["acc_x"] = lowPassFilter(0.4, -getAccValue(acc_x), previous_result_["acc_x"]);
   result_["acc_y"] = lowPassFilter(0.4, -getAccValue(acc_y), previous_result_["acc_y"]);
   result_["acc_z"] = lowPassFilter(0.4, getAccValue(acc_z), previous_result_["acc_z"]);
 
-  ROS_INFO_COND(DEBUG_PRINT, " ======================= Acc ======================== ");
-  ROS_INFO_COND(DEBUG_PRINT, "Raw : %d, %d, %d", acc_x, acc_y, acc_z);
-  ROS_INFO_COND(DEBUG_PRINT, "Filtered : %f, %f, %f", result_["acc_x"], result_["acc_y"], result_["acc_z"]);
+  RCLCPP_INFO(this->get_logger(), " ======================= Acc ======================== ");
+  RCLCPP_INFO(this->get_logger(), "Raw : %d, %d, %d", acc_x, acc_y, acc_z);
+  RCLCPP_INFO(this->get_logger(), "Filtered : %f, %f, %f", result_["acc_x"], result_["acc_y"], result_["acc_z"]);
 
-  ros::Time update_time;
-  update_time.sec = sensors["open-cr"]->sensor_state_->update_time_stamp_.sec_;
-  update_time.nsec = sensors["open-cr"]->sensor_state_->update_time_stamp_.nsec_;
-  ros::Duration update_duration = ros::Time::now() - update_time;
-  if ((update_duration.sec * 1000000000 + update_duration.nsec) > 100000000)
+  rclcpp::Time update_time(sensors["open-cr"]->sensor_state_->update_time_stamp_.sec_, sensors["open-cr"]->sensor_state_->update_time_stamp_.nsec_);
+  rclcpp::Duration update_duration = rclcpp::Clock().now() - update_time;
+  if ((update_duration.seconds() * 1000000000 + update_duration.nanoseconds()) > 100000000)
     publishDXLPowerMsg(1);
 
   uint8_t button_flag = sensors["open-cr"]->sensor_state_->bulk_read_table_["button"];
@@ -169,7 +174,7 @@ double OpenCRModule::getAccValue(int raw_value)
 void OpenCRModule::publishIMU()
 {
   // fusion imu data
-  imu_msg_.header.stamp = ros::Time::now();
+  imu_msg_.header.stamp = this->get_clock()->now();
   imu_msg_.header.frame_id = "body_link";
   double filter_alpha = 0.4;
 
@@ -186,9 +191,9 @@ void OpenCRModule::publishIMU()
   imu_msg_.linear_acceleration.y = result_["acc_y"] * G_ACC;
   imu_msg_.linear_acceleration.z = result_["acc_z"] * G_ACC;
 
-  //Estimation of roll and pitch based on accelometer data, see http://www.nxp.com/files/sensors/doc/app_note/AN3461.pdf
+  //Estimation of roll and pitch based on accelerometer data, see http://www.nxp.com/files/sensors/doc/app_note/AN3461.pdf
   double mui = 0.01;
-  double sign = copysignf(1.0, result_["acc_z"]);
+  double sign = copysign(1.0, result_["acc_z"]);
   double roll = atan2(result_["acc_y"],
                       sign * sqrt(result_["acc_z"] * result_["acc_z"] + mui * result_["acc_x"] * result_["acc_x"]));
   double pitch = atan2(-result_["acc_x"],
@@ -202,7 +207,7 @@ void OpenCRModule::publishIMU()
   imu_msg_.orientation.z = orientation.z();
   imu_msg_.orientation.w = orientation.w();
 
-  imu_pub_.publish(imu_msg_);
+  imu_pub_->publish(imu_msg_);
 }
 
 void OpenCRModule::handleButton(const std::string &button_name)
@@ -217,8 +222,8 @@ void OpenCRModule::handleButton(const std::string &button_name)
     if (pushed == true && buttons_[button_published] == false)
     {
       // check long press
-      ros::Duration button_duration = ros::Time::now() - buttons_press_time_[button_name];
-      if (button_duration.toSec() > 2.0)
+      rclcpp::Duration button_duration = rclcpp::Clock().now() - buttons_press_time_[button_name];
+      if (button_duration.seconds() > 2.0)
       {
         publishButtonMsg(button_name + "_long");
         buttons_[button_published] = true;
@@ -231,14 +236,14 @@ void OpenCRModule::handleButton(const std::string &button_name)
 
     if (pushed == true)
     {
-      buttons_press_time_[button_name] = ros::Time::now();
+      buttons_press_time_[button_name] = rclcpp::Clock().now();
       buttons_[button_published] = false;
     }
     else
     {
-      ros::Duration button_duration = ros::Time::now() - buttons_press_time_[button_name];
+      rclcpp::Duration button_duration = rclcpp::Clock().now() - buttons_press_time_[button_name];
 
-      if (button_duration.toSec() < 2.0)     // short press
+      if (button_duration.seconds() < 2.0)     // short press
         publishButtonMsg(button_name);
       else
         // long press
@@ -249,11 +254,11 @@ void OpenCRModule::handleButton(const std::string &button_name)
 
 void OpenCRModule::publishButtonMsg(const std::string &button_name)
 {
-  std_msgs::String button_msg;
+  std_msgs::msg::String button_msg;
   button_msg.data = button_name;
 
-  button_pub_.publish(button_msg);
-  publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "Button : " + button_name);
+  button_pub_->publish(button_msg);
+  publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_INFO, "Button : " + button_name);
 }
 
 void OpenCRModule::handleVoltage(double present_volt)
@@ -264,10 +269,10 @@ void OpenCRModule::handleVoltage(double present_volt)
 
   if (fabs(present_volt_ - previous_volt_) >= 0.1)
   {
-    // check last publised time
-    ros::Time now = ros::Time::now();
-    ros::Duration dur = now - last_msg_time_;
-    if (dur.sec < 1)
+    // check last published time
+    rclcpp::Time now = rclcpp::Clock().now();
+    rclcpp::Duration dur = now - last_msg_time_;
+    if (dur.seconds() < 1)
       return;
 
     last_msg_time_ = now;
@@ -276,32 +281,32 @@ void OpenCRModule::handleVoltage(double present_volt)
     std::stringstream log_stream;
     log_stream << "Present Volt : " << present_volt_ << "V";
     publishStatusMsg(
-        (present_volt_ < 11 ?
-            robotis_controller_msgs::StatusMsg::STATUS_WARN : robotis_controller_msgs::StatusMsg::STATUS_INFO),
+        (present_volt_ < 11 ? 
+            robotis_controller_msgs::msg::StatusMsg::STATUS_WARN : robotis_controller_msgs::msg::StatusMsg::STATUS_INFO),
         log_stream.str());
-    ROS_INFO_COND(DEBUG_PRINT, "Present Volt : %fV, Read Volt : %fV", previous_volt_, result_["present_voltage"]);
+    RCLCPP_INFO(this->get_logger(), "Present Volt : %fV, Read Volt : %fV", previous_volt_, result_["present_voltage"]);
   }
 }
 
 void OpenCRModule::publishStatusMsg(unsigned int type, std::string msg)
 {
-  robotis_controller_msgs::StatusMsg status_msg;
-  status_msg.header.stamp = ros::Time::now();
+  robotis_controller_msgs::msg::StatusMsg status_msg;
+  status_msg.header.stamp = this->get_clock()->now();
   status_msg.type = type;
   status_msg.module_name = "SENSOR";
   status_msg.status_msg = msg;
 
-  status_msg_pub_.publish(status_msg);
+  status_msg_pub_->publish(status_msg);
 }
 
 void OpenCRModule::publishDXLPowerMsg(unsigned int value)
 {
-  robotis_controller_msgs::SyncWriteItem sync_write_msg;
+  robotis_controller_msgs::msg::SyncWriteItem sync_write_msg;
   sync_write_msg.item_name = "dynamixel_power";
   sync_write_msg.joint_name.push_back("open-cr");
   sync_write_msg.value.push_back(value);
 
-  dxl_power_msg_pub_.publish(sync_write_msg);
+  dxl_power_msg_pub_->publish(sync_write_msg);
 }
 
 double OpenCRModule::lowPassFilter(double alpha, double x_new, double &x_old)

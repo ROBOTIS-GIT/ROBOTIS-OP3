@@ -19,15 +19,13 @@
 #ifndef OP3_OPEN_CR_MODULE_H_
 #define OP3_OPEN_CR_MODULE_H_
 
-#include <ros/ros.h>
-#include <ros/callback_queue.h>
-#include <std_msgs/String.h>
-#include <sensor_msgs/Imu.h>
-#include <boost/thread.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/string.hpp>
+#include <sensor_msgs/msg/imu.hpp>
 #include <eigen3/Eigen/Eigen>
 
-#include "robotis_controller_msgs/StatusMsg.h"
-#include "robotis_controller_msgs/SyncWriteItem.h"
+#include "robotis_controller_msgs/msg/status_msg.hpp"
+#include "robotis_controller_msgs/msg/sync_write_item.hpp"
 #include "robotis_framework_common/sensor_module.h"
 #include "robotis_math/robotis_math_base.h"
 #include "robotis_math/robotis_linear_algebra.h"
@@ -35,7 +33,7 @@
 namespace robotis_op
 {
 
-class OpenCRModule : public robotis_framework::SensorModule, public robotis_framework::Singleton<OpenCRModule>
+class OpenCRModule : public robotis_framework::SensorModule, public robotis_framework::Singleton<OpenCRModule>, public rclcpp::Node
 {
  public:
   OpenCRModule();
@@ -66,22 +64,22 @@ class OpenCRModule : public robotis_framework::SensorModule, public robotis_fram
   double lowPassFilter(double alpha, double x_new, double &x_old);
 
   int control_cycle_msec_;
-  boost::thread queue_thread_;
+  std::thread queue_thread_;
   std::map<std::string, bool> buttons_;
-  std::map<std::string, ros::Time> buttons_press_time_;
-  ros::Time button_press_time_;
-  ros::Time last_msg_time_;
+  std::map<std::string, rclcpp::Time> buttons_press_time_;
+  rclcpp::Time button_press_time_;
+  rclcpp::Time last_msg_time_;
   std::map<std::string, double> previous_result_;
   double previous_volt_;
   double present_volt_;
 
-  sensor_msgs::Imu imu_msg_;
+  sensor_msgs::msg::Imu imu_msg_;
 
   /* subscriber & publisher */
-  ros::Publisher imu_pub_;
-  ros::Publisher button_pub_;
-  ros::Publisher status_msg_pub_;
-  ros::Publisher dxl_power_msg_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub_;
+  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr button_pub_;
+  rclcpp::Publisher<robotis_controller_msgs::msg::StatusMsg>::SharedPtr status_msg_pub_;
+  rclcpp::Publisher<robotis_controller_msgs::msg::SyncWriteItem>::SharedPtr dxl_power_msg_pub_;
 };
 
 }

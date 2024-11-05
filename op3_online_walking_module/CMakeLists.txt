@@ -92,4 +92,8 @@ install(DIRECTORY config
   DESTINATION share/${PROJECT_NAME}
 )
 
+ament_export_include_directories(include)
+ament_export_libraries(${PROJECT_NAME})
+ament_export_dependencies(rclcpp std_msgs sensor_msgs geometry_msgs robotis_controller_msgs op3_online_walking_module_msgs dynamixel_sdk robotis_framework_common robotis_device robotis_math op3_balance_control Eigen3 orocos_kdl)
+
 ament_package()

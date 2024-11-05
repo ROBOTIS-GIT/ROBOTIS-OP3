@@ -82,7 +82,7 @@ ActionModule::~ActionModule()
 void ActionModule::initialize(const int control_cycle_msec, robotis_framework::Robot *robot)
 {
   control_cycle_msec_ = control_cycle_msec;
-  queue_thread_ = boost::thread(boost::bind(&ActionModule::queueThread, this));
+  queue_thread_ = std::thread(&ActionModule::queueThread, this);
 
   // init result, joint_id_table
   for (auto& it : robot->dxls_)

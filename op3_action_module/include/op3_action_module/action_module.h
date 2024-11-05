@@ -22,12 +22,12 @@
 #define _USE_MATH_DEFINES
 
 #include <cmath>
+#include <thread>
 #include <rclcpp/rclcpp.hpp>
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <rclcpp/executors/single_threaded_executor.hpp>
 #include <std_msgs/msg/int32.hpp>
 #include <std_msgs/msg/string.hpp>
-#include <boost/thread.hpp>
 
 #include "robotis_controller_msgs/msg/status_msg.hpp"
 #include "op3_action_module_msgs/srv/is_running.hpp"
@@ -99,7 +99,7 @@ private:
   std::map<std::string, bool> action_joints_enable_;
   std::map<std::string, robotis_framework::DynamixelState *> action_result_;
   int             control_cycle_msec_;
-  boost::thread   queue_thread_;
+  std::thread     queue_thread_;
 
   /* sample subscriber & publisher */
   rclcpp::Publisher<robotis_controller_msgs::msg::StatusMsg>::SharedPtr status_msg_pub_;

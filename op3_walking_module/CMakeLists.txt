@@ -59,7 +59,6 @@ ament_target_dependencies(${PROJECT_NAME}
   robotis_math
   op3_kinematics_dynamics
   Eigen3
-  YAML_CPP
 )
 
 install(TARGETS ${PROJECT_NAME}
@@ -75,5 +74,9 @@ install(DIRECTORY include/${PROJECT_NAME}/
 install(DIRECTORY config
   DESTINATION share/${PROJECT_NAME}
 )
+
+ament_export_include_directories(include)
+ament_export_libraries(${PROJECT_NAME})
+ament_export_dependencies(rclcpp std_msgs sensor_msgs robotis_controller_msgs op3_walking_module_msgs dynamixel_sdk robotis_framework_common robotis_device robotis_math op3_kinematics_dynamics Eigen3)
 
 ament_package()

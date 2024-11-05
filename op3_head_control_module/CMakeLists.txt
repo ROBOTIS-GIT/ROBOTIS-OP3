@@ -14,6 +14,7 @@ find_package(Eigen3 REQUIRED)
 
 include_directories(
   include
+  ${robotis_math_INCLUDE_DIRS}
   ${rclcpp_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
 )

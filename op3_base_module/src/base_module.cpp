@@ -30,14 +30,14 @@ namespace robotis_op
 {
 
 BaseModule::BaseModule()
-  : Node("base_module"),
+  : Node("op3_base_module"),
     control_cycle_msec_(0),
     has_goal_joints_(false),
     ini_pose_only_(false),
     init_pose_file_path_("")
 {
   enable_ = false;
-  module_name_ = "base_module";
+  module_name_ = "op3_base_module";
   control_mode_ = robotis_framework::PositionControl;
 
   base_module_state_ = new BaseModuleState();
@@ -64,7 +64,7 @@ void BaseModule::initialize(const int control_cycle_msec, robotis_framework::Rob
   }
 
   /* Load ROS Parameter */
-  this->declare_parameter<std::string>("init_pose_file_path", ament_index_cpp::get_package_share_directory("op3_base_module") + "/data/ini_pose.yaml");
+  this->declare_parameter<std::string>("init_pose_file_path", ament_index_cpp::get_package_share_directory(module_name_) + "/data/ini_pose.yaml");
   init_pose_file_path_ = this->get_parameter("init_pose_file_path").as_string();
 
   /* publish topics */

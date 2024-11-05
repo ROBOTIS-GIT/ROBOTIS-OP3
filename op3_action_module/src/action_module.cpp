@@ -32,7 +32,7 @@ std::string ActionModule::convertIntToString(int n)
 }
 
 ActionModule::ActionModule()
-    : Node("action_module"),
+    : Node("op3_action_module"),
       control_cycle_msec_(8),
       PRE_SECTION(0),
       MAIN_SECTION(1),
@@ -53,7 +53,7 @@ ActionModule::ActionModule()
    ***************************************/
 
   enable_ = false;
-  module_name_ = "action_module";  // set unique module name
+  module_name_ = "op3_action_module";  // set unique module name
   control_mode_ = robotis_framework::PositionControl;
 
   //////////////////////////////////
@@ -99,7 +99,7 @@ void ActionModule::initialize(const int control_cycle_msec, robotis_framework::R
     action_joints_enable_[joint_name] = false;
   }
 
-  std::string path = ament_index_cpp::get_package_share_directory("op3_action_module") + "/data/motion_4095.bin";
+  std::string path = ament_index_cpp::get_package_share_directory(module_name_) + "/data/motion_4095.bin";
 
   this->declare_parameter<std::string>("action_file_path", path);
   std::string action_file_path = this->get_parameter("action_file_path").as_string();

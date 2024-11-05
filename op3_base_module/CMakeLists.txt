@@ -23,10 +23,6 @@ if(NOT ${YAML_CPP_VERSION} VERSION_LESS "0.5")
   add_definitions(-DHAVE_NEW_YAMLCPP)
 endif()
 
-ament_export_dependencies(rclcpp std_msgs geometry_msgs robotis_controller_msgs robotis_framework_common robotis_device robotis_math op3_kinematics_dynamics Eigen3)
-ament_export_include_directories(include)
-ament_export_libraries(${PROJECT_NAME})
-
 include_directories(
   include
   ${rclcpp_INCLUDE_DIRS}
@@ -42,8 +38,19 @@ include_directories(
 )
 
 add_library(${PROJECT_NAME} src/base_module.cpp src/base_module_state.cpp)
-ament_target_dependencies(${PROJECT_NAME} ament_index_cpp rclcpp std_msgs geometry_msgs dynamixel_sdk robotis_controller_msgs robotis_framework_common robotis_device robotis_math op3_kinematics_dynamics Eigen3)
-target_link_libraries(${PROJECT_NAME} ${YAML_CPP_LIBRARIES})
+ament_target_dependencies(${PROJECT_NAME} 
+  ament_index_cpp 
+  rclcpp 
+  std_msgs 
+  geometry_msgs 
+  dynamixel_sdk 
+  robotis_controller_msgs 
+  robotis_framework_common 
+  robotis_device 
+  robotis_math 
+  op3_kinematics_dynamics 
+  Eigen3
+)
 
 install(TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION lib

@@ -56,7 +56,7 @@ typedef struct
   double x, y, z, roll, pitch, yaw;
 } Pose3D;
 
-class WalkingModule : public robotis_framework::MotionModule, public robotis_framework::Singleton<WalkingModule>
+class WalkingModule : public robotis_framework::MotionModule, public robotis_framework::Singleton<WalkingModule>, public rclcpp::Node
 {
 
  public:

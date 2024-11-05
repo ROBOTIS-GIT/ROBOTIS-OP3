@@ -23,11 +23,12 @@ namespace robotis_op
 {
 
 WalkingModule::WalkingModule()
-  : control_cycle_msec_(8),
+  : Node("op3_walking_module"),
+    control_cycle_msec_(8),
     DEBUG(false)
 {
   enable_ = false;
-  module_name_ = "walking_module";
+  module_name_ = "op3_walking_module";
   control_mode_ = robotis_framework::PositionControl;
 
   init_pose_count_ = 0;
@@ -147,11 +148,9 @@ void WalkingModule::initialize(const int control_cycle_msec, robotis_framework::
                  5.0,       -5.0;
   init_position_ *= DEGREE2RADIAN;
 
-  rclcpp::Node::SharedPtr ros_node = rclcpp::Node::make_shared("walking_module");
-
-  std::string default_param_path = ament_index_cpp::get_package_share_directory("op3_walking_module") + "/config/param.yaml";
-  ros_node->declare_parameter<std::string>("walking_param_path", default_param_path);
-  ros_node->get_parameter("walking_param_path", param_path_);
+  std::string default_param_path = ament_index_cpp::get_package_share_directory(module_name_) + "/config/param.yaml";
+  this->declare_parameter<std::string>("walking_param_path", default_param_path);
+  this->get_parameter("walking_param_path", param_path_);
 
   loadWalkingParam(param_path_);
 
@@ -161,28 +160,27 @@ void WalkingModule::initialize(const int control_cycle_msec, robotis_framework::
 
 void WalkingModule::queueThread()
 {
-  rclcpp::Node::SharedPtr ros_node = rclcpp::Node::make_shared("walking_module");
-  rclcpp::executors::SingleThreadedExecutor executor;
-  executor.add_node(ros_node);
+  auto executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+  executor->add_node(this->get_node_base_interface());
 
   /* publish topics */
-  status_msg_pub_ = ros_node->create_publisher<robotis_controller_msgs::msg::StatusMsg>("robotis/status", 1);
+  status_msg_pub_ = this->create_publisher<robotis_controller_msgs::msg::StatusMsg>("robotis/status", 1);
 
   /* ROS Service Callback Functions */
-  auto get_walking_param_server = ros_node->create_service<op3_walking_module_msgs::srv::GetWalkingParam>(
+  auto get_walking_param_server = this->create_service<op3_walking_module_msgs::srv::GetWalkingParam>(
     "/robotis/walking/get_params", std::bind(&WalkingModule::getWalkingParameterCallback, this, std::placeholders::_1, std::placeholders::_2));
 
   /* sensor topic subscribe */
-  auto walking_command_sub = ros_node->create_subscription<std_msgs::msg::String>(
+  auto walking_command_sub = this->create_subscription<std_msgs::msg::String>(
     "/robotis/walking/command", 10, std::bind(&WalkingModule::walkingCommandCallback, this, std::placeholders::_1));
-  auto walking_param_sub = ros_node->create_subscription<op3_walking_module_msgs::msg::WalkingParam>(
+  auto walking_param_sub = this->create_subscription<op3_walking_module_msgs::msg::WalkingParam>(
     "/robotis/walking/set_params", 10, std::bind(&WalkingModule::walkingParameterCallback, this, std::placeholders::_1));
 
   rclcpp::Rate rate(1000.0 / control_cycle_msec_);
   while (rclcpp::ok())
   {
-  executor.spin_some();
-  rate.sleep();
+    executor->spin_some();
+    rate.sleep();
   }
 }
 
@@ -201,7 +199,7 @@ void WalkingModule::walkingCommandCallback(const std_msgs::msg::String::SharedPt
 {
   if(enable_ == false)
   {
-  RCLCPP_WARN(rclcpp::get_logger("walking_module"), "walking module is not ready.");
+  RCLCPP_WARN(this->get_logger(), "walking module is not ready.");
   return;
   }
 
@@ -520,26 +518,26 @@ void WalkingModule::process(std::map<std::string, robotis_framework::Dynamixel *
 
       walking_state_ = WalkingInitPose;
 
-      RCLCPP_WARN_STREAM(rclcpp::get_logger("walking_module"), "x_offset: " << walking_param_.init_x_offset);
-      RCLCPP_WARN_STREAM(rclcpp::get_logger("walking_module"), "y_offset: " << walking_param_.init_y_offset);
-      RCLCPP_WARN_STREAM(rclcpp::get_logger("walking_module"), "z_offset: " << walking_param_.init_z_offset);
-      RCLCPP_WARN_STREAM(rclcpp::get_logger("walking_module"), "roll_offset: " << walking_param_.init_roll_offset * RADIAN2DEGREE);
-      RCLCPP_WARN_STREAM(rclcpp::get_logger("walking_module"), "pitch_offset: " << walking_param_.init_pitch_offset * RADIAN2DEGREE);
-      RCLCPP_WARN_STREAM(rclcpp::get_logger("walking_module"), "yaw_offset: " << walking_param_.init_yaw_offset * RADIAN2DEGREE);
-      RCLCPP_WARN_STREAM(rclcpp::get_logger("walking_module"), "hip_pitch_offset: " << walking_param_.hip_pitch_offset * RADIAN2DEGREE);
-      RCLCPP_WARN_STREAM(rclcpp::get_logger("walking_module"), "period_time: " << walking_param_.period_time * 1000);
-      RCLCPP_WARN_STREAM(rclcpp::get_logger("walking_module"), "dsp_ratio: " << walking_param_.dsp_ratio);
-      RCLCPP_WARN_STREAM(rclcpp::get_logger("walking_module"), "step_forward_back_ratio: " << walking_param_.step_fb_ratio);
-      RCLCPP_WARN_STREAM(rclcpp::get_logger("walking_module"), "foot_height: " << walking_param_.z_move_amplitude);
-      RCLCPP_WARN_STREAM(rclcpp::get_logger("walking_module"), "swing_right_left: " << walking_param_.y_swap_amplitude);
-      RCLCPP_WARN_STREAM(rclcpp::get_logger("walking_module"), "swing_top_down: " << walking_param_.z_swap_amplitude);
-      RCLCPP_WARN_STREAM(rclcpp::get_logger("walking_module"), "pelvis_offset: " << walking_param_.pelvis_offset * RADIAN2DEGREE);
-      RCLCPP_WARN_STREAM(rclcpp::get_logger("walking_module"), "arm_swing_gain: " << walking_param_.arm_swing_gain);
-      RCLCPP_WARN_STREAM(rclcpp::get_logger("walking_module"), "balance_hip_roll_gain: " << walking_param_.balance_hip_roll_gain);
-      RCLCPP_WARN_STREAM(rclcpp::get_logger("walking_module"), "balance_knee_gain: " << walking_param_.balance_knee_gain);
-      RCLCPP_WARN_STREAM(rclcpp::get_logger("walking_module"), "balance_ankle_roll_gain: " << walking_param_.balance_ankle_roll_gain);
-      RCLCPP_WARN_STREAM(rclcpp::get_logger("walking_module"), "balance_ankle_pitch_gain: " << walking_param_.balance_ankle_pitch_gain);
-      RCLCPP_WARN_STREAM(rclcpp::get_logger("walking_module"), "balance : " << (walking_param_.balance_enable ? "TRUE" : "FALSE"));
+      RCLCPP_WARN_STREAM(this->get_logger(), "x_offset: " << walking_param_.init_x_offset);
+      RCLCPP_WARN_STREAM(this->get_logger(), "y_offset: " << walking_param_.init_y_offset);
+      RCLCPP_WARN_STREAM(this->get_logger(), "z_offset: " << walking_param_.init_z_offset);
+      RCLCPP_WARN_STREAM(this->get_logger(), "roll_offset: " << walking_param_.init_roll_offset * RADIAN2DEGREE);
+      RCLCPP_WARN_STREAM(this->get_logger(), "pitch_offset: " << walking_param_.init_pitch_offset * RADIAN2DEGREE);
+      RCLCPP_WARN_STREAM(this->get_logger(), "yaw_offset: " << walking_param_.init_yaw_offset * RADIAN2DEGREE);
+      RCLCPP_WARN_STREAM(this->get_logger(), "hip_pitch_offset: " << walking_param_.hip_pitch_offset * RADIAN2DEGREE);
+      RCLCPP_WARN_STREAM(this->get_logger(), "period_time: " << walking_param_.period_time * 1000);
+      RCLCPP_WARN_STREAM(this->get_logger(), "dsp_ratio: " << walking_param_.dsp_ratio);
+      RCLCPP_WARN_STREAM(this->get_logger(), "step_forward_back_ratio: " << walking_param_.step_fb_ratio);
+      RCLCPP_WARN_STREAM(this->get_logger(), "foot_height: " << walking_param_.z_move_amplitude);
+      RCLCPP_WARN_STREAM(this->get_logger(), "swing_right_left: " << walking_param_.y_swap_amplitude);
+      RCLCPP_WARN_STREAM(this->get_logger(), "swing_top_down: " << walking_param_.z_swap_amplitude);
+      RCLCPP_WARN_STREAM(this->get_logger(), "pelvis_offset: " << walking_param_.pelvis_offset * RADIAN2DEGREE);
+      RCLCPP_WARN_STREAM(this->get_logger(), "arm_swing_gain: " << walking_param_.arm_swing_gain);
+      RCLCPP_WARN_STREAM(this->get_logger(), "balance_hip_roll_gain: " << walking_param_.balance_hip_roll_gain);
+      RCLCPP_WARN_STREAM(this->get_logger(), "balance_knee_gain: " << walking_param_.balance_knee_gain);
+      RCLCPP_WARN_STREAM(this->get_logger(), "balance_ankle_roll_gain: " << walking_param_.balance_ankle_roll_gain);
+      RCLCPP_WARN_STREAM(this->get_logger(), "balance_ankle_pitch_gain: " << walking_param_.balance_ankle_pitch_gain);
+      RCLCPP_WARN_STREAM(this->get_logger(), "balance : " << (walking_param_.balance_enable ? "TRUE" : "FALSE"));
     }
     else
     {
@@ -838,13 +836,13 @@ bool WalkingModule::computeLegAngle(double *leg_angle)
   // right leg
   if (op3_kd_->calcInverseKinematicsForRightLeg(&leg_angle[0], ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]) == false)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("walking_module"), "IK not Solved EPR : %f %f %f %f %f %f", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
+    RCLCPP_ERROR(this->get_logger(), "IK not Solved EPR : %f %f %f %f %f %f", ep[0], ep[1], ep[2], ep[3], ep[4], ep[5]);
     return false;
   }
 
   if (op3_kd_->calcInverseKinematicsForLeftLeg(&leg_angle[6], ep[6], ep[7], ep[8], ep[9], ep[10], ep[11]) == false)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("walking_module"), "IK not Solved EPL : %f %f %f %f %f %f", ep[6], ep[7], ep[8], ep[9], ep[10], ep[11]);
+    RCLCPP_ERROR(this->get_logger(), "IK not Solved EPL : %f %f %f %f %f %f", ep[6], ep[7], ep[8], ep[9], ep[10], ep[11]);
     return false;
   }
 
@@ -925,7 +923,7 @@ void WalkingModule::loadWalkingParam(const std::string &path)
     doc = YAML::LoadFile(path.c_str());
   } catch (const std::exception& e)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("walking_module"), "Fail to load yaml file.");
+    RCLCPP_ERROR(this->get_logger(), "Fail to load yaml file.");
     return;
   }
 
@@ -1003,12 +1001,12 @@ void WalkingModule::saveWalkingParam(std::string &path)
 void WalkingModule::onModuleEnable()
 {
   walking_state_ = WalkingEnable;
-  RCLCPP_INFO(rclcpp::get_logger("walking_module"), "Walking Enable");
+  RCLCPP_INFO(this->get_logger(), "Walking Enable");
 }
 
 void WalkingModule::onModuleDisable()
 {
-  RCLCPP_INFO(rclcpp::get_logger("walking_module"), "Walking Disable");
+  RCLCPP_INFO(this->get_logger(), "Walking Disable");
   walking_state_ = WalkingDisable;
 }
 

@@ -16,9 +16,10 @@
 
 /* Author: Kayman */
 
-/* ROS API Header */
-#include <ros/ros.h>
-#include <std_msgs/String.h>
+/* ROS2 API Header */
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/string.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 
 /* ROBOTIS Controller Header */
 #include "robotis_controller/robotis_controller.h"
@@ -56,10 +57,10 @@ std::string g_robot_file;
 std::string g_init_file;
 std::string g_device_name;
 
-ros::Publisher g_init_pose_pub;
-ros::Publisher g_demo_command_pub;
+rclcpp::Publisher<std_msgs::msg::String>::SharedPtr g_init_pose_pub;
+rclcpp::Publisher<std_msgs::msg::String>::SharedPtr g_demo_command_pub;
 
-void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
+void buttonHandlerCallback(const std_msgs::msg::String::SharedPtr msg)
 {
   if (msg->data == "user_long")
   {
@@ -76,7 +77,7 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
       bool set_port_result = port_handler->setBaudRate(g_baudrate);
       if (set_port_result == false)
       {
-        ROS_ERROR("Error Set port");
+        RCLCPP_ERROR(controller->get_logger(), "Error Set port");
         return;
       }
       PacketHandler *packet_handler = PacketHandler::getPacketHandler(PROTOCOL_VERSION);
@@ -91,7 +92,7 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
       }
       else
       {
-        ROS_INFO("Torque is already on!!");
+        RCLCPP_INFO(controller->get_logger(), "Torque is already on!!");
       }
     }
 
@@ -100,15 +101,15 @@ void buttonHandlerCallback(const std_msgs::String::ConstPtr& msg)
     usleep(200 * 1000);
 
     // go to init pose
-    std_msgs::String init_msg;
+    std_msgs::msg::String init_msg;
     init_msg.data = "ini_pose";
 
-    g_init_pose_pub.publish(init_msg);
-    ROS_INFO("Go to init pose");
+    g_init_pose_pub->publish(init_msg);
+    RCLCPP_INFO(controller->get_logger(), "Go to init pose");
   }
 }
 
-void dxlTorqueCheckCallback(const std_msgs::String::ConstPtr& msg)
+void dxlTorqueCheckCallback(const std_msgs::msg::String::SharedPtr msg)
 {
   if (g_is_simulation == true)
     return;
@@ -142,26 +143,33 @@ void dxlTorqueCheckCallback(const std_msgs::String::ConstPtr& msg)
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "op3_manager");
-  ros::NodeHandle nh;
+  rclcpp::init(argc, argv);
+  auto node = rclcpp::Node::make_shared("op3_manager");
 
-  ROS_INFO("manager->init");
+  RCLCPP_INFO(node->get_logger(), "manager->init");
   RobotisController *controller = RobotisController::getInstance();
 
   /* Load ROS Parameter */
 
-  nh.param<std::string>("offset_file_path", g_offset_file, "");
-  nh.param<std::string>("robot_file_path", g_robot_file, "");
-  nh.param<std::string>("init_file_path", g_init_file, "");
-  nh.param<std::string>("device_name", g_device_name, SUB_CONTROLLER_DEVICE);
-  nh.param<int>("baud_rate", g_baudrate, BAUD_RATE);
+  node->declare_parameter<std::string>("offset_file_path", "");
+  node->declare_parameter<std::string>("robot_file_path", "");
+  node->declare_parameter<std::string>("init_file_path", "");
+  node->declare_parameter<std::string>("device_name", SUB_CONTROLLER_DEVICE);
+  node->declare_parameter<int>("baud_rate", BAUD_RATE);
 
-  ros::Subscriber button_sub = nh.subscribe("/robotis/open_cr/button", 1, buttonHandlerCallback);
-  ros::Subscriber dxl_torque_sub = nh.subscribe("/robotis/dxl_torque", 1, dxlTorqueCheckCallback);
-  g_init_pose_pub = nh.advertise<std_msgs::String>("/robotis/base/ini_pose", 0);
-  g_demo_command_pub = nh.advertise<std_msgs::String>("/ball_tracker/command", 0);
+  node->get_parameter("offset_file_path", g_offset_file);
+  node->get_parameter("robot_file_path", g_robot_file);
+  node->get_parameter("init_file_path", g_init_file);
+  node->get_parameter("device_name", g_device_name);
+  node->get_parameter("baud_rate", g_baudrate);
 
-  nh.param<bool>("gazebo", controller->gazebo_mode_, false);
+  auto button_sub = node->create_subscription<std_msgs::msg::String>("/robotis/open_cr/button", 1, buttonHandlerCallback);
+  auto dxl_torque_sub = node->create_subscription<std_msgs::msg::String>("/robotis/dxl_torque", 1, dxlTorqueCheckCallback);
+  g_init_pose_pub = node->create_publisher<std_msgs::msg::String>("/robotis/base/ini_pose", 10);
+  g_demo_command_pub = node->create_publisher<std_msgs::msg::String>("/ball_tracker/command", 10);
+
+  node->declare_parameter<bool>("gazebo", false);
+  node->get_parameter("gazebo", controller->gazebo_mode_);
   g_is_simulation = controller->gazebo_mode_;
 
   /* real robot */
@@ -171,7 +179,7 @@ int main(int argc, char **argv)
     PortHandler *port_handler = (PortHandler *) PortHandler::getPortHandler(g_device_name.c_str());
     bool set_port_result = port_handler->setBaudRate(BAUD_RATE);
     if (set_port_result == false)
-      ROS_ERROR("Error Set port");
+      RCLCPP_ERROR(node->get_logger(), "Error Set port");
 
     PacketHandler *packet_handler = PacketHandler::getPacketHandler(PROTOCOL_VERSION);
 
@@ -183,9 +191,9 @@ int main(int argc, char **argv)
       int _return = packet_handler->write1ByteTxRx(port_handler, SUB_CONTROLLER_ID, POWER_CTRL_TABLE, 1);
 
       if(_return != 0)
-        ROS_ERROR("Torque on DXLs! [%s]", packet_handler->getRxPacketError(_return));
+        RCLCPP_ERROR(node->get_logger(), "Torque on DXLs! [%s]", packet_handler->getRxPacketError(_return));
       else
-        ROS_INFO("Torque on DXLs!");
+        RCLCPP_INFO(node->get_logger(), "Torque on DXLs!");
 
       if (_return == 0)
         break;
@@ -202,30 +210,31 @@ int main(int argc, char **argv)
     int _return = packet_handler->write2ByteTxRx(port_handler, SUB_CONTROLLER_ID, RGB_LED_CTRL_TABLE, led_value);
 
     if(_return != 0)
-      ROS_ERROR("Fail to control LED [%s]", packet_handler->getRxPacketError(_return));
+      RCLCPP_ERROR(node->get_logger(), "Fail to control LED [%s]", packet_handler->getRxPacketError(_return));
 
     port_handler->closePort();
   }
   /* gazebo simulation */
   else
   {
-    ROS_WARN("SET TO GAZEBO MODE!");
+    RCLCPP_WARN(node->get_logger(), "SET TO GAZEBO MODE!");
     std::string robot_name;
-    nh.param<std::string>("gazebo_robot_name", robot_name, "");
+    node->declare_parameter<std::string>("gazebo_robot_name", "");
+    node->get_parameter("gazebo_robot_name", robot_name);
     if (robot_name != "")
       controller->gazebo_robot_name_ = robot_name;
   }
 
   if (g_robot_file == "")
   {
-    ROS_ERROR("NO robot file path in the ROS parameters.");
+    RCLCPP_ERROR(node->get_logger(), "NO robot file path in the ROS parameters.");
     return -1;
   }
 
   // initialize robot
   if (controller->initialize(g_robot_file, g_init_file) == false)
   {
-    ROS_ERROR("ROBOTIS Controller Initialize Fail!");
+    RCLCPP_ERROR(node->get_logger(), "ROBOTIS Controller Initialize Fail!");
     return -1;
   }
 
@@ -253,18 +262,14 @@ int main(int argc, char **argv)
   usleep(100 * 1000);
 
   // go to init pose
-  std_msgs::String init_msg;
+  std_msgs::msg::String init_msg;
   init_msg.data = "ini_pose";
 
-  g_init_pose_pub.publish(init_msg);
-  ROS_INFO("Go to init pose");
+  g_init_pose_pub->publish(init_msg);
+  RCLCPP_INFO(node->get_logger(), "Go to init pose");
 
-  while (ros::ok())
-  {
-    usleep(1 * 1000);
+  rclcpp::spin(node);
 
-    ros::spin();
-  }
-
+  rclcpp::shutdown();
   return 0;
 }

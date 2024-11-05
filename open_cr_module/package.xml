@@ -23,4 +23,7 @@
   <depend>robotis_device</depend>
   <depend>robotis_math</depend>
   <depend>eigen3</depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 </package>

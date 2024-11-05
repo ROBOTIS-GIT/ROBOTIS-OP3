@@ -24,4 +24,7 @@
   <depend>robotis_math</depend>
   <depend>op3_kinematics_dynamics</depend>
   <depend>eigen</depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 </package>

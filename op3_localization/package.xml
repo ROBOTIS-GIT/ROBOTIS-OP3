@@ -21,4 +21,7 @@
   <depend>tf2_eigen</depend>
   <depend>eigen3_cmake_module</depend>
   <depend>robotis_math</depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 </package>

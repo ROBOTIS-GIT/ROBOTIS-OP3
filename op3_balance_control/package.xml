@@ -15,4 +15,7 @@
   <depend>eigen3_cmake_module</depend>
   <depend>robotis_math</depend>
   <depend>eigen</depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 </package>

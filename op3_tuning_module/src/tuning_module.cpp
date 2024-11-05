@@ -24,14 +24,14 @@ namespace robotis_op
 {
 
 TuningModule::TuningModule()
-  : Node("tuning_module"),
+  : Node("op3_tuning_module"),
     control_cycle_msec_(0),
     has_goal_joints_(false),
     ini_pose_only_(false),
     get_tuning_data_(false)
 {
   enable_ = false;
-  module_name_ = "tuning_module";
+  module_name_ = "op3_tuning_module";
   control_mode_ = robotis_framework::PositionControl;
 
   tuning_module_state_ = new TuningModuleState();
@@ -102,7 +102,7 @@ void TuningModule::moveToTunePose(const std::string &pose_name)
 {
   if(enable_ == false)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "op3_tuning_module is not enable!!");
+    RCLCPP_ERROR(this->get_logger(), "op3_tuning_module is not enable!!");
     return;
   }
 
@@ -122,7 +122,7 @@ bool TuningModule::parseOffsetData(const std::string &path)
     doc = YAML::LoadFile(path.c_str());
   } catch (const std::exception& e)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Fail to load offset yaml file.");
+    RCLCPP_ERROR(this->get_logger(), "Fail to load offset yaml file.");
     return false;
   }
 
@@ -145,7 +145,7 @@ bool TuningModule::parseOffsetData(const std::string &path)
 
 bool TuningModule::parseInitPoseData(const std::string &path)
 {
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "parse pose for moving init pose");
+  RCLCPP_INFO(this->get_logger(), "parse pose for moving init pose");
 
   YAML::Node doc;
   try
@@ -154,7 +154,7 @@ bool TuningModule::parseInitPoseData(const std::string &path)
     doc = YAML::LoadFile(path.c_str());
   } catch (const std::exception& e)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Fail to load yaml file.");
+    RCLCPP_ERROR(this->get_logger(), "Fail to load yaml file.");
     return false;
   }
 
@@ -163,7 +163,7 @@ bool TuningModule::parseInitPoseData(const std::string &path)
 
   if(init_pose_node.IsNull())
   {
-    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Fail to parse init pose");
+    RCLCPP_ERROR(this->get_logger(), "Fail to parse init pose");
     return false;
   }
 
@@ -210,7 +210,7 @@ bool TuningModule::parseTunePoseData(const std::string &path, const std::string 
     doc = YAML::LoadFile(path.c_str());
   } catch (const std::exception& e)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Fail to load yaml file.");
+    RCLCPP_ERROR(this->get_logger(), "Fail to load yaml file.");
     return false;
   }
 
@@ -264,7 +264,7 @@ bool TuningModule::parseTunePoseData(const std::string &path, const std::string 
     if(via_pose_node.IsNull())
       continue;
 
-    RCLCPP_WARN_STREAM(rclcpp::get_logger("rclcpp"), "via : " << num);
+    RCLCPP_WARN_STREAM(this->get_logger(), "via : " << num);
     for (YAML::iterator yaml_it = via_pose_node.begin(); yaml_it != via_pose_node.end(); ++yaml_it)
     {
       std::string joint_name;
@@ -275,7 +275,7 @@ bool TuningModule::parseTunePoseData(const std::string &path, const std::string 
       int id = joint_name_to_id_[joint_name];
 
       tuning_module_state_->joint_via_pose_.coeffRef(num, id) = value * DEGREE2RADIAN;
-      RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "joint : " << joint_name << ", value : " << value);
+      RCLCPP_INFO_STREAM(this->get_logger(), "joint : " << joint_name << ", value : " << value);
     }
   }
 
@@ -294,13 +294,13 @@ bool TuningModule::parseTunePoseData(const std::string &path, const std::string 
     int id = joint_name_to_id_[joint_name];
 
     tuning_module_state_->joint_ini_pose_.coeffRef(id, 0) = value * DEGREE2RADIAN;
-    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "joint : " << joint_name << ", value : " << value);
+    RCLCPP_INFO_STREAM(this->get_logger(), "joint : " << joint_name << ", value : " << value);
   }
 
   tuning_module_state_->all_time_steps_ = int(tuning_module_state_->mov_time_ / tuning_module_state_->smp_time_) + 1;
   tuning_module_state_->calc_joint_tra_.resize(tuning_module_state_->all_time_steps_, MAX_JOINT_ID + 1);
 
-  RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "tune pose - via_num : " << via_num << ", move_time : " << total_move_time);
+  RCLCPP_INFO_STREAM(this->get_logger(), "tune pose - via_num : " << via_num << ", move_time : " << total_move_time);
 
   return true;
 }
@@ -335,17 +335,17 @@ void TuningModule::tunePoseMsgCallback(const std_msgs::msg::String::SharedPtr ms
 {
   if(tuning_module_state_->is_generating_ == true)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Previous pose is generating now.");
+    RCLCPP_ERROR(this->get_logger(), "Previous pose is generating now.");
     return;
   }
 
   if (tuning_module_state_->is_moving_ == true)
   {
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "previous task is alive");
+    RCLCPP_INFO(this->get_logger(), "previous task is alive");
     return;
   }
 
-  RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Go to " << msg->data);
+  RCLCPP_INFO_STREAM(this->get_logger(), "Go to " << msg->data);
 
   if (msg->data == "ini_pose")
   {
@@ -403,7 +403,7 @@ void TuningModule::targetPoseTrajGenerateProc()
 
   tuning_module_state_->is_moving_ = true;
   tuning_module_state_->cnt_ = 0;
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "[start] send trajectory");
+  RCLCPP_INFO(this->get_logger(), "[start] send trajectory");
 }
 
 void TuningModule::poseGenerateProc(Eigen::MatrixXd joint_angle_pose)
@@ -425,7 +425,7 @@ void TuningModule::poseGenerateProc(Eigen::MatrixXd joint_angle_pose)
     double ini_value = joint_state_->goal_joint_state_[id].position_;
     double tar_value = tuning_module_state_->joint_pose_.coeff(id, 0);
 
-    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "[ID : " << id << "] ini_value : " << ini_value << "  tar_value : " << tar_value);
+    RCLCPP_INFO_STREAM(this->get_logger(), "[ID : " << id << "] ini_value : " << ini_value << "  tar_value : " << tar_value);
 
     Eigen::MatrixXd tra = robotis_framework::calcMinimumJerkTra(ini_value, 0.0, 0.0, tar_value, 0.0, 0.0,
                                                                 tuning_module_state_->smp_time_,
@@ -437,7 +437,7 @@ void TuningModule::poseGenerateProc(Eigen::MatrixXd joint_angle_pose)
   tuning_module_state_->is_moving_ = true;
   tuning_module_state_->cnt_ = 0;
   ini_pose_only_ = true;
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "[start] send trajectory");
+  RCLCPP_INFO(this->get_logger(), "[start] send trajectory");
 }
 
 void TuningModule::poseGenerateProc(std::map<std::string, double>& joint_angle_pose)
@@ -473,7 +473,7 @@ void TuningModule::poseGenerateProc(std::map<std::string, double>& joint_angle_p
     double ini_value = joint_state_->goal_joint_state_[id].position_;
     double tar_value = tuning_module_state_->joint_pose_.coeff(id, 0);
 
-    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "[ID : " << id << "] ini_value : " << ini_value << "  tar_value : " << tar_value);
+    RCLCPP_INFO_STREAM(this->get_logger(), "[ID : " << id << "] ini_value : " << ini_value << "  tar_value : " << tar_value);
 
     Eigen::MatrixXd tra = robotis_framework::calcMinimumJerkTra(ini_value, 0.0, 0.0, tar_value, 0.0, 0.0,
                                                                 tuning_module_state_->smp_time_,
@@ -485,7 +485,7 @@ void TuningModule::poseGenerateProc(std::map<std::string, double>& joint_angle_p
   tuning_module_state_->is_moving_ = true;
   tuning_module_state_->cnt_ = 0;
   ini_pose_only_ = true;
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "[start] send trajectory");
+  RCLCPP_INFO(this->get_logger(), "[start] send trajectory");
 }
 
 bool TuningModule::isRunning()
@@ -619,7 +619,7 @@ void TuningModule::process(std::map<std::string, robotis_framework::Dynamixel *>
   /*---------- initialize count number ----------*/
   if ((tuning_module_state_->cnt_ >= tuning_module_state_->all_time_steps_) && (tuning_module_state_->is_moving_ == true))
   {
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "[end] send trajectory");
+    RCLCPP_INFO(this->get_logger(), "[end] send trajectory");
 
     publishStatusMsg(robotis_controller_msgs::msg::StatusMsg::STATUS_INFO, "Finish Init Pose");
 
@@ -642,7 +642,7 @@ void TuningModule::stop()
 
 void TuningModule::onModuleEnable()
 {
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Tuning module is enabled");
+  RCLCPP_INFO(this->get_logger(), "Tuning module is enabled");
 
   // load offset file
   parseOffsetData(offset_path_);
@@ -676,7 +676,7 @@ void TuningModule::callServiceSettingModule(const std::string &module_name)
   auto result = set_module_client_->async_send_request(request);
   if (rclcpp::spin_until_future_complete(this->get_node_base_interface(), result) != rclcpp::FutureReturnCode::SUCCESS)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to set module");
+    RCLCPP_ERROR(this->get_logger(), "Failed to set module");
     return;
   }
 
@@ -712,7 +712,7 @@ void TuningModule::commandCallback(const std_msgs::msg::String::SharedPtr msg)
   }
   else
   {
-    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Invalid Command : " << msg->data);
+    RCLCPP_INFO_STREAM(this->get_logger(), "Invalid Command : " << msg->data);
   }
 }
 
@@ -720,30 +720,30 @@ void TuningModule::jointOffsetDataCallback(const op3_tuning_module_msgs::msg::Jo
 {
   if (this->enable_ == false)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Tuning module is not enable");
+    RCLCPP_ERROR(this->get_logger(), "Tuning module is not enable");
     return;
   }
 
   if (tuning_module_state_->is_moving_ == true)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Robot is moving, joint offset data will not be applied.");
+    RCLCPP_ERROR(this->get_logger(), "Robot is moving, joint offset data will not be applied.");
     return;
   }
 
   //goal position
   RCLCPP_INFO_STREAM(
-        rclcpp::get_logger("rclcpp"), msg->joint_name << " " << msg->goal_value << " " << msg->offset_value << " " << msg->p_gain <<" " << msg->i_gain <<" " << msg->d_gain);
+        this->get_logger(), msg->joint_name << " " << msg->goal_value << " " << msg->offset_value << " " << msg->p_gain <<" " << msg->i_gain <<" " << msg->d_gain);
 
   auto map_it = robot_tuning_data_.find(msg->joint_name);
   if (map_it == robot_tuning_data_.end())
   {
-    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Invalid Joint Name");
+    RCLCPP_ERROR(this->get_logger(), "Invalid Joint Name");
     return;
   }
 
   if (robot_torque_enable_data_[msg->joint_name] == false)
   {
-    RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), msg->joint_name << "is turned off the torque");
+    RCLCPP_ERROR_STREAM(this->get_logger(), msg->joint_name << "is turned off the torque");
     return;
   }
 
@@ -764,26 +764,26 @@ void TuningModule::jointGainDataCallback(const op3_tuning_module_msgs::msg::Join
 {
   if (this->enable_ == false)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Tuning module is not enable");
+    RCLCPP_ERROR(this->get_logger(), "Tuning module is not enable");
     return;
   }
 
   if (tuning_module_state_->is_moving_ == true)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Robot is moving, joint gain data will not be applied.");
+    RCLCPP_ERROR(this->get_logger(), "Robot is moving, joint gain data will not be applied.");
     return;
   }
 
   auto map_it = robot_tuning_data_.find(msg->joint_name);
   if (map_it == robot_tuning_data_.end())
   {
-    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Invalid Joint Name");
+    RCLCPP_ERROR(this->get_logger(), "Invalid Joint Name");
     return;
   }
 
   if (robot_torque_enable_data_[msg->joint_name] == false)
   {
-    RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), msg->joint_name << "is turned off the torque");
+    RCLCPP_ERROR_STREAM(this->get_logger(), msg->joint_name << "is turned off the torque");
     return;
   }
 
@@ -811,12 +811,12 @@ void TuningModule::jointTorqueOnOffCallback(const op3_tuning_module_msgs::msg::J
   {
     std::string joint_name = msg->torque_enable_data[i].joint_name;
     bool torque_enable = msg->torque_enable_data[i].torque_enable;
-    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), i <<" " << joint_name << torque_enable);
+    RCLCPP_INFO_STREAM(this->get_logger(), i <<" " << joint_name << torque_enable);
 
     auto map_it = robot_tuning_data_.find(joint_name);
     if (map_it == robot_tuning_data_.end())
     {
-      RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Invalid Joint Name");
+      RCLCPP_ERROR(this->get_logger(), "Invalid Joint Name");
       continue;
     }
     else
@@ -838,7 +838,7 @@ bool TuningModule::getPresentJointOffsetDataServiceCallback(
     std::shared_ptr<op3_tuning_module_msgs::srv::GetPresentJointOffsetData::Response> res)
 {
 
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "GetPresentJointOffsetDataService Called");
+  RCLCPP_INFO(this->get_logger(), "GetPresentJointOffsetDataService Called");
 
   for (auto map_it = robot_tuning_data_.begin(); map_it != robot_tuning_data_.end(); map_it++)
   {
@@ -867,7 +867,7 @@ bool TuningModule::getPresentJointOffsetDataServiceCallback(
 
 bool TuningModule::turnOnOffOffset(bool turn_on)
 {
-  RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Try to turn on/off offset in robotis_controller");
+  RCLCPP_WARN(this->get_logger(), "Try to turn on/off offset in robotis_controller");
 
   auto enable_offset_msg = std_msgs::msg::Bool();
   enable_offset_msg.data = turn_on;
@@ -885,14 +885,14 @@ bool TuningModule::loadOffsetToController(const std::string &path)
   auto result = load_offset_client_->async_send_request(request);
   if (rclcpp::spin_until_future_complete(this->get_node_base_interface(), result) != rclcpp::FutureReturnCode::SUCCESS)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Service server is not responded for turning on/off offset");
+    RCLCPP_ERROR(this->get_logger(), "Service server is not responded for turning on/off offset");
     return false;
   }
 
   if(result.get()->result == true)
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "succeed to let robotis_controller load the offset");
+    RCLCPP_INFO(this->get_logger(), "succeed to let robotis_controller load the offset");
   else
-    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to let robotis_controller load the offset");
+    RCLCPP_ERROR(this->get_logger(), "Failed to let robotis_controller load the offset");
 
   return result.get()->result;
 }
@@ -919,7 +919,7 @@ void TuningModule::saveOffsetToYaml(const std::string &path)
 
 void TuningModule::parseDxlInit(const std::string &path)
 {
-  RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Get the init gain from Dxl init file");
+  RCLCPP_WARN(this->get_logger(), "Get the init gain from Dxl init file");
   YAML::Node doc;
   try
   {
@@ -927,7 +927,7 @@ void TuningModule::parseDxlInit(const std::string &path)
     doc = YAML::LoadFile(path.c_str());
   } catch (const std::exception& e)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Fail to load dxl init yaml file.");
+    RCLCPP_ERROR(this->get_logger(), "Fail to load dxl init yaml file.");
     return;
   }
 
@@ -965,7 +965,7 @@ void TuningModule::saveDxlInit(const std::string &path)
     doc = YAML::LoadFile(path.c_str());
   } catch (const std::exception& e)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Fail to load dxl init yaml file.");
+    RCLCPP_ERROR(this->get_logger(), "Fail to load dxl init yaml file.");
     return;
   }
 

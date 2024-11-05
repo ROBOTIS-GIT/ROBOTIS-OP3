@@ -21,12 +21,12 @@
 
 #pragma once
 
-#include <math.h>
-#include <stdint.h>
+#include <cmath>
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <map>
-#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/msg/pose.hpp>
 #include <eigen3/Eigen/Eigen>
 #include "robotis_math/robotis_math.h"
 
@@ -35,7 +35,7 @@ class WholebodyControl
 public:
   WholebodyControl(std::string control_group,
                    double init_time, double fin_time,
-                   geometry_msgs::Pose goal_msg);
+                   geometry_msgs::msg::Pose goal_msg);
   virtual ~WholebodyControl();
 
   void initialize(std::vector<double_t> init_body_pos, std::vector<double_t> init_body_rot,
@@ -59,7 +59,7 @@ public:
                           std::vector<double_t> &r_foot_Q,
                           std::vector<double_t> &body_Q);
 
-  void getGroupPose(std::string name, geometry_msgs::Pose *msg);
+  void getGroupPose(std::string name, geometry_msgs::msg::Pose *msg);
 
 private:
   robotis_framework::MinimumJerk *task_trajectory_;
@@ -67,7 +67,7 @@ private:
   std::string control_group_;
   int end_link_;
   double init_time_, fin_time_;
-  geometry_msgs::Pose goal_msg_;
+  geometry_msgs::msg::Pose goal_msg_;
 
   std::vector<double_t> init_body_pos_, init_body_vel_, init_body_accel_;
   std::vector<double_t> des_body_pos_, des_body_vel_, des_body_accel_;

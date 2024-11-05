@@ -21,18 +21,18 @@
 
 #pragma once
 
-#include <math.h>
-#include <stdint.h>
+#include <cmath>
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <map>
-#include <geometry_msgs/Pose2D.h>
+#include <geometry_msgs/msg/pose2_d.hpp>
 #include <eigen3/Eigen/Eigen>
-#include "op3_online_walking_module_msgs/FootStepCommand.h"
-#include "op3_online_walking_module_msgs/FootStepArray.h"
-#include "op3_online_walking_module_msgs/PreviewResponse.h"
-#include "op3_online_walking_module_msgs/Step2D.h"
-#include "op3_online_walking_module_msgs/Step2DArray.h"
+#include "op3_online_walking_module_msgs/msg/foot_step_command.hpp"
+#include "op3_online_walking_module_msgs/msg/foot_step_array.hpp"
+#include "op3_online_walking_module_msgs/msg/preview_response.hpp"
+#include "op3_online_walking_module_msgs/msg/step2_d.hpp"
+#include "op3_online_walking_module_msgs/msg/step2_d_array.hpp"
 //#include "op3_kinematics_dynamics/op3_kinematics_dynamics.h"
 #include "robotis_math/robotis_math.h"
 
@@ -57,11 +57,11 @@ public:
                  double foot_distance);
   virtual ~WalkingControl();
 
-  void initialize(op3_online_walking_module_msgs::FootStepCommand foot_step_command,
+  void initialize(op3_online_walking_module_msgs::msg::FootStepCommand foot_step_command,
                   std::vector<double_t> init_body_pos, std::vector<double_t> init_body_Q,
                   std::vector<double_t> init_r_foot_pos, std::vector<double_t> init_r_foot_Q,
                   std::vector<double_t> init_l_foot_pos, std::vector<double_t> init_l_foot_Q);
-  void initialize(op3_online_walking_module_msgs::Step2DArray foot_step_2d,
+  void initialize(op3_online_walking_module_msgs::msg::Step2DArray foot_step_2d,
                   std::vector<double_t> init_body_pos, std::vector<double_t> init_body_Q,
                   std::vector<double_t> init_r_foot_pos, std::vector<double_t> init_r_foot_Q,
                   std::vector<double_t> init_l_foot_pos, std::vector<double_t> init_l_foot_Q);
@@ -127,11 +127,11 @@ protected:
   double foot_tra_max_z_;
 
   int foot_step_size_;
-  op3_online_walking_module_msgs::FootStepCommand foot_step_command_;
-  op3_online_walking_module_msgs::FootStepArray foot_step_param_;
-  op3_online_walking_module_msgs::PreviewResponse preview_response_;
+  op3_online_walking_module_msgs::msg::FootStepCommand foot_step_command_;
+  op3_online_walking_module_msgs::msg::FootStepArray foot_step_param_;
+  op3_online_walking_module_msgs::msg::PreviewResponse preview_response_;
 
-  op3_online_walking_module_msgs::Step2DArray foot_step_2d_;
+  op3_online_walking_module_msgs::msg::Step2DArray foot_step_2d_;
 
   // Preview Control
   int preview_size_;

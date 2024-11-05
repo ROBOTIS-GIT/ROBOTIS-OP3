@@ -16,7 +16,7 @@
 
 /* Author: SCH */
 
-#include <stdio.h>
+#include <rclcpp/rclcpp.hpp>
 #include "op3_online_walking_module/op3_kdl.h"
 
 OP3Kinematics::OP3Kinematics()
@@ -274,14 +274,14 @@ void OP3Kinematics::setJointPosition(Eigen::VectorXd rleg_joint_position, Eigen:
   lleg_joint_position_ = lleg_joint_position;
 
   //  for (int i=0; i<LEG_JOINT_NUM; i++)
-  //    ROS_INFO("rleg_joint_position_(%d): %f", i, rleg_joint_position_(i));
+  //    RCLCPP_INFO(rclcpp::get_logger("rleg_joint_position"), "rleg_joint_position_(%d): %f", i, rleg_joint_position_(i));
 
   //  for (int i=0; i<LEG_JOINT_NUM; i++)
-  //    ROS_INFO("lleg_joint_position_(%d): %f", i, lleg_joint_position_(i));
+  //    RCLCPP_INFO(rclcpp::get_logger("lleg_joint_position"), "lleg_joint_position_(%d): %f", i, lleg_joint_position_(i));
 }
 
 void OP3Kinematics::solveForwardKinematics(std::vector<double_t> &rleg_position, std::vector<double_t> &rleg_orientation,
-                                                 std::vector<double_t> &lleg_position, std::vector<double_t> &lleg_orientation)
+                       std::vector<double_t> &lleg_position, std::vector<double_t> &lleg_orientation)
 {
   // rleg
   KDL::JntArray rleg_joint_position;
@@ -295,11 +295,11 @@ void OP3Kinematics::solveForwardKinematics(std::vector<double_t> &rleg_position,
   rleg_pose_.position.z = rleg_pose.p.z();
 
   rleg_pose.M.GetQuaternion(rleg_pose_.orientation.x,
-                            rleg_pose_.orientation.y,
-                            rleg_pose_.orientation.z,
-                            rleg_pose_.orientation.w);
+              rleg_pose_.orientation.y,
+              rleg_pose_.orientation.z,
+              rleg_pose_.orientation.w);
 
-//  ROS_INFO("rleg position x : %f y: %f, z: %f", rleg_pose_.position.x, rleg_pose_.position.y, rleg_pose_.position.z);
+  RCLCPP_INFO(rclcpp::get_logger("rleg_position"), "rleg position x : %f y: %f, z: %f", rleg_pose_.position.x, rleg_pose_.position.y, rleg_pose_.position.z);
 
   rleg_position.resize(3,0.0);
   rleg_position[0] = rleg_pose_.position.x;
@@ -324,11 +324,11 @@ void OP3Kinematics::solveForwardKinematics(std::vector<double_t> &rleg_position,
   lleg_pose_.position.z = lleg_pose.p.z();
 
   lleg_pose.M.GetQuaternion(lleg_pose_.orientation.x,
-                            lleg_pose_.orientation.y,
-                            lleg_pose_.orientation.z,
-                            lleg_pose_.orientation.w);
+              lleg_pose_.orientation.y,
+              lleg_pose_.orientation.z,
+              lleg_pose_.orientation.w);
 
-//  ROS_INFO("lleg position x : %f y: %f, z: %f", lleg_pose_.position.x, lleg_pose_.position.y, lleg_pose_.position.z);
+  RCLCPP_INFO(rclcpp::get_logger("lleg_position"), "lleg position x : %f y: %f, z: %f", lleg_pose_.position.x, lleg_pose_.position.y, lleg_pose_.position.z);
 
   lleg_position.resize(3,0.0);
   lleg_position[0] = lleg_pose_.position.x;
@@ -343,12 +343,12 @@ void OP3Kinematics::solveForwardKinematics(std::vector<double_t> &rleg_position,
 }
 
 bool OP3Kinematics::solveInverseKinematics(std::vector<double_t> &rleg_output,
-                                                 Eigen::MatrixXd rleg_target_position, Eigen::Quaterniond rleg_target_orientation,
-                                                 std::vector<double_t> &lleg_output,
-                                                 Eigen::MatrixXd lleg_target_position, Eigen::Quaterniond lleg_target_orientation)
+                       Eigen::MatrixXd rleg_target_position, Eigen::Quaterniond rleg_target_orientation,
+                       std::vector<double_t> &lleg_output,
+                       Eigen::MatrixXd lleg_target_position, Eigen::Quaterniond lleg_target_orientation)
 {
-  //  ROS_INFO("right x: %f, y: %f, z: %f", rleg_target_position(0), rleg_target_position(1), rleg_target_position(2));
-  //  ROS_INFO("left x: %f, y: %f, z: %f", lleg_target_position(0), lleg_target_position(1), lleg_target_position(2));
+  RCLCPP_INFO(rclcpp::get_logger("rleg_target_position"), "right x: %f, y: %f, z: %f", rleg_target_position(0), rleg_target_position(1), rleg_target_position(2));
+  RCLCPP_INFO(rclcpp::get_logger("lleg_target_position"), "left x: %f, y: %f, z: %f", lleg_target_position(0), lleg_target_position(1), lleg_target_position(2));
 
   // rleg
   KDL::JntArray rleg_joint_position;
@@ -360,9 +360,9 @@ bool OP3Kinematics::solveInverseKinematics(std::vector<double_t> &rleg_output,
   rleg_desired_pose.p.z(rleg_target_position.coeff(2,0));
 
   rleg_desired_pose.M = KDL::Rotation::Quaternion(rleg_target_orientation.x(),
-                                                  rleg_target_orientation.y(),
-                                                  rleg_target_orientation.z(),
-                                                  rleg_target_orientation.w());
+                          rleg_target_orientation.y(),
+                          rleg_target_orientation.z(),
+                          rleg_target_orientation.w());
 
   KDL::JntArray rleg_desired_joint_position;
   rleg_desired_joint_position.resize(LEG_JOINT_NUM);
@@ -371,8 +371,8 @@ bool OP3Kinematics::solveInverseKinematics(std::vector<double_t> &rleg_output,
 
   if (rleg_err < 0)
   {
-    ROS_WARN("RLEG IK ERR : %d", rleg_err);
-    return false;
+  RCLCPP_WARN(rclcpp::get_logger("rleg_ik"), "RLEG IK ERR : %d", rleg_err);
+  return false;
   }
 
   // lleg
@@ -385,9 +385,9 @@ bool OP3Kinematics::solveInverseKinematics(std::vector<double_t> &rleg_output,
   lleg_desired_pose.p.z(lleg_target_position.coeff(2,0));
 
   lleg_desired_pose.M = KDL::Rotation::Quaternion(lleg_target_orientation.x(),
-                                                  lleg_target_orientation.y(),
-                                                  lleg_target_orientation.z(),
-                                                  lleg_target_orientation.w());
+                          lleg_target_orientation.y(),
+                          lleg_target_orientation.z(),
+                          lleg_target_orientation.w());
 
   KDL::JntArray lleg_desired_joint_position;
   lleg_desired_joint_position.resize(LEG_JOINT_NUM);
@@ -396,8 +396,8 @@ bool OP3Kinematics::solveInverseKinematics(std::vector<double_t> &rleg_output,
 
   if (lleg_err < 0)
   {
-    ROS_WARN("LLEG IK ERR : %d", lleg_err);
-    return false;
+  RCLCPP_WARN(rclcpp::get_logger("lleg_ik"), "LLEG IK ERR : %d", lleg_err);
+  return false;
   }
 
   // output
@@ -406,8 +406,8 @@ bool OP3Kinematics::solveInverseKinematics(std::vector<double_t> &rleg_output,
 
   for (int i=0; i<LEG_JOINT_NUM; i++)
   {
-    rleg_output[i] = rleg_desired_joint_position(i);
-    lleg_output[i] = lleg_desired_joint_position(i);
+  rleg_output[i] = rleg_desired_joint_position(i);
+  lleg_output[i] = lleg_desired_joint_position(i);
   }
 
   return true;

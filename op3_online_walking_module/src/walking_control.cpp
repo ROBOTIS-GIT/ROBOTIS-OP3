@@ -16,15 +16,15 @@
 
 /* Author: SCH */
 
-#include <stdio.h>
+#include <rclcpp/rclcpp.hpp>
 #include "op3_online_walking_module/walking_control.h"
 
 WalkingControl::WalkingControl(double control_cycle,
-                               double dsp_ratio, double lipm_height, double foot_height_max, double zmp_offset_x, double zmp_offset_y,
-                               std::vector<double_t> x_lipm, std::vector<double_t> y_lipm,
-                               double foot_distance)
+                 double dsp_ratio, double lipm_height, double foot_height_max, double zmp_offset_x, double zmp_offset_y,
+                 std::vector<double_t> x_lipm, std::vector<double_t> y_lipm,
+                 double foot_distance)
   : walking_leg_(LEG_COUNT),
-    walking_phase_(PHASE_COUNT)
+  walking_phase_(PHASE_COUNT)
 {
   control_cycle_ = control_cycle;
 
@@ -93,15 +93,15 @@ WalkingControl::WalkingControl(double control_cycle,
 
   for (int i=0; i<3; i++)
   {
-    x_lipm_.coeffRef(i,0) = x_lipm[i];
-    y_lipm_.coeffRef(i,0) = y_lipm[i];
+  x_lipm_.coeffRef(i,0) = x_lipm[i];
+  y_lipm_.coeffRef(i,0) = y_lipm[i];
   }
 
   preview_sum_zmp_x_ = 0.0;
   preview_sum_zmp_y_ = 0.0;
 
-//  ROS_INFO("x_lipm: %f", x_lipm[0]);
-//  ROS_INFO("y_lipm: %f", y_lipm[0]);
+//  RCLCPP_INFO(rclcpp::get_logger("WalkingControl"), "x_lipm: %f", x_lipm[0]);
+//  RCLCPP_INFO(rclcpp::get_logger("WalkingControl"), "y_lipm: %f", y_lipm[0]);
 }
 
 WalkingControl::~WalkingControl()
@@ -109,10 +109,10 @@ WalkingControl::~WalkingControl()
 
 }
 
-void WalkingControl::initialize(op3_online_walking_module_msgs::FootStepCommand foot_step_command,
-                                std::vector<double_t> init_body_pos, std::vector<double_t> init_body_Q,
-                                std::vector<double_t> init_r_foot_pos, std::vector<double_t> init_r_foot_Q,
-                                std::vector<double_t> init_l_foot_pos, std::vector<double_t> init_l_foot_Q)
+void WalkingControl::initialize(op3_online_walking_module_msgs::msg::FootStepCommand foot_step_command,
+                std::vector<double_t> init_body_pos, std::vector<double_t> init_body_Q,
+                std::vector<double_t> init_r_foot_pos, std::vector<double_t> init_r_foot_Q,
+                std::vector<double_t> init_l_foot_pos, std::vector<double_t> init_l_foot_Q)
 {
   init_body_pos_ = init_body_pos;
   des_body_pos_ = init_body_pos;
@@ -153,10 +153,10 @@ void WalkingControl::initialize(op3_online_walking_module_msgs::FootStepCommand 
   u_y_.fill(0.0);
 }
 
-void WalkingControl::initialize(op3_online_walking_module_msgs::Step2DArray foot_step_2d,
-                                std::vector<double_t> init_body_pos, std::vector<double_t> init_body_Q,
-                                std::vector<double_t> init_r_foot_pos, std::vector<double_t> init_r_foot_Q,
-                                std::vector<double_t> init_l_foot_pos, std::vector<double_t> init_l_foot_Q)
+void WalkingControl::initialize(op3_online_walking_module_msgs::msg::Step2DArray foot_step_2d,
+                std::vector<double_t> init_body_pos, std::vector<double_t> init_body_Q,
+                std::vector<double_t> init_r_foot_pos, std::vector<double_t> init_r_foot_Q,
+                std::vector<double_t> init_l_foot_pos, std::vector<double_t> init_l_foot_Q)
 {
   init_body_pos_ = init_body_pos;
   des_body_pos_ = init_body_pos;
@@ -221,7 +221,7 @@ void WalkingControl::finalize()
 void WalkingControl::set(double time, int step, bool foot_step_2d)
 {
   if (time == 0.0)
-    calcFootTrajectory(step);
+  calcFootTrajectory(step);
 
   calcFootStepPose(time,step);
   calcRefZMP(step);
@@ -241,25 +241,25 @@ void WalkingControl::set(double time, int step, bool foot_step_2d)
   // body
   if (time < init_time)
   {
-    walking_phase_ = DSP;
-    des_body_Q_ = init_body_Q_;
+  walking_phase_ = DSP;
+  des_body_Q_ = init_body_Q_;
   }
   else if (time > fin_time)
   {
-    walking_phase_ = DSP;
-    des_body_Q_ = goal_body_Q_;
+  walking_phase_ = DSP;
+  des_body_Q_ = goal_body_Q_;
   }
   else
   {
-    if (step == 0 ||
-        step == 1 ||
-        step == foot_step_size_ -1)
-      walking_phase_ = DSP;
-    else
-      walking_phase_ = SSP;
+  if (step == 0 ||
+    step == 1 ||
+    step == foot_step_size_ -1)
+    walking_phase_ = DSP;
+  else
+    walking_phase_ = SSP;
 
-    double count = (time - init_time) / fin_time;
-    des_body_Q_ = init_body_Q_.slerp(count, goal_body_Q_);
+  double count = (time - init_time) / fin_time;
+  des_body_Q_ = init_body_Q_.slerp(count, goal_body_Q_);
   }
 
   // right foot
@@ -269,13 +269,13 @@ void WalkingControl::set(double time, int step, bool foot_step_2d)
   des_r_foot_pos.coeffRef(2,0) = des_r_foot_pos_[2];
 
   if (time < init_time)
-    des_r_foot_Q_ = init_r_foot_Q_;
+  des_r_foot_Q_ = init_r_foot_Q_;
   else if (time > fin_time)
-    des_r_foot_Q_ = goal_r_foot_Q_;
+  des_r_foot_Q_ = goal_r_foot_Q_;
   else
   {
-    double count = (time - init_time) / fin_time;
-    des_r_foot_Q_ = init_r_foot_Q_.slerp(count, goal_r_foot_Q_);
+  double count = (time - init_time) / fin_time;
+  des_r_foot_Q_ = init_r_foot_Q_.slerp(count, goal_r_foot_Q_);
   }
 
   // left foot
@@ -285,13 +285,13 @@ void WalkingControl::set(double time, int step, bool foot_step_2d)
   des_l_foot_pos.coeffRef(2,0) = des_l_foot_pos_[2];
 
   if (time < init_time)
-    des_l_foot_Q_ = init_l_foot_Q_;
+  des_l_foot_Q_ = init_l_foot_Q_;
   else if (time > fin_time)
-    des_l_foot_Q_ = goal_l_foot_Q_;
+  des_l_foot_Q_ = goal_l_foot_Q_;
   else
   {
-    double count = (time - init_time) / fin_time;
-    des_l_foot_Q_ = init_l_foot_Q_.slerp(count, goal_l_foot_Q_);
+  double count = (time - init_time) / fin_time;
+  des_l_foot_Q_ = init_l_foot_Q_.slerp(count, goal_l_foot_Q_);
   }
 }
 
@@ -302,99 +302,99 @@ void WalkingControl::calcFootStepParam()
 
   int walking_start_leg;
   if (foot_step_command_.start_leg == "left_leg")
-    walking_start_leg = LEFT_LEG;
+  walking_start_leg = LEFT_LEG;
   else if (foot_step_command_.start_leg == "right_leg")
-    walking_start_leg = RIGHT_LEG;
+  walking_start_leg = RIGHT_LEG;
 
   if (foot_step_command_.command == "right")
-    walking_start_leg = RIGHT_LEG;
+  walking_start_leg = RIGHT_LEG;
   else if (foot_step_command_.command == "left")
-    walking_start_leg = LEFT_LEG;
+  walking_start_leg = LEFT_LEG;
   else if (foot_step_command_.command == "turn_right")
-    walking_start_leg = RIGHT_LEG;
+  walking_start_leg = RIGHT_LEG;
   else if (foot_step_command_.command == "turn_left")
-    walking_start_leg = LEFT_LEG;
+  walking_start_leg = LEFT_LEG;
 
   int walking_leg = walking_start_leg;
   double foot_angle = init_body_yaw_angle_;
 
   for (int i=0; i<foot_step_size_; i++)
   {
-    geometry_msgs::Pose2D msg;
+  geometry_msgs::msg::Pose2D msg;
 
-    // Forward Step
-    msg.x = foot_step_command_.step_length;
+  // Forward Step
+  msg.x = foot_step_command_.step_length;
 
-    if (foot_step_command_.command == "stop")
-      msg.x *= 0.0;
+  if (foot_step_command_.command == "stop")
+    msg.x *= 0.0;
 
-    if (foot_step_command_.command == "backward")
-      msg.x *= -1.0;
+  if (foot_step_command_.command == "backward")
+    msg.x *= -1.0;
 
-    if (foot_step_command_.command == "left" ||
-        foot_step_command_.command == "right")
-      msg.x *= 0.0;
+  if (foot_step_command_.command == "left" ||
+    foot_step_command_.command == "right")
+    msg.x *= 0.0;
 
-    if (foot_step_command_.command == "turn_left" ||
-        foot_step_command_.command == "turn_right")
-      msg.x *= 0.0;
+  if (foot_step_command_.command == "turn_left" ||
+    foot_step_command_.command == "turn_right")
+    msg.x *= 0.0;
 
-    // Side Step
-    walking_leg = walking_start_leg++ % LEG_COUNT;
-    double lr = walking_leg;
-    if (foot_step_command_.command == "left")
-    {
-      lr += -1.0; lr *= -1.0;
-    }
+  // Side Step
+  walking_leg = walking_start_leg++ % LEG_COUNT;
+  double lr = walking_leg;
+  if (foot_step_command_.command == "left")
+  {
+    lr += -1.0; lr *= -1.0;
+  }
 
-    if ((foot_step_command_.command == "forward" || foot_step_command_.command == "backward") &&
-        foot_step_command_.start_leg == "left_leg")
-    {
-      lr += -1.0; lr *= -1.0;
-    }
+  if ((foot_step_command_.command == "forward" || foot_step_command_.command == "backward") &&
+    foot_step_command_.start_leg == "left_leg")
+  {
+    lr += -1.0; lr *= -1.0;
+  }
 
-    if (foot_step_command_.command == "turn_left" ||
-        foot_step_command_.command == "turn_right")
-      lr = 0.0;
+  if (foot_step_command_.command == "turn_left" ||
+    foot_step_command_.command == "turn_right")
+    lr = 0.0;
 
-    if (foot_step_command_.command == "stop")
-      lr *= 0.0;
+  if (foot_step_command_.command == "stop")
+    lr *= 0.0;
 
-    msg.y = foot_origin_shift_y_ + lr*foot_step_command_.side_length;
+  msg.y = foot_origin_shift_y_ + lr*foot_step_command_.side_length;
 
-    // Theta
-    double theta;
-    theta = foot_step_command_.step_angle;
+  // Theta
+  double theta;
+  theta = foot_step_command_.step_angle;
 
-    if (foot_step_command_.command == "turn_right")
-      theta *= -1.0;
+  if (foot_step_command_.command == "turn_right")
+    theta *= -1.0;
 
-    if ((foot_step_command_.command == "forward" || foot_step_command_.command == "backward") &&
-        foot_step_command_.start_leg == "right_leg")
-      theta *= -1.0;
+  if ((foot_step_command_.command == "forward" || foot_step_command_.command == "backward") &&
+    foot_step_command_.start_leg == "right_leg")
+    theta *= -1.0;
 
-    if (foot_step_command_.command == "left" ||
-        foot_step_command_.command == "right")
-      theta *= 0.0;
+  if (foot_step_command_.command == "left" ||
+    foot_step_command_.command == "right")
+    theta *= 0.0;
 
-    if (foot_step_command_.command == "stop")
-      theta *= 0.0;
+  if (foot_step_command_.command == "stop")
+    theta *= 0.0;
 
-    if (i == 0 ||
-        i == 1 ||
-        i == foot_step_size_-2 ||
-        i == foot_step_size_-1)
-    {
-      msg.x = 0.0;
-      msg.y = foot_origin_shift_y_;
-      theta = 0.0;
-    }
+  if (i == 0 ||
+    i == 1 ||
+    i == foot_step_size_-2 ||
+    i == foot_step_size_-1)
+  {
+    msg.x = 0.0;
+    msg.y = foot_origin_shift_y_;
+    theta = 0.0;
+  }
 
-    foot_angle += theta;
-    msg.theta = foot_angle;
+  foot_angle += theta;
+  msg.theta = foot_angle;
 
-    foot_step_param_.moving_foot.push_back(walking_leg);
-    foot_step_param_.data.push_back(msg);
+  foot_step_param_.moving_foot.push_back(walking_leg);
+  foot_step_param_.data.push_back(msg);
   }
 
   calcGoalFootPose();
@@ -421,14 +421,14 @@ void WalkingControl::transformFootStep2D()
   goal_r_foot_pos.resize(2, 0.0);
   goal_l_foot_pos.resize(2, 0.0);
 
-  op3_online_walking_module_msgs::FootStepArray foot_step_param;
+  op3_online_walking_module_msgs::msg::FootStepArray foot_step_param;
 
   for (int step=0; step<foot_step_size_; step++)
   {
-    op3_online_walking_module_msgs::Step2D msg = foot_step_2d_.footsteps_2d[step];
+    op3_online_walking_module_msgs::msg::Step2D msg = foot_step_2d_.footsteps_2d[step];
 
     foot_step_param.moving_foot.push_back(msg.moving_foot);
-    geometry_msgs::Pose2D foot_pose_2d;
+    geometry_msgs::msg::Pose2D foot_pose_2d;
     foot_pose_2d.theta = msg.step2d.theta;
     foot_step_param.data.push_back(foot_pose_2d);
 
@@ -441,8 +441,6 @@ void WalkingControl::transformFootStep2D()
     {
       if (msg.moving_foot == LEFT_LEG)
       {
-//        ROS_INFO("L");
-
         goal_l_foot_pos[0] = msg.step2d.x;
         goal_l_foot_pos[1] = msg.step2d.y;
 
@@ -450,8 +448,6 @@ void WalkingControl::transformFootStep2D()
       }
       else if(msg.moving_foot == RIGHT_LEG)
       {
-//        ROS_INFO("R");
-
         goal_r_foot_pos[0] = msg.step2d.x;
         goal_r_foot_pos[1] = msg.step2d.y;
 
@@ -520,8 +516,6 @@ void WalkingControl::calcFootTrajectory(int step)
                                                              init_l_foot_pos_, init_l_foot_vel_, init_l_foot_accel_,
                                                              goal_l_foot_pos_, goal_l_foot_vel_, goal_l_foot_accel_,
                                                              via_l_foot_pos, via_l_foot_vel, via_l_foot_accel);
-
-//    ROS_INFO("angle: %f", angle);
   }
   else if (foot_step_param_.moving_foot[step] == RIGHT_LEG)
   {
@@ -562,7 +556,6 @@ void WalkingControl::calcFootTrajectory(int step)
                                                              goal_r_foot_pos_, goal_r_foot_vel_, goal_r_foot_accel_,
                                                              via_r_foot_pos, via_r_foot_vel, via_r_foot_accel);
   }
-
 }
 
 void WalkingControl::calcFootStepPose(double time, int step)
@@ -597,12 +590,12 @@ void WalkingControl::calcRefZMP(int step)
 {
   if (step == 0 || step == 1)
   {
-    ref_zmp_x_ = 0.5*(goal_r_foot_pos_[0] + goal_l_foot_pos_[0]); // + zmp_offset_x_;
+    ref_zmp_x_ = 0.5*(goal_r_foot_pos_[0] + goal_l_foot_pos_[0]);
     ref_zmp_y_ = 0.5*(goal_r_foot_pos_[1] + goal_l_foot_pos_[1]);
   }
   else if (step == foot_step_size_-1)
   {
-    ref_zmp_x_ = 0.5*(goal_r_foot_pos_[0] + goal_l_foot_pos_[0]); // + zmp_offset_x_;
+    ref_zmp_x_ = 0.5*(goal_r_foot_pos_[0] + goal_l_foot_pos_[0]);
     ref_zmp_y_ = 0.5*(goal_r_foot_pos_[1] + goal_l_foot_pos_[1]);
   }
   else
@@ -644,8 +637,6 @@ void WalkingControl::calcGoalFootPose()
 
     if (foot_step_param_.moving_foot[step] == LEFT_LEG)
     {
-      //ROS_INFO("L");
-
       goal_l_foot_pos[0] = init_r_foot_pos[0]
           + cos(angle) * foot_step_param_.data[step].x
           - sin(angle) * foot_step_param_.data[step].y;
@@ -657,8 +648,6 @@ void WalkingControl::calcGoalFootPose()
     }
     else if(foot_step_param_.moving_foot[step] == RIGHT_LEG)
     {
-      //ROS_INFO("R");
-
       goal_r_foot_pos[0] = init_l_foot_pos[0]
           + cos(angle) * foot_step_param_.data[step].x
           + sin(angle) * foot_step_param_.data[step].y;
@@ -729,7 +718,7 @@ void WalkingControl::calcPreviewParam(std::vector<double_t> K, int K_row, int K_
                                       std::vector<double_t> P, int P_row, int P_col)
 {
   //
-//  ROS_INFO("lipm_height_ : %f", lipm_height_);
+//  RCLCPP_INFO(rclcpp::get_logger("WalkingControl"), "lipm_height_ : %f", lipm_height_);
 
   double t = control_cycle_;
 

@@ -21,15 +21,14 @@
 
 #pragma once
 
-#include <math.h>
-#include <stdint.h>
+#include <cmath>
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <map>
-#include <ros/ros.h>
-#include <ros/callback_queue.h>
-#include <ros/package.h>
-#include <geometry_msgs/Pose.h>
+#include <rclcpp/rclcpp.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
+#include <geometry_msgs/msg/pose.hpp>
 #include <eigen3/Eigen/Eigen>
 #include <kdl/joint.hpp>
 #include <kdl/chain.hpp>
@@ -50,7 +49,6 @@ public:
   OP3Kinematics();
   virtual ~OP3Kinematics();
 
-//  void initialize(std::vector<double_t> pelvis_position, std::vector<double_t> pelvis_orientation);
   void initialize(Eigen::MatrixXd pelvis_position, Eigen::MatrixXd pelvis_orientation);
   void setJointPosition(Eigen::VectorXd rleg_joint_position, Eigen::VectorXd lleg_joint_position);
   void solveForwardKinematics(std::vector<double_t> &rleg_position, std::vector<double_t> &rleg_orientation,
@@ -62,15 +60,13 @@ public:
   void finalize();
 
 protected:
-//  KDL::Chain rleg_chain_;
-  KDL::ChainDynParam *rleg_dyn_param_ = NULL;
+  KDL::ChainDynParam *rleg_dyn_param_ = nullptr;
   KDL::ChainJntToJacSolver *rleg_jacobian_solver_;
   KDL::ChainFkSolverPos_recursive *rleg_fk_solver_;
   KDL::ChainIkSolverVel_pinv *rleg_ik_vel_solver_;
   KDL::ChainIkSolverPos_NR_JL *rleg_ik_pos_solver_;
 
-//  KDL::Chain lleg_chain_;
-  KDL::ChainDynParam *lleg_dyn_param_ = NULL;
+  KDL::ChainDynParam *lleg_dyn_param_ = nullptr;
   KDL::ChainJntToJacSolver *lleg_jacobian_solver_;
   KDL::ChainFkSolverPos_recursive *lleg_fk_solver_;
   KDL::ChainIkSolverVel_pinv *lleg_ik_vel_solver_;
@@ -80,12 +76,8 @@ protected:
   KDL::ChainFkSolverPos_recursive *lleg_ft_fk_solver_;
 
   Eigen::VectorXd rleg_joint_position_, lleg_joint_position_;
-  geometry_msgs::Pose rleg_pose_, lleg_pose_;
-  geometry_msgs::Pose rleg_ft_pose_, lleg_ft_pose_;
-
-
-
-
+  geometry_msgs::msg::Pose rleg_pose_, lleg_pose_;
+  geometry_msgs::msg::Pose rleg_ft_pose_, lleg_ft_pose_;
 };
 
 #endif

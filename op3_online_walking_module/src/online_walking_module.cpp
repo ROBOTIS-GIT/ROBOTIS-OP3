@@ -21,7 +21,8 @@
 using namespace robotis_op;
 
 OnlineWalkingModule::OnlineWalkingModule()
-  : control_cycle_sec_(0.008),
+  : Node("online_walking_module"),
+    control_cycle_sec_(0.008),
     is_moving_(false),
     is_balancing_(false),
     is_offset_updating_(false),
@@ -149,13 +150,13 @@ OnlineWalkingModule::OnlineWalkingModule()
   des_body_offset_.resize(3, 0.0);
   goal_body_offset_.resize(3, 0.0);
 
-  std::string balance_gain_path = ros::package::getPath("op3_online_walking_module") + "/config/balance_gain.yaml";
+  std::string balance_gain_path = ament_index_cpp::get_package_share_directory("op3_online_walking_module") + "/config/balance_gain.yaml";
   parseBalanceGainData(balance_gain_path);
 
-  std::string joint_feedback_gain_path = ros::package::getPath("op3_online_walking_module") + "/config/joint_feedback_gain.yaml";
+  std::string joint_feedback_gain_path = ament_index_cpp::get_package_share_directory("op3_online_walking_module") + "/config/joint_feedback_gain.yaml";
   parseJointFeedbackGainData(joint_feedback_gain_path);
 
-  std::string joint_feedforward_gain_path = ros::package::getPath("op3_online_walking_module") + "/config/joint_feedforward_gain.yaml";
+  std::string joint_feedforward_gain_path = ament_index_cpp::get_package_share_directory("op3_online_walking_module") + "/config/joint_feedforward_gain.yaml";
   parseJointFeedforwardGainData(joint_feedforward_gain_path);
 }
 
@@ -167,64 +168,63 @@ OnlineWalkingModule::~OnlineWalkingModule()
 void OnlineWalkingModule::initialize(const int control_cycle_msec, robotis_framework::Robot *robot)
 {
   control_cycle_sec_ = control_cycle_msec * 0.001;
-  queue_thread_      = boost::thread(boost::bind(&OnlineWalkingModule::queueThread, this));
-
-  ros::NodeHandle ros_node;
+  queue_thread_      = std::thread(&OnlineWalkingModule::queueThread, this);
 
   // Publisher
-  status_msg_pub_       = ros_node.advertise<robotis_controller_msgs::StatusMsg>("/robotis/status", 1);
-  movement_done_pub_    = ros_node.advertise<std_msgs::String>("/robotis/movement_done", 1);
-  goal_joint_state_pub_ = ros_node.advertise<sensor_msgs::JointState>("/robotis/online_walking/goal_joint_states", 1);
-  pelvis_pose_pub_      = ros_node.advertise<geometry_msgs::PoseStamped>("/robotis/pelvis_pose", 1);
+  status_msg_pub_       = this->create_publisher<robotis_controller_msgs::msg::StatusMsg>("/robotis/status", 1);
+  movement_done_pub_    = this->create_publisher<std_msgs::msg::String>("/robotis/movement_done", 1);
+  goal_joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("/robotis/online_walking/goal_joint_states", 1);
+  pelvis_pose_pub_      = this->create_publisher<geometry_msgs::msg::PoseStamped>("/robotis/pelvis_pose", 1);
 
   // Service
-//  get_preview_matrix_client_ = ros_node.serviceClient<op3_online_walking_module_msgs::GetPreviewMatrix>("/robotis/online_walking/get_preview_matrix", 0);
+//  get_preview_matrix_client_ = this->create_client<op3_online_walking_module_msgs::srv::GetPreviewMatrix>("/robotis/online_walking/get_preview_matrix");
 }
 
 void OnlineWalkingModule::queueThread()
 {
-  ros::NodeHandle     ros_node;
-  ros::CallbackQueue  callback_queue;
-
-  ros_node.setCallbackQueue(&callback_queue);
+  auto executor = rclcpp::executors::SingleThreadedExecutor();
+  executor.add_node(this->get_node_base_interface());
 
   // Subscriber
-  ros::Subscriber reset_body_sub_ = ros_node.subscribe("/robotis/online_walking/reset_body", 5,
-                                                       &OnlineWalkingModule::setResetBodyCallback, this);
-  ros::Subscriber joint_pose_sub_ = ros_node.subscribe("/robotis/online_walking/goal_joint_pose", 5,
-                                                       &OnlineWalkingModule::goalJointPoseCallback, this);
-  ros::Subscriber kinematics_pose_sub_ = ros_node.subscribe("/robotis/online_walking/goal_kinematics_pose", 5,
-                                                            &OnlineWalkingModule::goalKinematicsPoseCallback, this);
-  ros::Subscriber foot_step_command_sub_ = ros_node.subscribe("/robotis/online_walking/foot_step_command", 5,
-                                                              &OnlineWalkingModule::footStepCommandCallback, this);
-  ros::Subscriber walking_param_sub_ = ros_node.subscribe("/robotis/online_walking/walking_param", 5,
-                                                          &OnlineWalkingModule::walkingParamCallback, this);
-  ros::Subscriber wholebody_balance_msg_sub = ros_node.subscribe("/robotis/online_walking/wholebody_balance_msg", 5,
-                                                                 &OnlineWalkingModule::setWholebodyBalanceMsgCallback, this);
-  ros::Subscriber body_offset_msg_sub = ros_node.subscribe("/robotis/online_walking/body_offset", 5,
-                                                           &OnlineWalkingModule::setBodyOffsetCallback, this);
-  ros::Subscriber foot_distance_msg_sub = ros_node.subscribe("/robotis/online_walking/foot_distance", 5,
-                                                             &OnlineWalkingModule::setFootDistanceCallback, this);
+  auto reset_body_sub_ = this->create_subscription<std_msgs::msg::Bool>("/robotis/online_walking/reset_body", 5,
+                                                       std::bind(&OnlineWalkingModule::setResetBodyCallback, this, std::placeholders::_1));
+  auto joint_pose_sub_ = this->create_subscription<op3_online_walking_module_msgs::msg::JointPose>("/robotis/online_walking/goal_joint_pose", 5,
+                                                       std::bind(&OnlineWalkingModule::goalJointPoseCallback, this, std::placeholders::_1));
+  auto kinematics_pose_sub_ = this->create_subscription<op3_online_walking_module_msgs::msg::KinematicsPose>("/robotis/online_walking/goal_kinematics_pose", 5,
+                                                            std::bind(&OnlineWalkingModule::goalKinematicsPoseCallback, this, std::placeholders::_1));
+  auto foot_step_command_sub_ = this->create_subscription<op3_online_walking_module_msgs::msg::FootStepCommand>("/robotis/online_walking/foot_step_command", 5,
+                                                              std::bind(&OnlineWalkingModule::footStepCommandCallback, this, std::placeholders::_1));
+  auto walking_param_sub_ = this->create_subscription<op3_online_walking_module_msgs::msg::WalkingParam>("/robotis/online_walking/walking_param", 5,
+                                                          std::bind(&OnlineWalkingModule::walkingParamCallback, this, std::placeholders::_1));
+  auto wholebody_balance_msg_sub = this->create_subscription<std_msgs::msg::String>("/robotis/online_walking/wholebody_balance_msg", 5,
+                                                                 std::bind(&OnlineWalkingModule::setWholebodyBalanceMsgCallback, this, std::placeholders::_1));
+  auto body_offset_msg_sub = this->create_subscription<geometry_msgs::msg::Pose>("/robotis/online_walking/body_offset", 5,
+                                                           std::bind(&OnlineWalkingModule::setBodyOffsetCallback, this, std::placeholders::_1));
+  auto foot_distance_msg_sub = this->create_subscription<std_msgs::msg::Float64>("/robotis/online_walking/foot_distance", 5,
+                                                             std::bind(&OnlineWalkingModule::setFootDistanceCallback, this, std::placeholders::_1));
 
-  ros::Subscriber footsteps_sub = ros_node.subscribe("/robotis/online_walking/footsteps_2d", 5,
-                                                     &OnlineWalkingModule::footStep2DCallback, this);
+  auto footsteps_sub = this->create_subscription<op3_online_walking_module_msgs::msg::Step2DArray>("/robotis/online_walking/footsteps_2d", 5,
+                                                     std::bind(&OnlineWalkingModule::footStep2DCallback, this, std::placeholders::_1));
 
-//  ros::Subscriber imu_data_sub = ros_node.subscribe("/robotis/sensor/imu/imu", 5,
-//                                                    &OnlineWalkingModule::imuDataCallback, this);
-//  ros::Subscriber l_foot_ft_sub = ros_node.subscribe("/robotis/sensor/l_foot_ft", 3,
-//                                                     &OnlineWalkingModule::leftFootForceTorqueOutputCallback, this);
-//  ros::Subscriber r_foot_ft_sub = ros_node.subscribe("/robotis/sensor/r_foot_ft", 3,
-//                                                     &OnlineWalkingModule::rightFootForceTorqueOutputCallback, this);
+//  auto imu_data_sub = this->create_subscription<sensor_msgs::msg::Imu>("/robotis/sensor/imu/imu", 5,
+//                                                    std::bind(&OnlineWalkingModule::imuDataCallback, this, std::placeholders::_1));
+//  auto l_foot_ft_sub = this->create_subscription<geometry_msgs::msg::WrenchStamped>("/robotis/sensor/l_foot_ft", 3,
+//                                                     std::bind(&OnlineWalkingModule::leftFootForceTorqueOutputCallback, this, std::placeholders::_1));
+//  auto r_foot_ft_sub = this->create_subscription<geometry_msgs::msg::WrenchStamped>("/robotis/sensor/r_foot_ft", 3,
+//                                                     std::bind(&OnlineWalkingModule::rightFootForceTorqueOutputCallback, this, std::placeholders::_1));
 
   // Service
-  ros::ServiceServer get_joint_pose_server = ros_node.advertiseService("/robotis/online_walking/get_joint_pose",
-                                                                       &OnlineWalkingModule::getJointPoseCallback, this);
-  ros::ServiceServer get_kinematics_pose_server = ros_node.advertiseService("/robotis/online_walking/get_kinematics_pose",
-                                                                            &OnlineWalkingModule::getKinematicsPoseCallback, this);
+  auto get_joint_pose_server = this->create_service<op3_online_walking_module_msgs::srv::GetJointPose>("/robotis/online_walking/get_joint_pose",
+                                                                       std::bind(&OnlineWalkingModule::getJointPoseCallback, this, std::placeholders::_1, std::placeholders::_2));
+  auto get_kinematics_pose_server = this->create_service<op3_online_walking_module_msgs::srv::GetKinematicsPose>("/robotis/online_walking/get_kinematics_pose",
+                                                                            std::bind(&OnlineWalkingModule::getKinematicsPoseCallback, this, std::placeholders::_1, std::placeholders::_2));
 
-  ros::WallDuration duration(control_cycle_sec_);
-  while(ros_node.ok())
-    callback_queue.callAvailable(duration);
+  rclcpp::Rate rate(1.0 / control_cycle_sec_);
+  while (rclcpp::ok())
+  {
+    executor.spin_some();
+    rate.sleep();
+  }
 }
 
 void OnlineWalkingModule::resetBodyPose()
@@ -277,11 +277,9 @@ void OnlineWalkingModule::parseBalanceGainData(const std::string &path)
   }
   catch (const std::exception& e)
   {
-    ROS_ERROR("Fail to load yaml file.");
+    RCLCPP_ERROR(this->get_logger(), "Fail to load yaml file.");
     return;
   }
-
-  //  ROS_INFO("Parse Balance Gain Data");
 
   foot_roll_gyro_p_gain_  = doc["foot_roll_gyro_p_gain"].as<double>();
   foot_roll_gyro_d_gain_  = doc["foot_roll_gyro_d_gain"].as<double>();
@@ -334,7 +332,7 @@ void OnlineWalkingModule::parseJointFeedbackGainData(const std::string &path)
   }
   catch (const std::exception& e)
   {
-    ROS_ERROR("Fail to load yaml file.");
+    RCLCPP_ERROR(this->get_logger(), "Fail to load yaml file.");
     return;
   }
 
@@ -375,7 +373,7 @@ void OnlineWalkingModule::parseJointFeedforwardGainData(const std::string &path)
   }
   catch (const std::exception& e)
   {
-    ROS_ERROR("Fail to load yaml file.");
+    RCLCPP_ERROR(this->get_logger(), "Fail to load yaml file.");
     return;
   }
 
@@ -394,27 +392,30 @@ void OnlineWalkingModule::parseJointFeedforwardGainData(const std::string &path)
   joint_feedforward_gain_[joint_name_to_id_["l_ank_roll"]-1]  = doc["l_ank_roll_gain"].as<double>();
 }
 
-void OnlineWalkingModule::setWholebodyBalanceMsgCallback(const std_msgs::String::ConstPtr& msg)
+void OnlineWalkingModule::setWholebodyBalanceMsgCallback(const std_msgs::msg::String::SharedPtr msg)
 {
   if (enable_ == false)
     return;
 
-  std::string balance_gain_path = ros::package::getPath("op3_online_walking_module") + "/config/balance_gain.yaml";
+  std::string balance_gain_path = ament_index_cpp::get_package_share_directory("op3_online_walking_module") + "/config/balance_gain.yaml";
   parseBalanceGainData(balance_gain_path);
 
-  std::string joint_feedback_gain_path = ros::package::getPath("op3_online_walking_module") + "/config/joint_feedback_gain.yaml";
+  std::string joint_feedback_gain_path = ament_index_cpp::get_package_share_directory("op3_online_walking_module") + "/config/joint_feedback_gain.yaml";
   parseJointFeedbackGainData(joint_feedback_gain_path);
 
-  std::string joint_feedforward_gain_path = ros::package::getPath("op3_online_walking_module") + "/config/joint_feedforward_gain.yaml";
+  std::string joint_feedforward_gain_path = ament_index_cpp::get_package_share_directory("op3_online_walking_module") + "/config/joint_feedforward_gain.yaml";
   parseJointFeedforwardGainData(joint_feedforward_gain_path);
 
   if (msg->data == "balance_on")
     goal_balance_gain_ratio_[0] = 1.0;
-  else if(msg->data == "balance_off")
+  else if(msg->data == "balance_off") {
     goal_balance_gain_ratio_[0] = 0.0;
+    balance_type_ = OFF;
+  } else {
+    balance_type_ = ON;
+  }
 
   balance_control_initialize_ = false;
-  balance_type_ = ON;
   walking_phase_ = DSP;
 }
 
@@ -440,11 +441,11 @@ void OnlineWalkingModule::initBalanceControl()
                                          goal_balance_gain_ratio_, balance_zero, balance_zero);
 
   if (is_balancing_ == true)
-    ROS_INFO("[UPDATE] Balance Gain");
+    RCLCPP_INFO(this->get_logger(), "[UPDATE] Balance Gain");
   else
   {
     is_balancing_ = true;
-    ROS_INFO("[START] Balance Gain");
+    RCLCPP_INFO(this->get_logger(), "[START] Balance Gain");
   }
 }
 
@@ -467,26 +468,24 @@ void OnlineWalkingModule::calcBalanceControl()
         balance_type_ = OFF;
       }
 
-      ROS_INFO("[END] Balance Gain");
+      RCLCPP_INFO(this->get_logger(), "[END] Balance Gain");
     }
     else
       balance_step_++;
   }
 }
 
-void OnlineWalkingModule::imuDataCallback(const sensor_msgs::Imu::ConstPtr& msg)
+void OnlineWalkingModule::imuDataCallback(const sensor_msgs::msg::Imu::SharedPtr msg)
 {
-  imu_data_mutex_lock_.lock();
+  std::lock_guard<std::mutex> lock(imu_data_mutex_lock_);
 
   imu_data_msg_ = *msg;
 
   imu_data_msg_.angular_velocity.x *= -1.0;
   imu_data_msg_.angular_velocity.y *= -1.0;
-
-  imu_data_mutex_lock_.unlock();
 }
 
-void OnlineWalkingModule::leftFootForceTorqueOutputCallback(const geometry_msgs::WrenchStamped::ConstPtr &msg)
+void OnlineWalkingModule::leftFootForceTorqueOutputCallback(const geometry_msgs::msg::WrenchStamped::SharedPtr msg)
 {
   Eigen::MatrixXd force = Eigen::MatrixXd::Zero(3,1);
   force.coeffRef(0,0) = msg->wrench.force.x;
@@ -508,13 +507,12 @@ void OnlineWalkingModule::leftFootForceTorqueOutputCallback(const geometry_msgs:
   double l_foot_Ty_Nm = torque_new.coeff(1,0);
   double l_foot_Tz_Nm = torque_new.coeff(2,0);
 
-
-  l_foot_fx_N = robotis_framework::sign(l_foot_fx_N) * fmin( fabs(l_foot_fx_N), 2000.0);
-  l_foot_fy_N = robotis_framework::sign(l_foot_fy_N) * fmin( fabs(l_foot_fy_N), 2000.0);
-  l_foot_fz_N = robotis_framework::sign(l_foot_fz_N) * fmin( fabs(l_foot_fz_N), 2000.0);
-  l_foot_Tx_Nm = robotis_framework::sign(l_foot_Tx_Nm) * fmin(fabs(l_foot_Tx_Nm), 300.0);
-  l_foot_Ty_Nm = robotis_framework::sign(l_foot_Ty_Nm) * fmin(fabs(l_foot_Ty_Nm), 300.0);
-  l_foot_Tz_Nm = robotis_framework::sign(l_foot_Tz_Nm) * fmin(fabs(l_foot_Tz_Nm), 300.0);
+  l_foot_fx_N = copysign(fmin(fabs(l_foot_fx_N), 2000.0), l_foot_fx_N);
+  l_foot_fy_N = copysign(fmin(fabs(l_foot_fy_N), 2000.0), l_foot_fy_N);
+  l_foot_fz_N = copysign(fmin(fabs(l_foot_fz_N), 2000.0), l_foot_fz_N);
+  l_foot_Tx_Nm = copysign(fmin(fabs(l_foot_Tx_Nm), 300.0), l_foot_Tx_Nm);
+  l_foot_Ty_Nm = copysign(fmin(fabs(l_foot_Ty_Nm), 300.0), l_foot_Ty_Nm);
+  l_foot_Tz_Nm = copysign(fmin(fabs(l_foot_Tz_Nm), 300.0), l_foot_Tz_Nm);
 
   l_foot_ft_data_msg_.force.x = l_foot_fx_N;
   l_foot_ft_data_msg_.force.y = l_foot_fy_N;
@@ -524,7 +522,7 @@ void OnlineWalkingModule::leftFootForceTorqueOutputCallback(const geometry_msgs:
   l_foot_ft_data_msg_.torque.z = l_foot_Tz_Nm;
 }
 
-void OnlineWalkingModule::rightFootForceTorqueOutputCallback(const geometry_msgs::WrenchStamped::ConstPtr &msg)
+void OnlineWalkingModule::rightFootForceTorqueOutputCallback(const geometry_msgs::msg::WrenchStamped::SharedPtr msg)
 {
   Eigen::MatrixXd force = Eigen::MatrixXd::Zero(3,1);
   force.coeffRef(0,0) = msg->wrench.force.x;
@@ -561,7 +559,7 @@ void OnlineWalkingModule::rightFootForceTorqueOutputCallback(const geometry_msgs
   r_foot_ft_data_msg_.torque.z = r_foot_Tz_Nm;
 }
 
-void OnlineWalkingModule::setResetBodyCallback(const std_msgs::Bool::ConstPtr& msg)
+void OnlineWalkingModule::setResetBodyCallback(const std_msgs::msg::Bool::SharedPtr msg)
 {
   if (msg->data == true)
   {
@@ -573,26 +571,26 @@ void OnlineWalkingModule::setResetBodyCallback(const std_msgs::Bool::ConstPtr& m
   }
 }
 
-void OnlineWalkingModule::walkingParamCallback(const op3_online_walking_module_msgs::WalkingParam& msg)
+void OnlineWalkingModule::walkingParamCallback(const op3_online_walking_module_msgs::msg::WalkingParam::SharedPtr msg)
 {
-  walking_param_ = msg;
+  walking_param_ = *msg;
 }
 
-void OnlineWalkingModule::goalJointPoseCallback(const op3_online_walking_module_msgs::JointPose& msg)
+void OnlineWalkingModule::goalJointPoseCallback(const op3_online_walking_module_msgs::msg::JointPose::SharedPtr msg)
 {
   if (enable_ == false)
     return;
 
-  size_t joint_size = msg.pose.name.size();
+  size_t joint_size = msg->pose.name.size();
 
   if (control_type_ == NONE || control_type_ == JOINT_CONTROL)
   {
-    mov_time_ = msg.mov_time;
+    mov_time_ = msg->mov_time;
 
-    for (size_t i = 0; i < msg.pose.name.size(); i++)
+    for (size_t i = 0; i < msg->pose.name.size(); i++)
     {
-      std::string joint_name = msg.pose.name[i];
-      goal_joint_pos_[joint_name_to_id_[joint_name] - 1] = msg.pose.position[i];
+      std::string joint_name = msg->pose.name[i];
+      goal_joint_pos_[joint_name_to_id_[joint_name] - 1] = msg->pose.position[i];
     }
 
     joint_control_initialize_ = false;
@@ -601,7 +599,7 @@ void OnlineWalkingModule::goalJointPoseCallback(const op3_online_walking_module_
     des_balance_gain_ratio_[0] = 0.0;
   }
   else
-    ROS_WARN("[WARN] Control type is different!");
+    RCLCPP_WARN(this->get_logger(), "[WARN] Control type is different!");
 }
 
 void OnlineWalkingModule::initJointControl()
@@ -622,11 +620,11 @@ void OnlineWalkingModule::initJointControl()
                                          des_joint_pos_, des_joint_vel_, des_joint_accel_,
                                          goal_joint_pos_, goal_joint_vel_, goal_joint_accel_);
   if (is_moving_ == true)
-    ROS_INFO("[UPDATE] Joint Control");
+    RCLCPP_INFO(this->get_logger(), "[UPDATE] Joint Control");
   else
   {
     is_moving_ = true;
-    ROS_INFO("[START] Joint Control");
+    RCLCPP_INFO(this->get_logger(), "[START] Joint Control");
   }
 }
 
@@ -652,21 +650,21 @@ void OnlineWalkingModule::calcJointControl()
 
       control_type_ = NONE;
 
-      ROS_INFO("[END] Joint Control");
+      RCLCPP_INFO(this->get_logger(), "[END] Joint Control");
     }
     else
       mov_step_++;
   }
 }
 
-void OnlineWalkingModule::setBodyOffsetCallback(const geometry_msgs::Pose::ConstPtr& msg)
+void OnlineWalkingModule::setBodyOffsetCallback(const geometry_msgs::msg::Pose::SharedPtr msg)
 {
   if (enable_ == false)
     return;
 
   if (balance_type_ == OFF)
   {
-    ROS_WARN("[WARN] Balance is off!");
+    RCLCPP_WARN(this->get_logger(), "[WARN] Balance is off!");
     return;
   }
 
@@ -680,10 +678,10 @@ void OnlineWalkingModule::setBodyOffsetCallback(const geometry_msgs::Pose::Const
     control_type_ = OFFSET_CONTROL;
   }
   else
-    ROS_WARN("[WARN] Control type is different!");
+    RCLCPP_WARN(this->get_logger(), "[WARN] Control type is different!");
 }
 
-void OnlineWalkingModule::setFootDistanceCallback(const std_msgs::Float64::ConstPtr& msg)
+void OnlineWalkingModule::setFootDistanceCallback(const std_msgs::msg::Float64::SharedPtr msg)
 {
   if (enable_ == false)
     return;
@@ -715,11 +713,11 @@ void OnlineWalkingModule::initOffsetControl()
                                          goal_body_offset_, offset_zero, offset_zero);
 
   if (is_moving_ == true)
-    ROS_INFO("[UPDATE] Body Offset");
+    RCLCPP_INFO(this->get_logger(), "[UPDATE] Body Offset");
   else
   {
     is_moving_ = true;
-    ROS_INFO("[START] Body Offset");
+    RCLCPP_INFO(this->get_logger(), "[START] Body Offset");
   }
 }
 
@@ -743,21 +741,21 @@ void OnlineWalkingModule::calcOffsetControl()
 
       control_type_ = NONE;
 
-      ROS_INFO("[END] Body Offset");
+      RCLCPP_INFO(this->get_logger(), "[END] Body Offset");
     }
     else
       body_offset_step_++;
   }
 }
 
-void OnlineWalkingModule::goalKinematicsPoseCallback(const op3_online_walking_module_msgs::KinematicsPose& msg)
+void OnlineWalkingModule::goalKinematicsPoseCallback(const op3_online_walking_module_msgs::msg::KinematicsPose::SharedPtr msg)
 {
   if (enable_ == false)
     return;
 
   if (balance_type_ == OFF)
   {
-    ROS_WARN("[WARN] Balance is off!");
+    RCLCPP_WARN(this->get_logger(), "[WARN] Balance is off!");
     return;
   }
 
@@ -765,21 +763,21 @@ void OnlineWalkingModule::goalKinematicsPoseCallback(const op3_online_walking_mo
   {
     if (is_moving_ == true)
     {
-      if (wholegbody_control_group_!=msg.name)
+      if (wholegbody_control_group_!=msg->name)
       {
-        ROS_WARN("[WARN] Control group is different!");
+        RCLCPP_WARN(this->get_logger(), "[WARN] Control group is different!");
         return;
       }
     }
-    mov_time_ = msg.mov_time;
-    wholegbody_control_group_ = msg.name;
-    wholebody_goal_msg_ = msg.pose;
+    mov_time_ = msg->mov_time;
+    wholegbody_control_group_ = msg->name;
+    wholebody_goal_msg_ = msg->pose;
 
     wholebody_initialize_ = false;
     control_type_ = WHOLEBODY_CONTROL;
   }
   else
-    ROS_WARN("[WARN] Control type is different!");
+    RCLCPP_WARN(this->get_logger(), "[WARN] Control type is different!");
 }
 
 void OnlineWalkingModule::initWholebodyControl()
@@ -806,7 +804,7 @@ void OnlineWalkingModule::initWholebodyControl()
   }
   else
   {
-    ROS_INFO("[START] Wholebody Control");
+    RCLCPP_INFO(this->get_logger(), "[START] Wholebody Control");
 
     wholebody_control_->initialize(des_body_pos_, des_body_Q_,
                                    des_r_leg_pos_, des_r_leg_Q_,
@@ -838,21 +836,21 @@ void OnlineWalkingModule::calcWholebodyControl()
 
       control_type_ = NONE;
 
-      ROS_INFO("[END] Wholebody Control");
+      RCLCPP_INFO(this->get_logger(), "[END] Wholebody Control");
     }
     else
       mov_step_++;
   }
 }
 
-void OnlineWalkingModule::footStep2DCallback(const op3_online_walking_module_msgs::Step2DArray& msg)
+void OnlineWalkingModule::footStep2DCallback(const op3_online_walking_module_msgs::msg::Step2DArray::SharedPtr msg)
 {
   if (enable_ == false)
     return;
 
   if (balance_type_ == OFF)
   {
-    ROS_WARN("[WARN] Balance is off!");
+    RCLCPP_WARN(this->get_logger(), "[WARN] Balance is off!");
     return;
   }
 
@@ -864,15 +862,15 @@ void OnlineWalkingModule::footStep2DCallback(const op3_online_walking_module_msg
   body_T.coeffRef(0,3) = des_body_pos_[0];
   body_T.coeffRef(1,3) = des_body_pos_[1];
 
-  op3_online_walking_module_msgs::Step2DArray foot_step_msg;
+  op3_online_walking_module_msgs::msg::Step2DArray foot_step_msg;
 
-  int old_size = msg.footsteps_2d.size();
+  int old_size = msg->footsteps_2d.size();
   int new_size = old_size + 3;
 
-  op3_online_walking_module_msgs::Step2D first_msg;
-  op3_online_walking_module_msgs::Step2D second_msg;
+  op3_online_walking_module_msgs::msg::Step2D first_msg;
+  op3_online_walking_module_msgs::msg::Step2D second_msg;
 
-  first_msg.moving_foot = msg.footsteps_2d[0].moving_foot - 1;
+  first_msg.moving_foot = msg->footsteps_2d[0].moving_foot - 1;
   second_msg.moving_foot = first_msg.moving_foot + 1;
 
   if (first_msg.moving_foot == LEFT_LEG)
@@ -905,7 +903,7 @@ void OnlineWalkingModule::footStep2DCallback(const op3_online_walking_module_msg
   {
     for (int i=0; i<old_size; i++)
     {
-      op3_online_walking_module_msgs::Step2D step_msg = msg.footsteps_2d[i];
+      op3_online_walking_module_msgs::msg::Step2D step_msg = msg->footsteps_2d[i];
       step_msg.moving_foot -= 1;
 
       Eigen::MatrixXd step_R = robotis_framework::convertRPYToRotation(0.0,0.0,step_msg.step2d.theta);
@@ -932,7 +930,7 @@ void OnlineWalkingModule::footStep2DCallback(const op3_online_walking_module_msg
       foot_step_msg.footsteps_2d.push_back(step_msg);
     }
 
-    op3_online_walking_module_msgs::Step2D step_msg = msg.footsteps_2d[old_size-1];
+    op3_online_walking_module_msgs::msg::Step2D step_msg = msg->footsteps_2d[old_size-1];
 
     if (step_msg.moving_foot - 1 == LEFT_LEG)
       first_msg.moving_foot = RIGHT_LEG;
@@ -946,30 +944,30 @@ void OnlineWalkingModule::footStep2DCallback(const op3_online_walking_module_msg
     foot_step_msg.footsteps_2d.push_back(first_msg);
 
     foot_step_2d_ = foot_step_msg;
-    foot_step_2d_.step_time = msg.step_time;
+    foot_step_2d_.step_time = msg->step_time;
 
     walking_size_ = new_size;
-    mov_time_ = msg.step_time; //1.0;
+    mov_time_ = msg->step_time; //1.0;
     is_foot_step_2d_ = true;
     control_type_ = WALKING_CONTROL;
 
     if (is_moving_ == false)
       initWalkingControl();
     else
-      ROS_WARN("[WARN] Previous task is alive!");
+      RCLCPP_WARN(this->get_logger(), "[WARN] Previous task is alive!");
   }
   else
-    ROS_WARN("[WARN] Control type is different!");
+    RCLCPP_WARN(this->get_logger(), "[WARN] Control type is different!");
 }
 
-void OnlineWalkingModule::footStepCommandCallback(const op3_online_walking_module_msgs::FootStepCommand& msg)
+void OnlineWalkingModule::footStepCommandCallback(const op3_online_walking_module_msgs::msg::FootStepCommand::SharedPtr msg)
 {
   if (enable_ == false)
     return;
 
   if (balance_type_ == OFF)
   {
-    ROS_WARN("[WARN] Balance is off!");
+    RCLCPP_WARN(this->get_logger(), "[WARN] Balance is off!");
     return;
   }
 
@@ -977,10 +975,10 @@ void OnlineWalkingModule::footStepCommandCallback(const op3_online_walking_modul
 
   if (control_type_ == NONE || control_type_ == WALKING_CONTROL)
   {
-    walking_size_ = msg.step_num + 3; //msg.step_num + 2;
-    mov_time_ = msg.step_time;
+    walking_size_ = msg->step_num + 3; //msg.step_num + 2;
+    mov_time_ = msg->step_time;
 
-    foot_step_command_ = msg;
+    foot_step_command_ = *msg;
     foot_step_command_.step_num = walking_size_;
 
     control_type_ = WALKING_CONTROL;
@@ -988,10 +986,10 @@ void OnlineWalkingModule::footStepCommandCallback(const op3_online_walking_modul
     if (is_moving_ == false)
       initWalkingControl();
     else
-      ROS_WARN("[WARN] Previous task is alive!");
+      RCLCPP_WARN(this->get_logger(), "[WARN] Previous task is alive!");
   }
   else
-    ROS_WARN("[WARN] Control type is different!");
+    RCLCPP_WARN(this->get_logger(), "[WARN] Control type is different!");
 }
 
 void OnlineWalkingModule::initWalkingControl()
@@ -1046,13 +1044,13 @@ void OnlineWalkingModule::initWalkingControl()
 
       initFeedforwardControl();
 
-      ROS_INFO("[START] Walking Control (%d/%d)", walking_step_+1, walking_size_);
+      RCLCPP_INFO(this->get_logger(), "[START] Walking Control (%d/%d)", walking_step_+1, walking_size_);
     }
 
     walking_initialize_ = true;
   }
   else
-    ROS_WARN("[FAIL] Cannot get preview matrix");
+    RCLCPP_WARN(this->get_logger(), "[FAIL] Cannot get preview matrix");
 }
 
 void OnlineWalkingModule::calcWalkingControl()
@@ -1076,7 +1074,7 @@ void OnlineWalkingModule::calcWalkingControl()
 
     if (mov_step_ == mov_size_-1)
     {
-      ROS_INFO("[END] Walking Control (%d/%d)", walking_step_+1, walking_size_);
+      RCLCPP_INFO(this->get_logger(), "[END] Walking Control (%d/%d)", walking_step_+1, walking_size_);
 
       mov_step_ = 0;
       walking_control_->next();
@@ -1093,7 +1091,7 @@ void OnlineWalkingModule::calcWalkingControl()
       else
       {
         walking_step_++;
-        ROS_INFO("[START] Walking Control (%d/%d)", walking_step_+1, walking_size_);
+        RCLCPP_INFO(this->get_logger(), "[START] Walking Control (%d/%d)", walking_step_+1, walking_size_);
       }
     }
     else
@@ -1553,7 +1551,6 @@ void OnlineWalkingModule::sensoryFeedback(const double &rlGyroErr, const double 
       -1.0 * internal_gain * rlGyroErr * balance_ankle_roll_gain_;  // L_ANKLE_ROLL
 }
 
-
 void OnlineWalkingModule::process(std::map<std::string, robotis_framework::Dynamixel *> dxls,
                               std::map<std::string, double> sensors)
 {
@@ -1595,7 +1592,7 @@ void OnlineWalkingModule::process(std::map<std::string, robotis_framework::Dynam
   goal_initialize_ = true;
 
   /* Trajectory Calculation */
-  ros::Time begin = ros::Time::now();
+  auto begin = std::chrono::steady_clock::now();
 
   if (control_type_ == JOINT_CONTROL)
   {
@@ -1639,25 +1636,26 @@ void OnlineWalkingModule::process(std::map<std::string, robotis_framework::Dynam
 
       resetBodyPose();
 
-      ROS_INFO("[FAIL] Task Space Control");
+      RCLCPP_INFO(this->get_logger(), "[FAIL] Task Space Control");
     }
   }
 
-  ros::Duration time_duration = ros::Time::now() - begin;
+  auto end = std::chrono::steady_clock::now();
+  std::chrono::duration<double> time_duration = end - begin;
 
-  if (time_duration.toSec() > 0.003)
-    ROS_INFO("[Wholebody Module] Calc Time: %f", time_duration.toSec());
+  if (time_duration.count() > 0.003)
+    RCLCPP_INFO(this->get_logger(), "[Wholebody Module] Calc Time: %f", time_duration.count());
 
   setFeedbackControl();
 
   for (int i=0; i<number_of_joints_; i++)
     des_joint_pos_to_robot_[i] += balance_angle[i];
 
-  sensor_msgs::JointState goal_joint_msg;
-  geometry_msgs::PoseStamped pelvis_pose_msg;
+  sensor_msgs::msg::JointState goal_joint_msg;
+  geometry_msgs::msg::PoseStamped pelvis_pose_msg;
 
-  goal_joint_msg.header.stamp = ros::Time::now();
-  pelvis_pose_msg.header.stamp = ros::Time::now();
+  goal_joint_msg.header.stamp = rclcpp::Clock().now();
+  pelvis_pose_msg.header.stamp = rclcpp::Clock().now();
 
   pelvis_pose_msg.pose.position.x = des_body_pos_[0];
   pelvis_pose_msg.pose.position.y = des_body_pos_[1];
@@ -1680,8 +1678,8 @@ void OnlineWalkingModule::process(std::map<std::string, robotis_framework::Dynam
     goal_joint_msg.position.push_back(des_joint_pos_[joint_name_to_id_[joint_name]-1]);
   }
 
-  pelvis_pose_pub_.publish(pelvis_pose_msg);
-  goal_joint_state_pub_.publish(goal_joint_msg);
+  pelvis_pose_pub_->publish(pelvis_pose_msg);
+  goal_joint_state_pub_->publish(goal_joint_msg);
 }
 
 void OnlineWalkingModule::stop()
@@ -1715,33 +1713,33 @@ bool OnlineWalkingModule::isRunning()
 
 void OnlineWalkingModule::publishStatusMsg(unsigned int type, std::string msg)
 {
-  robotis_controller_msgs::StatusMsg status;
-  status.header.stamp = ros::Time::now();
+  robotis_controller_msgs::msg::StatusMsg status;
+  status.header.stamp = rclcpp::Clock().now();
   status.type         = type;
   status.module_name  = "Wholebody";
   status.status_msg   = msg;
 
-  status_msg_pub_.publish(status);
+  status_msg_pub_->publish(status);
 }
 
-bool OnlineWalkingModule::getJointPoseCallback(op3_online_walking_module_msgs::GetJointPose::Request &req,
-                                           op3_online_walking_module_msgs::GetJointPose::Response &res)
+bool OnlineWalkingModule::getJointPoseCallback(const std::shared_ptr<op3_online_walking_module_msgs::srv::GetJointPose::Request> req,
+                                               std::shared_ptr<op3_online_walking_module_msgs::srv::GetJointPose::Response> res)
 {
   for (int i=0; i<number_of_joints_; i++)
   {
-    res.pose.pose.name.push_back(joint_name_[i]);
-    res.pose.pose.position.push_back(des_joint_pos_[i]);
+    res->pose.pose.name.push_back(joint_name_[i]);
+    res->pose.pose.position.push_back(des_joint_pos_[i]);
   }
 
   return true;
 }
 
-bool OnlineWalkingModule::getKinematicsPoseCallback(op3_online_walking_module_msgs::GetKinematicsPose::Request &req,
-                                                op3_online_walking_module_msgs::GetKinematicsPose::Response &res)
+bool OnlineWalkingModule::getKinematicsPoseCallback(const std::shared_ptr<op3_online_walking_module_msgs::srv::GetKinematicsPose::Request> req,
+                                                    std::shared_ptr<op3_online_walking_module_msgs::srv::GetKinematicsPose::Response> res)
 {
-  std::string group_name = req.name;
+  std::string group_name = req->name;
 
-  geometry_msgs::Pose msg;
+  geometry_msgs::msg::Pose msg;
 
   if (group_name == "body")
   {
@@ -1777,7 +1775,7 @@ bool OnlineWalkingModule::getKinematicsPoseCallback(op3_online_walking_module_ms
     msg.orientation.w = des_r_leg_Q_[3];
   }
 
-  res.pose.pose = msg;
+  res->pose.pose = msg;
 
   return true;
 }

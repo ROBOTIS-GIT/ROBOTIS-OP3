@@ -16,7 +16,7 @@ def generate_launch_description():
         Node(
             package='op3_manager',
             executable='op3_manager',
-            name='op3_manager',
+            # name='op3_manager',
             output='screen',
             parameters=[{
                 'angle_unit': 30,

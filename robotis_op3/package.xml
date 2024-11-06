@@ -15,20 +15,17 @@
   <url type="repository">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3</url>
   <url type="bugtracker">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3/issues</url>
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <exec_depend>cm_740_module</exec_depend>
-  <exec_depend>op3_action_module</exec_depend>
-  <exec_depend>op3_balance_control</exec_depend>
-  <exec_depend>op3_base_module</exec_depend>
-  <exec_depend>op3_direct_control_module</exec_depend>
-  <exec_depend>op3_head_control_module</exec_depend>
-  <exec_depend>op3_kinematics_dynamics</exec_depend>
-  <exec_depend>op3_localization</exec_depend>
-  <exec_depend>op3_manager</exec_depend>
-  <exec_depend>op3_online_walking_module</exec_depend>
-  <exec_depend>op3_walking_module</exec_depend>
-  <exec_depend>open_cr_module</exec_depend>
-  <export>
-    <build_type>ament_cmake</build_type>
-    <metapackage/>
-  </export>
+  <depend>cm_740_module</depend>
+  <depend>op3_action_module</depend>
+  <depend>op3_balance_control</depend>
+  <depend>op3_base_module</depend>
+  <depend>op3_direct_control_module</depend>
+  <depend>op3_head_control_module</depend>
+  <depend>op3_kinematics_dynamics</depend>
+  <depend>op3_localization</depend>
+  <depend>op3_manager</depend>
+  <depend>op3_online_walking_module</depend>
+  <depend>op3_walking_module</depend>
+  <depend>open_cr_module</depend>
+  <export><metapackage/></export>
 </package>

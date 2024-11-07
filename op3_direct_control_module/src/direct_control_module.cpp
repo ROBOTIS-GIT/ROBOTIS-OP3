@@ -36,7 +36,7 @@ DirectControlModule::DirectControlModule()
     tra_count_(0),
     tra_size_(0),
     default_moving_time_(0.5),
-    default_moving_angle_(30),
+    default_moving_angle_(30.0),
     check_collision_(true),
     moving_time_(3.0),
     BASE_INDEX(0),

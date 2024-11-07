@@ -19,7 +19,7 @@ def generate_launch_description():
             # name='op3_manager',
             output='screen',
             parameters=[{
-                'angle_unit': 30,
+                'angle_unit': 30.0,
                 'gazebo': gazebo_default,
                 'gazebo_robot_name': gazebo_robot_name_default,
                 'offset_file_path': offset_file_path_default,

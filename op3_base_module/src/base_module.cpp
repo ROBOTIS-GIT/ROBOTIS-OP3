@@ -30,14 +30,14 @@ namespace robotis_op
 {
 
 BaseModule::BaseModule()
-  : Node("op3_base_module"),
+  : Node("base_module"),
     control_cycle_msec_(0),
     has_goal_joints_(false),
     ini_pose_only_(false),
     init_pose_file_path_("")
 {
   enable_ = false;
-  module_name_ = "op3_base_module";
+  module_name_ = "base_module";
   control_mode_ = robotis_framework::PositionControl;
 
   base_module_state_ = new BaseModuleState();
@@ -394,14 +394,19 @@ void BaseModule::callServiceSettingModule(const std::string &module_name)
   auto request = std::make_shared<robotis_controller_msgs::srv::SetModule::Request>();
   request->module_name = module_name;
 
-  auto result = set_module_client_->async_send_request(request);
-  if (rclcpp::spin_until_future_complete(this->get_node_base_interface(), result) != rclcpp::FutureReturnCode::SUCCESS)
+  if (!set_module_client_->wait_for_service(std::chrono::seconds(1)))
   {
-    RCLCPP_ERROR(this->get_logger(), "Failed to set module");
+    RCLCPP_ERROR(this->get_logger(), "Service not available");
     return;
   }
 
-  return ;
+  auto future = set_module_client_->async_send_request(request);
+  try {
+    if (!future.get()->result)
+      RCLCPP_ERROR(this->get_logger(), "Failed to set module");
+  } catch (const std::exception& e) {
+    RCLCPP_ERROR(this->get_logger(), "Service call failed: %s", e.what());
+  }
 }
 
 void BaseModule::publishStatusMsg(unsigned int type, std::string msg)

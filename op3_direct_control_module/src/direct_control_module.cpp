@@ -25,7 +25,7 @@ namespace robotis_op
 {
 
 DirectControlModule::DirectControlModule()
-  : Node("direct_control_module"),
+  : Node("op3_direct_control_module"),
     control_cycle_msec_(0),
     stop_process_(false),
     is_moving_(false),
@@ -48,7 +48,7 @@ DirectControlModule::DirectControlModule()
     DEBUG(false)
 {
   enable_ = false;
-  module_name_ = "direct_control_module";
+  module_name_ = "op3_direct_control_module";
   control_mode_ = robotis_framework::PositionControl;
 
   last_msg_time_ = rclcpp::Clock().now();

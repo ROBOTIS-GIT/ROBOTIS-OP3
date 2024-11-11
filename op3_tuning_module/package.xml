@@ -19,13 +19,12 @@
   <depend>geometry_msgs</depend>
   <depend>robotis_controller_msgs</depend>
   <depend>op3_tuning_module_msgs</depend>
-  <depend>eigen3_cmake_module</depend>
   <depend>dynamixel_sdk</depend>
   <depend>robotis_framework_common</depend>
   <depend>robotis_device</depend>
   <depend>robotis_math</depend>
   <depend>op3_kinematics_dynamics</depend>
-  <depend>eigen3</depend>
+  <depend>eigen</depend>
   <depend>yaml-cpp</depend>
   <export>
     <build_type>ament_cmake</build_type>

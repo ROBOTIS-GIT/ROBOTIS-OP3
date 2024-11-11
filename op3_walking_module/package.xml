@@ -21,8 +21,6 @@
   <depend>robotis_controller_msgs</depend>
   <depend>op3_walking_module_msgs</depend>
   <depend>dynamixel_sdk</depend>
-  <depend>eigen3_cmake_module</depend>
-  <depend>eigen_conversions</depend>
   <depend>robotis_framework_common</depend>
   <depend>robotis_device</depend>
   <depend>robotis_math</depend>

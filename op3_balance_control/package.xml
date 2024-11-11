@@ -12,7 +12,6 @@
   <url type="bugtracker">https://github.com/ROBOTIS-GIT/ROBOTIS-OP3/issues</url>
   <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>rclcpp</depend>
-  <depend>eigen3_cmake_module</depend>
   <depend>robotis_math</depend>
   <depend>eigen</depend>
   <export>

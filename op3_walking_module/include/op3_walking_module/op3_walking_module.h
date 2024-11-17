@@ -119,13 +119,15 @@ class WalkingModule : public robotis_framework::MotionModule, public robotis_fra
   void publishStatusMsg(unsigned int type, std::string msg);
   double wSin(double time, double period, double period_shift, double mag, double mag_shift);
   bool computeIK(double *out, double x, double y, double z, double a, double b, double c);
-  void updateTimeParam();
+  void updateTimeParam(double scale = 1.0);
   void updateMovementParam();
   void updatePoseParam();
   void startWalking();
   void loadWalkingParam(const std::string &path);
   void saveWalkingParam(std::string &path);
   void iniPoseTraGene(double mov_time);
+
+  void setJointGains(int balancing_idx);
 
   OP3KinematicsDynamics* op3_kd_;
   int control_cycle_msec_;
@@ -148,6 +150,9 @@ class WalkingModule : public robotis_framework::MotionModule, public robotis_fra
   int init_pose_count_;
   op3_walking_module_msgs::msg::WalkingParam walking_param_;
   double previous_x_move_amplitude_;
+
+  //
+  int balancing_idx_;
 
   // variable for walking
   double period_time_;

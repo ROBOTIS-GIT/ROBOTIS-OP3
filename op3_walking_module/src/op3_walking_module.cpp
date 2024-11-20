@@ -213,20 +213,20 @@ void WalkingModule::walkingCommandCallback(const std_msgs::msg::String::SharedPt
 {
   if(enable_ == false)
   {
-  RCLCPP_WARN(this->get_logger(), "walking module is not ready.");
-  return;
+    RCLCPP_WARN(this->get_logger(), "walking module is not ready.");
+    return;
   }
 
   if (msg->data == "start")
-  startWalking();
+    startWalking();
   else if (msg->data == "stop")
-  stop();
+    stop();
   else if (msg->data == "balance on")
-  walking_param_.balance_enable = true;
+    walking_param_.balance_enable = true;
   else if (msg->data == "balance off")
-  walking_param_.balance_enable = false;
+    walking_param_.balance_enable = false;
   else if (msg->data == "save")
-  saveWalkingParam(param_path_);
+    saveWalkingParam(param_path_);
 }
 
 void WalkingModule::walkingParameterCallback(const op3_walking_module_msgs::msg::WalkingParam::SharedPtr msg)
@@ -272,7 +272,7 @@ bool WalkingModule::computeIK(double *out, double pos_x, double pos_y, double po
   acos_value = acos(
     (r_ac * r_ac - thigh_length * thigh_length - calf_length * calf_length) / (2 * thigh_length * calf_length));
   if (std::isnan(acos_value) == 1)
-  return false;
+    return false;
   *(out + 3) = acos_value;
 
   // Get Ankle Roll
@@ -283,16 +283,16 @@ bool WalkingModule::computeIK(double *out, double pos_x, double pos_y, double po
   value_l = sqrt(tda_y * tda_y + (tda_z - ankle_length) * (tda_z - ankle_length));
   value_m = (value_k * value_k - value_l * value_l - ankle_length * ankle_length) / (2 * value_l * ankle_length);
   if (value_m > 1.0)
-  value_m = 1.0;
+    value_m = 1.0;
   else if (value_m < -1.0)
-  value_m = -1.0;
+    value_m = -1.0;
   acos_value = acos(value_m);
   if (std::isnan(acos_value) == 1)
-  return false;
+    return false;
   if (tda_y < 0.0)
-  *(out + 5) = -acos_value;
+    *(out + 5) = -acos_value;
   else
-  *(out + 5) = acos_value;
+    *(out + 5) = acos_value;
 
   // Get Hip Yaw
   transformation_cd = robotis_framework::getTransformationXYZRPY(0.0, 0.0, -ankle_length, *(out + 5), 0.0, 0.0);
@@ -300,21 +300,21 @@ bool WalkingModule::computeIK(double *out, double pos_x, double pos_y, double po
   transformation_ac = transformation_ad * transformation_dc;
   atan_value = atan2(-transformation_ac.coeff(0, 1), transformation_ac.coeff(1, 1));
   if (std::isinf(atan_value) == 1)
-  return false;
+    return false;
   *(out) = atan_value;
 
   // Get Hip Roll
   atan_value = atan2(transformation_ac.coeff(2, 1),
            -transformation_ac.coeff(0, 1) * sin(*(out)) + transformation_ac.coeff(1, 1) * cos(*(out)));
   if (std::isinf(atan_value) == 1)
-  return false;
+    return false;
   *(out + 1) = atan_value;
 
   // Get Hip Pitch and Ankle Pitch
   atan_value = atan2(transformation_ac.coeff(0, 2) * cos(*(out)) + transformation_ac.coeff(1, 2) * sin(*(out)),
            transformation_ac.coeff(0, 0) * cos(*(out)) + transformation_ac.coeff(1, 0) * sin(*(out)));
   if (std::isinf(atan_value) == 1)
-  return false;
+    return false;
   theta = atan_value;
   value_k = sin(*(out + 3)) * calf_length;
   value_l = -thigh_length - cos(*(out + 3)) * calf_length;
@@ -325,7 +325,7 @@ bool WalkingModule::computeIK(double *out, double pos_x, double pos_y, double po
   value_c = (value_n - value_k * value_s) / value_l;
   atan_value = atan2(value_s, value_c);
   if (std::isinf(atan_value) == 1)
-  return false;
+    return false;
   *(out + 2) = atan_value;
   *(out + 4) = theta - *(out + 3) - *(out + 2);
 

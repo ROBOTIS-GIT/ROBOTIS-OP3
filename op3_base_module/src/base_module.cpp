@@ -81,7 +81,7 @@ void BaseModule::parseInitPoseData(const std::string &path)
     doc = YAML::LoadFile(path.c_str());
   } catch (const std::exception& e)
   {
-    RCLCPP_ERROR(this->get_logger(), "Fail to load yaml file.");
+    RCLCPP_ERROR_STREAM(this->get_logger(), "Fail to load yaml file.");
     return;
   }
 

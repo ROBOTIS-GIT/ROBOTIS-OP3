@@ -14,19 +14,11 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: Kayman */
-
-#include <stdio.h>
-#include <rclcpp/rclcpp.hpp>
-#include <std_msgs/msg/string.hpp>
-#include <sensor_msgs/msg/imu.hpp>
-#include <robotis_controller_msgs/msg/status_msg.hpp>
-#include <robotis_controller_msgs/msg/sync_write_item.hpp>
+/* Author: Kayman, Jay Song */
 
 #include "open_cr_module/open_cr_module.h"
 
-namespace robotis_op
-{
+using namespace robotis_op;
 
 OpenCRModule::OpenCRModule()
     : Node("open_cr_module"),
@@ -122,18 +114,18 @@ void OpenCRModule::process(std::map<std::string, robotis_framework::Dynamixel *>
   result_["gyro_y"] = lowPassFilter(0.4, -getGyroValue(gyro_y), previous_result_["gyro_y"]);
   result_["gyro_z"] = lowPassFilter(0.4, getGyroValue(gyro_z), previous_result_["gyro_z"]);
 
-  RCLCPP_INFO(this->get_logger(), " ======================= Gyro ======================== ");
-  RCLCPP_INFO(this->get_logger(), "Raw : %d, %d, %d", gyro_x, gyro_y, gyro_z);
-  RCLCPP_INFO(this->get_logger(), "Filtered : %f, %f, %f", result_["gyro_x"], result_["gyro_y"], result_["gyro_z"]);
+  RCLCPP_INFO_EXPRESSION(this->get_logger(), DEBUG_PRINT, " ======================= Gyro ======================== ");
+  RCLCPP_INFO_EXPRESSION(this->get_logger(), DEBUG_PRINT,"Raw : %d, %d, %d", gyro_x, gyro_y, gyro_z);
+  RCLCPP_INFO_EXPRESSION(this->get_logger(), DEBUG_PRINT,"Filtered : %f, %f, %f", result_["gyro_x"], result_["gyro_y"], result_["gyro_z"]);
 
   // align axis of Accelerometer to robot and
   result_["acc_x"] = lowPassFilter(0.4, -getAccValue(acc_x), previous_result_["acc_x"]);
   result_["acc_y"] = lowPassFilter(0.4, -getAccValue(acc_y), previous_result_["acc_y"]);
   result_["acc_z"] = lowPassFilter(0.4, getAccValue(acc_z), previous_result_["acc_z"]);
 
-  RCLCPP_INFO(this->get_logger(), " ======================= Acc ======================== ");
-  RCLCPP_INFO(this->get_logger(), "Raw : %d, %d, %d", acc_x, acc_y, acc_z);
-  RCLCPP_INFO(this->get_logger(), "Filtered : %f, %f, %f", result_["acc_x"], result_["acc_y"], result_["acc_z"]);
+  RCLCPP_INFO_EXPRESSION(this->get_logger(), DEBUG_PRINT, " ======================= Acc ======================== ");
+  RCLCPP_INFO_EXPRESSION(this->get_logger(), DEBUG_PRINT, "Raw : %d, %d, %d", acc_x, acc_y, acc_z);
+  RCLCPP_INFO_EXPRESSION(this->get_logger(), DEBUG_PRINT, "Filtered : %f, %f, %f", result_["acc_x"], result_["acc_y"], result_["acc_z"]);
 
   rclcpp::Time update_time(sensors["open-cr"]->sensor_state_->update_time_stamp_.sec_, sensors["open-cr"]->sensor_state_->update_time_stamp_.nsec_);
   rclcpp::Duration update_duration = rclcpp::Clock().now() - update_time;
@@ -284,7 +276,7 @@ void OpenCRModule::handleVoltage(double present_volt)
         (present_volt_ < 11 ? 
             robotis_controller_msgs::msg::StatusMsg::STATUS_WARN : robotis_controller_msgs::msg::StatusMsg::STATUS_INFO),
         log_stream.str());
-    RCLCPP_INFO(this->get_logger(), "Present Volt : %fV, Read Volt : %fV", previous_volt_, result_["present_voltage"]);
+    RCLCPP_INFO_EXPRESSION(this->get_logger(), DEBUG_PRINT, "Present Volt : %fV, Read Volt : %fV", previous_volt_, result_["present_voltage"]);
   }
 }
 
@@ -315,6 +307,4 @@ double OpenCRModule::lowPassFilter(double alpha, double x_new, double &x_old)
   x_old = filtered_value;
 
   return filtered_value;
-}
-
 }

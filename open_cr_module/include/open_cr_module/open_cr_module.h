@@ -14,7 +14,7 @@
 * limitations under the License.
 *******************************************************************************/
 
-/* Author: Kayman */
+/* Author: Kayman, Jay */
 
 #ifndef OP3_OPEN_CR_MODULE_H_
 #define OP3_OPEN_CR_MODULE_H_
@@ -22,7 +22,6 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/string.hpp>
 #include <sensor_msgs/msg/imu.hpp>
-#include <eigen3/Eigen/Eigen>
 
 #include "robotis_controller_msgs/msg/status_msg.hpp"
 #include "robotis_controller_msgs/msg/sync_write_item.hpp"
@@ -30,12 +29,13 @@
 #include "robotis_math/robotis_math_base.h"
 #include "robotis_math/robotis_linear_algebra.h"
 
+
 namespace robotis_op
 {
 
 class OpenCRModule : public robotis_framework::SensorModule, public robotis_framework::Singleton<OpenCRModule>, public rclcpp::Node
 {
- public:
+public:
   OpenCRModule();
   virtual ~OpenCRModule();
 
@@ -44,7 +44,7 @@ class OpenCRModule : public robotis_framework::SensorModule, public robotis_fram
   void process(std::map<std::string, robotis_framework::Dynamixel *> dxls,
                std::map<std::string, robotis_framework::Sensor *> sensors);
 
- private:
+private:
   const double G_ACC = 9.80665;
   const double GYRO_FACTOR = 2000.0 / 32800.0;
   const double ACCEL_FACTOR = 2.0 / 32768.0;

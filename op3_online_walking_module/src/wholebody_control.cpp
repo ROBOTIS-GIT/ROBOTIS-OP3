@@ -185,17 +185,17 @@ void WholebodyControl::set(double time)
 
 std::vector<double_t> WholebodyControl::getJointPosition(double time)
 {
-
+  return {};
 }
 
 std::vector<double_t> WholebodyControl::getJointVelocity(double time)
 {
-
+  return {};
 }
 
 std::vector<double_t> WholebodyControl::getJointAcceleration(double time)
 {
-
+  return {};
 }
 
 void WholebodyControl::getTaskPosition(std::vector<double_t> &l_foot_pos,
@@ -209,12 +209,12 @@ void WholebodyControl::getTaskPosition(std::vector<double_t> &l_foot_pos,
 
 std::vector<double_t> WholebodyControl::getTaskVelocity(double time)
 {
-
+  return {};
 }
 
 std::vector<double_t> WholebodyControl::getTaskAcceleration(double time)
 {
-
+  return {};
 }
 
 void WholebodyControl::getTaskOrientation(std::vector<double_t> &l_foot_Q,

@@ -577,7 +577,7 @@ void WalkingModule::process(std::map<std::string, robotis_framework::Dynamixel *
     // result_[joint_name]->position_d_gain_ = walking_param_.d_gain;
   }
 
-  setJointGains(balancing_idx_);
+  //setJointGains(balancing_idx_);
 
   // time
   if (real_running_ == true)

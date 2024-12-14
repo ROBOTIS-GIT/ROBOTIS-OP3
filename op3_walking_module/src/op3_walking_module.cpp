@@ -594,77 +594,120 @@ void WalkingModule::process(std::map<std::string, robotis_framework::Dynamixel *
 
 void WalkingModule::setJointGains(int balancing_idx)
 {
+
   if (balancing_idx == 2)
   {
     // L_BALANCING (L Support) first half
-    result_["r_hip_roll" ]->position_p_gain_ = 3000;
-    result_["l_hip_roll" ]->position_p_gain_ = 16000;
+    result_["r_hip_pitch" ]->position_p_gain_ = 1600;
+    result_["l_hip_pitch" ]->position_p_gain_ = 4000;
+    
+    result_["r_hip_roll" ]->position_p_gain_ = 1600;
+    result_["l_hip_roll" ]->position_p_gain_ = 4000;
 
     result_["r_knee" ]->position_p_gain_ = 4000;
-    result_["l_knee" ]->position_p_gain_ = 8000;
+    result_["l_knee" ]->position_p_gain_ = 4000;
 
-    result_["r_ank_pitch" ]->position_p_gain_ = 1600;
-    result_["l_ank_pitch" ]->position_p_gain_ = 3200;
+    result_["r_ank_pitch" ]->position_p_gain_ = 800;
+    result_["l_ank_pitch" ]->position_p_gain_ = 1600;
 
     result_["r_ank_roll" ]->position_p_gain_ = 1600;
-    result_["l_ank_roll" ]->position_p_gain_ = 3200;
+    result_["l_ank_roll" ]->position_p_gain_ = 1600;
   }
   else if (balancing_idx == 3)
   {
     // L_BALANCING (L Support) second half
-    result_["r_hip_roll" ]->position_p_gain_ = 3000;
-    result_["l_hip_roll" ]->position_p_gain_ = 16000;
+    result_["r_hip_pitch" ]->position_p_gain_ = 1600;
+    result_["l_hip_pitch" ]->position_p_gain_ = 4000;
+    
+    result_["r_hip_roll" ]->position_p_gain_ = 1600;
+    result_["l_hip_roll" ]->position_p_gain_ = 4000;
 
     result_["r_knee" ]->position_p_gain_ = 4000;
-    result_["l_knee" ]->position_p_gain_ = 8000;
+    result_["l_knee" ]->position_p_gain_ = 4000;
 
-    result_["r_ank_pitch" ]->position_p_gain_ = 1600;
-    result_["l_ank_pitch" ]->position_p_gain_ = 3200;
+    result_["r_ank_pitch" ]->position_p_gain_ = 800;
+    result_["l_ank_pitch" ]->position_p_gain_ = 1600;
 
     result_["r_ank_roll" ]->position_p_gain_ = 1600;
-    result_["l_ank_roll" ]->position_p_gain_ = 3200;
+    result_["l_ank_roll" ]->position_p_gain_ = 1600;
   }
   else if (balancing_idx == 6)
   {
     // R_BALANCING (R Support) first half
-    result_["r_hip_roll" ]->position_p_gain_ = 16000;
-    result_["l_hip_roll" ]->position_p_gain_ = 3000;
+    result_["r_hip_pitch" ]->position_p_gain_ = 4000;
+    result_["l_hip_pitch" ]->position_p_gain_ = 1600;
     
-    result_["r_knee" ]->position_p_gain_ = 8000;
+    result_["r_hip_roll" ]->position_p_gain_ = 4000;
+    result_["l_hip_roll" ]->position_p_gain_ = 1600;
+
+    result_["r_knee" ]->position_p_gain_ = 4000;
     result_["l_knee" ]->position_p_gain_ = 4000;
 
-    result_["r_ank_pitch" ]->position_p_gain_ = 3200;
+    result_["r_ank_pitch" ]->position_p_gain_ = 1600;
     result_["l_ank_pitch" ]->position_p_gain_ = 1600;
 
-    result_["r_ank_roll" ]->position_p_gain_ = 3200;
+    result_["r_ank_roll" ]->position_p_gain_ = 1600;
     result_["l_ank_roll" ]->position_p_gain_ = 1600;
   }
   else if (balancing_idx == 7)
   {
     // R_BALANCING (R Support) second half
-    result_["r_hip_roll" ]->position_p_gain_ = 16000;
-    result_["l_hip_roll" ]->position_p_gain_ = 3000;
+    result_["r_hip_pitch" ]->position_p_gain_ = 4000;
+    result_["l_hip_pitch" ]->position_p_gain_ = 1600;
+
+    result_["r_hip_roll" ]->position_p_gain_ = 4000;
+    result_["l_hip_roll" ]->position_p_gain_ = 1600;
     
-    result_["r_knee" ]->position_p_gain_ = 8000;
+    result_["r_knee" ]->position_p_gain_ = 4000;
     result_["l_knee" ]->position_p_gain_ = 4000;
 
-    result_["r_ank_pitch" ]->position_p_gain_ = 3200;
+    result_["r_ank_pitch" ]->position_p_gain_ = 1600;
     result_["l_ank_pitch" ]->position_p_gain_ = 1600;
 
-    result_["r_ank_roll" ]->position_p_gain_ = 3200;
+    result_["r_ank_roll" ]->position_p_gain_ = 1600;
     result_["l_ank_roll" ]->position_p_gain_ = 1600;
   }
   else
   {
     // DS
-    result_["r_hip_roll" ]->position_p_gain_ = 3000;
-    result_["l_hip_roll" ]->position_p_gain_ = 3000;
+    result_["r_hip_pitch" ]->position_p_gain_ = 1600;
+    result_["l_hip_pitch" ]->position_p_gain_ = 1600;
+    
+    result_["r_hip_roll" ]->position_p_gain_ = 1600;
+    result_["l_hip_roll" ]->position_p_gain_ = 1600;
     
     result_["r_knee" ]->position_p_gain_ = 4000;
     result_["l_knee" ]->position_p_gain_ = 4000;
 
+    result_["r_ank_pitch" ]->position_p_gain_ = 800;
+    result_["l_ank_pitch" ]->position_p_gain_ = 800;
+    
     result_["r_ank_roll" ]->position_p_gain_ = 1600;
     result_["l_ank_roll" ]->position_p_gain_ = 1600;
+  }
+
+  if (ctrl_running_ == false) // for stop
+  {
+    if (x_move_amplitude_ == 0 && y_move_amplitude_ == 0 && a_move_amplitude_ == 0)
+    {
+      if (balancing_idx == 0 || balancing_idx == 1 || balancing_idx == 5)
+      {
+        result_["r_hip_pitch"]->position_p_gain_ = 800;
+        result_["l_hip_pitch"]->position_p_gain_ = 800;
+
+        result_["r_hip_roll"]->position_p_gain_ = 800;
+        result_["l_hip_roll"]->position_p_gain_ = 800;
+
+        result_["r_knee"]->position_p_gain_ = 800;
+        result_["l_knee"]->position_p_gain_ = 800;
+
+        result_["r_ank_pitch"]->position_p_gain_ = 800;
+        result_["l_ank_pitch"]->position_p_gain_ = 800;
+
+        result_["r_ank_roll"]->position_p_gain_ = 800;
+        result_["l_ank_roll"]->position_p_gain_ = 800;
+      }
+    }
   }
 }
 
@@ -845,7 +888,7 @@ bool WalkingModule::computeLegAngle(double *leg_angle)
   }
   else if (time_ <= r_ssp_end_time_)
   {
-    balancing_idx_ = BalancingPhase4;
+    balancing_idx_ = BalancingPhase2;
     left_leg_move.x = wSin(time_, x_move_period_time_,
                            x_move_phase_shift_ + 2 * M_PI / x_move_period_time_ * r_ssp_start_time_ + M_PI,
                            x_move_amplitude_, x_move_amplitude_shift_);

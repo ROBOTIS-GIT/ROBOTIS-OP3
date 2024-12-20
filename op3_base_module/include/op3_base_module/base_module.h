@@ -102,8 +102,8 @@ class BaseModule : public robotis_framework::MotionModule, public robotis_framew
   void publishStatusMsg(unsigned int type, std::string msg);
 
   int control_cycle_msec_;
-  std::thread queue_thread_;
-  std::thread tra_gene_tread_;
+  std::unique_ptr<std::thread> queue_thread_;
+  std::unique_ptr<std::thread> tra_gene_thread_;
 
   rclcpp::Publisher<robotis_controller_msgs::msg::StatusMsg>::SharedPtr status_msg_pub_;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr set_ctrl_module_pub_;

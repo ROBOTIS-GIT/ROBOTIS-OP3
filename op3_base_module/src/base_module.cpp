@@ -46,14 +46,19 @@ BaseModule::BaseModule()
 
 BaseModule::~BaseModule()
 {
-  if (queue_thread_.joinable())
-    queue_thread_.join();
+  if (queue_thread_ && queue_thread_->joinable())
+    queue_thread_->join();
+
+  for (auto& [joint_name, state] : result_)
+    delete state;
+
+  delete base_module_state_;
+  delete joint_state_;
 }
 
 void BaseModule::initialize(const int control_cycle_msec, robotis_framework::Robot *robot)
 {
   control_cycle_msec_ = control_cycle_msec;
-  queue_thread_ = std::thread(&BaseModule::queueThread, this);
 
   // init result, joint_id_table
   for (const auto& [joint_name, dxl_info] : robot->dxls_)
@@ -70,6 +75,8 @@ void BaseModule::initialize(const int control_cycle_msec, robotis_framework::Rob
   /* publish topics */
   status_msg_pub_ = this->create_publisher<robotis_controller_msgs::msg::StatusMsg>("/robotis/status", 1);
   set_ctrl_module_pub_ = this->create_publisher<std_msgs::msg::String>("/robotis/enable_ctrl_module", 1);
+
+  queue_thread_ = std::make_unique<std::thread>(&BaseModule::queueThread, this);
 }
 
 void BaseModule::parseInitPoseData(const std::string &path)
@@ -172,14 +179,17 @@ void BaseModule::initPoseMsgCallback(const std_msgs::msg::String::SharedPtr msg)
       callServiceSettingModule(module_name_);
 
       // wait for changing the module to base_module and getting the goal position
+      rclcpp::Rate wait_rate(125);
       while (enable_ == false || has_goal_joints_ == false)
-        std::this_thread::sleep_for(std::chrono::milliseconds(8));
+        wait_rate.sleep();
 
       // parse initial pose
       parseInitPoseData(init_pose_file_path_);
 
       // generate trajectory
-      tra_gene_tread_ = std::thread(&BaseModule::initPoseTrajGenerateProc, this);
+      if (tra_gene_thread_ && tra_gene_thread_->joinable())
+        tra_gene_thread_->join();
+      tra_gene_thread_ = std::make_unique<std::thread>(&BaseModule::initPoseTrajGenerateProc, this);
     }
   }
   else

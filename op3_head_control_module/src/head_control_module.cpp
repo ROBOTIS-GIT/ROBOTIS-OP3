@@ -37,7 +37,7 @@ HeadControlModule::HeadControlModule()
     DEBUG(false)
 {
   enable_ = false;
-  module_name_ = "op3_head_control_module";
+  module_name_ = "head_control_module";
   control_mode_ = robotis_framework::PositionControl;
 
   result_["head_pan"] = new robotis_framework::DynamixelState();

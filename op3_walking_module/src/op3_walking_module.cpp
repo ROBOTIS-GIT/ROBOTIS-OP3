@@ -40,7 +40,7 @@ WalkingModule::WalkingModule()
     DEBUG(false)
 {
   enable_ = false;
-  module_name_ = "op3_walking_module";
+  module_name_ = "walking_module";
   control_mode_ = robotis_framework::PositionControl;
 
   init_pose_count_ = 0;
@@ -162,7 +162,7 @@ void WalkingModule::initialize(const int control_cycle_msec, robotis_framework::
                  5.0,       -5.0;
   init_position_ *= DEGREE2RADIAN;
 
-  std::string default_param_path = ament_index_cpp::get_package_share_directory(module_name_) + "/config/param.yaml";
+  std::string default_param_path = ament_index_cpp::get_package_share_directory("op3_walking_module") + "/config/param.yaml";
   this->declare_parameter<std::string>("walking_param_path", default_param_path);
   this->get_parameter("walking_param_path", param_path_);
 

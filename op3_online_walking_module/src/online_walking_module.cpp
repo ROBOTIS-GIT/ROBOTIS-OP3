@@ -38,7 +38,7 @@ OnlineWalkingModule::OnlineWalkingModule()
     foot_distance_(0.07)
 {
   enable_       = false;
-  module_name_  = "op3_online_walking_module";
+  module_name_  = "online_walking_module";
   control_mode_ = robotis_framework::PositionControl;
   control_type_ = NONE;
   balance_type_ = OFF;
@@ -150,13 +150,13 @@ OnlineWalkingModule::OnlineWalkingModule()
   des_body_offset_.resize(3, 0.0);
   goal_body_offset_.resize(3, 0.0);
 
-  std::string balance_gain_path = ament_index_cpp::get_package_share_directory(module_name_) + "/config/balance_gain.yaml";
+  std::string balance_gain_path = ament_index_cpp::get_package_share_directory("op3_online_walking_module") + "/config/balance_gain.yaml";
   parseBalanceGainData(balance_gain_path);
 
-  std::string joint_feedback_gain_path = ament_index_cpp::get_package_share_directory(module_name_) + "/config/joint_feedback_gain.yaml";
+  std::string joint_feedback_gain_path = ament_index_cpp::get_package_share_directory("op3_online_walking_module") + "/config/joint_feedback_gain.yaml";
   parseJointFeedbackGainData(joint_feedback_gain_path);
 
-  std::string joint_feedforward_gain_path = ament_index_cpp::get_package_share_directory(module_name_) + "/config/joint_feedforward_gain.yaml";
+  std::string joint_feedforward_gain_path = ament_index_cpp::get_package_share_directory("op3_online_walking_module") + "/config/joint_feedforward_gain.yaml";
   parseJointFeedforwardGainData(joint_feedforward_gain_path);
 }
 
@@ -397,13 +397,13 @@ void OnlineWalkingModule::setWholebodyBalanceMsgCallback(const std_msgs::msg::St
   if (enable_ == false)
     return;
 
-  std::string balance_gain_path = ament_index_cpp::get_package_share_directory(module_name_) + "/config/balance_gain.yaml";
+  std::string balance_gain_path = ament_index_cpp::get_package_share_directory("op3_online_walking_module") + "/config/balance_gain.yaml";
   parseBalanceGainData(balance_gain_path);
 
-  std::string joint_feedback_gain_path = ament_index_cpp::get_package_share_directory(module_name_) + "/config/joint_feedback_gain.yaml";
+  std::string joint_feedback_gain_path = ament_index_cpp::get_package_share_directory("op3_online_walking_module") + "/config/joint_feedback_gain.yaml";
   parseJointFeedbackGainData(joint_feedback_gain_path);
 
-  std::string joint_feedforward_gain_path = ament_index_cpp::get_package_share_directory(module_name_) + "/config/joint_feedforward_gain.yaml";
+  std::string joint_feedforward_gain_path = ament_index_cpp::get_package_share_directory("op3_online_walking_module") + "/config/joint_feedforward_gain.yaml";
   parseJointFeedforwardGainData(joint_feedforward_gain_path);
 
   if (msg->data == "balance_on")

@@ -31,7 +31,7 @@ TuningModule::TuningModule()
     get_tuning_data_(false)
 {
   enable_ = false;
-  module_name_ = "op3_tuning_module";
+  module_name_ = "tuning_module";
   control_mode_ = robotis_framework::PositionControl;
 
   tuning_module_state_ = new TuningModuleState();
@@ -69,8 +69,8 @@ void TuningModule::initialize(const int control_cycle_msec, robotis_framework::R
   set_ctrl_module_pub_ = this->create_publisher<std_msgs::msg::String>("/robotis/enable_ctrl_module", 1);
   sync_write_pub_ = this->create_publisher<robotis_controller_msgs::msg::SyncWriteItem>("/robotis/sync_write_item", 1);
 
-  tune_pose_path_ = ament_index_cpp::get_package_share_directory(module_name_) + "/data/tune_pose.yaml";
-  offset_path_ = ament_index_cpp::get_package_share_directory(module_name_) + "/data/offset.yaml";
+  tune_pose_path_ = ament_index_cpp::get_package_share_directory("op3_tuning_module") + "/data/tune_pose.yaml";
+  offset_path_ = ament_index_cpp::get_package_share_directory("op3_tuning_module") + "/data/offset.yaml";
   this->get_parameter_or<std::string>("offset_file_path", offset_path_, offset_path_);
   this->get_parameter_or<std::string>("init_file_path", init_file_path_, "");
 
@@ -673,12 +673,18 @@ void TuningModule::callServiceSettingModule(const std::string &module_name)
   auto request = std::make_shared<robotis_controller_msgs::srv::SetModule::Request>();
   request->module_name = module_name;
 
-  auto result = set_module_client_->async_send_request(request);
-  if (rclcpp::spin_until_future_complete(this->get_node_base_interface(), result) != rclcpp::FutureReturnCode::SUCCESS)
+  if (!set_module_client_->wait_for_service(std::chrono::seconds(1)))
   {
-    RCLCPP_ERROR(this->get_logger(), "Failed to set module");
+    RCLCPP_ERROR(this->get_logger(), "Failed to connect server");
     return;
   }
+
+  auto future = set_module_client_->async_send_request(request, 
+    [this](rclcpp::Client<robotis_controller_msgs::srv::SetModule>::SharedFuture result)
+    {
+      if (result.get()->result == false)
+        RCLCPP_ERROR(this->get_logger(), "Failed to set module");
+    });
 
   return;
 }
@@ -882,19 +888,23 @@ bool TuningModule::loadOffsetToController(const std::string &path)
   auto request = std::make_shared<robotis_controller_msgs::srv::LoadOffset::Request>();
   request->file_path = path;
 
-  auto result = load_offset_client_->async_send_request(request);
-  if (rclcpp::spin_until_future_complete(this->get_node_base_interface(), result) != rclcpp::FutureReturnCode::SUCCESS)
-  {
-    RCLCPP_ERROR(this->get_logger(), "Service server is not responded for turning on/off offset");
-    return false;
-  }
+  auto future = load_offset_client_->async_send_request(request,
+    [this](rclcpp::Client<robotis_controller_msgs::srv::LoadOffset>::SharedFuture result)
+    {
+      if (result.get()) 
+      {
+        if (result.get()->result)
+          RCLCPP_INFO(this->get_logger(), "succeed to let robotis_controller load the offset");
+        else
+          RCLCPP_ERROR(this->get_logger(), "Failed to let robotis_controller load the offset");
+      }
+      else
+      {
+        RCLCPP_ERROR(this->get_logger(), "Service server is not responded for turning on/off offset");
+      }
+    });
 
-  if(result.get()->result == true)
-    RCLCPP_INFO(this->get_logger(), "succeed to let robotis_controller load the offset");
-  else
-    RCLCPP_ERROR(this->get_logger(), "Failed to let robotis_controller load the offset");
-
-  return result.get()->result;
+  return true; // 비동기 요청 시작 후 바로 true 반환
 }
 
 void TuningModule::saveOffsetToYaml(const std::string &path)
